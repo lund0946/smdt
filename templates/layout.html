@@ -1,0 +1,51 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <meta name="Cache-Control" content="no-cache;must-revalidate">
+    <meta charset="UTF-8">
+    <title>Slitmask Design Tool</title>
+    <link rel='stylesheet' type='text/css' href='../static/smdt.css'>
+    <script src='../static/ajaxv2.js?r=2'></script>
+    <script src='../static/TargetTable.js?r=2'></script>
+    <script src='../static/inOutChecker.js?r=2'></script>
+    <script src='../static/drawUtils.js?r=2'></script>
+    <script src='../static/canvasShow.js?r=2'></script>
+    <script src='../static/smdt.js?r=2'></script>
+    <script>
+
+    </script>
+</head>
+
+<body onload='SlitmaskDesignTool();'>
+    <table id='headerTable'>
+        <tr>
+            <td>
+                <p id='kecklogo'></p>
+                <h2 id='headline'>&nbsp;Slitmask Design Tool Prototype</h2>
+                <ul id='keckmenu'>
+                    <li id='Keck'>
+                        <p><a href='https://keckobservatory.org'>Keck</a></p>
+                    </li>
+                </ul>
+    </table>
+
+{% block body %}
+{% endblock %}
+
+    <hr>
+    <table id='footerTable'>
+        <tr>
+            <td>Slitmask Design Tool  - (C) - <a href='https://keckobservatory.org'>W. M. Keck Observatory</a>
+    </table>
+    <div>
+    <div id='savePopup'>
+        Save popup div
+    </div>
+    </div>
+    <iframe name='targetListFrame' id='targetListFrame'> allowfullscreen</iframe>
+
+
+</body>
+</html>
+
