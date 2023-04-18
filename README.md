@@ -1,9 +1,7 @@
-Setup:
-Set PYTHONPATH in  runDesignTool.sh  
-      $PYTHON /Users/mlundquist/Projects/KECK/DSIMULATOR/New/SlitmaskDesignTool/DesignTool/take2/slitmaskdesign.py $*
+
 
 Run:
-1) Call: sh runDesignTool.sh start -b
+1) Call: python app.py
 2) Choose the mNGC2459_315.sel target list file
 3) Hit the load targets button
 4) Run Recalculate Mask
