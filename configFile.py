@@ -75,17 +75,6 @@ class ConfigFile(ConfigParser):
         for sec in sections:
             self.properties[sec] = digestItems(sec, self.properties)
 
-
-    def write(self,items):
-        """
-        Writes temp config params
-        """
-
-        f=open("temp_config.params",'w')
-        for k, v in items.items():
-            f.write('{}={}\n'.format(k, v))
-        f.close
-
     def __getattr__(self, key):
         val = self.properties.get(key.lower())
         if val is not None:

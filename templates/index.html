@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="Cache-Control" content="no-cache;must-revalidate">
+    <meta charset="UTF-8">
+    <title>Slitmask Design Tool</title>
+    <link rel='stylesheet' type='text/css' href='smdt.css'>
+    <script src='ajaxv2.js?r=2'></script>
+    <script src='TargetTable.js?r=2'></script>
+    <script src='inOutChecker.js?r=2'></script>
+    <script src='drawUtils.js?r=2'></script>
+    <script src='canvasShow.js?r=2'></script>
+    <script src='smdt.js?r=2'></script>
+    <script>
+
+    </script>
+</head>
+
+<body onload='SlitmaskDesignTool();'>
+    <table id='headerTable'>
+        <tr>
+            <td>
+                <p id='kecklogo'></p>
+                <h2 id='headline'>&nbsp;Slitmask Design Tool Prototype</h2>
+                <ul id='keckmenu'>
+                    <li id='Keck'>
+                        <p><a href='https://keckobservatory.org'>Keck</a></p>
+                    </li>
+                </ul>
+    </table>
+
+    <form name='form2' id='form2' method='post' enctype='multipart/form-data' action='sendTargets2Server'
+        target='targetListFrame'>
+        <table id='contentTable'>
+            <tr>
+                <td>
+                <td id='contentCell'>
+                    <table id='targetListName'>
+                        <tr>
+                            <td>Target List:
+                            <td><input type='file' id='targetList' name='targetList' value="mask_ex1.txt"
+                                    title="Input file of targets">
+                            <td><input type='button' id='loadTargets' name='loadTargets' value='Load targets'>
+                            <td><input type='button' id='showHideParams' value='Show Parameters'>
+                            <td><input type='button' id='saveMDF' value='Save Mask Design File'>
+                        </tr>
+                    </table>
+                    <div id='paramTableDiv' style='visibility: hidden; display: none'></div>
+                    <table id='paramButtonTable'>
+                        <tr>
+                            <td colspan='8'><input type='button' id='setSlitsPA' value='Set slits PA'> &nbsp;
+                                <input type='button' id='setMaskPA' value='Set mask PA'> &nbsp;
+                                <input type='button' id='updateParams' value='Update Params'> &nbsp;
+                                <input type='button' id='setSlitsLength' value='Set slits length'> &nbsp; <input
+                                    type='button' id='setSlitsWidth' value='Set slit width'>
+                    </table>
+
+                    <table id='contentPanel'>
+                        <tr>
+                            <td>
+                        <tr>
+                            <td>
+                                <table id='buttonPanel'>
+                                    <tr>
+                                        <td>
+                                            <table class='panButtonTable'>
+                                                <tr>
+                                                    <td>Pan Sky: <input type='radio' name='mouseAction' id='panSky' checked>
+                                                    <td>Rotate Sky: <input type='radio' name='mouseAction'
+                                                            id='rotateSky'>
+                                                    <td>Enable selection: <input type='checkbox' 
+                                                            id='enableSelection' checked='checked'>
+                                                    <td><input type='button' id='resetDisplay' value='Reset Display'>
+                                                        &nbsp; <input type='button' id='resetOffsets'
+                                                            value='Reset Offsets'>
+
+                                                <tr>
+                                                    <td>Pan Display: <input type='radio' name='mouseAction' id='panAll'>
+                                                    <td>Rotate display: <input type='radio' name='mouseAction' id='rotateAll'>
+                                            </table>
+                                    <tr>
+                                        <td>
+                                            <table class='panButtonTable'>
+                                                <tr>
+                                                    <td>Show all targets: <input type='radio' name='showSel'
+                                                            id='showAll' checked>
+                                                    <td> selected: <input type='radio' name='showSel' id='showSelected'>
+                                                    <td> Show align boxes: <input type='checkbox' id='showAlignBox'>
+                                                    <td> Show guide boxes: <input type='checkbox' id='showGuideBox'>
+                                                <tr>
+                                                    <td>Show by priority:<input type='radio' name='showSel'
+                                                            id='showByPriority'>
+                                                    <td>Min. Priority: <input id='minPriority' value='0' size=6>
+                                                    <td>Max. Priority: <input id='maxPriority' value='9999', size=6>
+                                                <tr>
+                                                    <td colspan='6'><input type='button' id='recalculateMask'
+                                                            value='Recalculate mask'>
+                                                            <input type='button' id='clearSelection'
+                                                            value="Clear selection">                                                        
+                                                            &nbsp;&nbsp;
+                                                            Extend Slits: <input type='checkbox' id='extendSlits' checked>
+                                                    
+                                            </table>
+                                    <tr>
+                                        <td>
+                                            <table>
+                                                <tr>
+                                                    <td>Show Guider FOV: <input type='checkbox' id='showGuiderFOV'>
+                                                    <td>Show bad columns: <input type='checkbox' id='showBadColumns'>
+
+                                            </table>
+                                    <tr>
+                                        <td>
+                                            <div id='testDiv'></div>
+                                    <tr>
+                                        <td>Center: <span id='statusDiv'>&nbsp;</span>
+                                    </tr>
+                                    <tr>
+                                        <td style='display:contents'>
+                                            <div id='canvasDiv' tabindex='0'>Initializing ...</div>
+                                </table>
+                        <tr>
+                            <td>
+                                <div id='mouseStatus'></div> &#x2795; Selected target; &#x25ef;Target; &#x2b1c;
+                                Alignment
+                                box; <br>
+                                Keys: h: left; &nbsp;l: right; &nbsp;j: move up; &nbsp;k: down Zoom: &nbsp;&gt;: zoom
+                                in; &nbsp;&lt;: zoom out.
+                                <br>
+                                <span id='extraStatusDiv'>&nbsp;</span>
+                    </table>
+        </table>
+    </form>
+    <br>
+    <table id='targetForms' width='100%'>
+        <tr>
+            <td>
+                <div id='targetTableDiv'></div>
+            <td>
+                <div id='targetFormDiv'>
+                    <h3>
+                        Selected target: <input id='targetName' value=''>
+                    </h3>
+                    <table id='targetFormTable'>
+                        <tr>
+                            <th>RA [hrs]:
+                            <td><input id='targetRA'>
+                            <th>DEC [deg]:
+                            <td><input id='targetDEC'>
+                            <th>Magnitude:
+                            <td><input id='targetMagn' size='7'>
+                            </td>
+                        <tr>
+                            <th>Prioriry:
+                            <td><input id='targetPrior' size='7'>
+                            <th>Select:
+                            <td><input id='targetSelect' size='7'>
+                            <th>Band:
+                            <td><input id='targetBand' size='7'>
+                            </td>
+                        <tr>
+                            <th>Slit PA:
+                            <td><input id='targetSlitPA' size='7'>
+                            <th>Slit Width:
+                            <td><input id='targetSlitWidth' size='7'>
+                        <tr>
+                            <th>Length1:
+                            <td><input id='targetLength1' size='7'></input>
+                            <th>length2:
+                            <td><input id='targetLength2' size='7'></input>
+                        <tr>
+                    </table>
+                    <input type='button' id='updateTarget' value='Update/Add target'>&nbsp;
+                    <input type='button' id='deleteTarget' value='Delete target'>
+                    
+                </div>
+    </table>
+
+
+    <hr>
+    <table id='footerTable'>
+        <tr>
+            <td>Slitmask Design Tool  - (C) - <a href='https://keckobservatory.org'>W. M. Keck Observatory</a>
+    </table>
+    <div>        
+    <div id='savePopup'>
+        Save popup div
+    </div>
+    </div>
+    <iframe name='targetListFrame' id='targetListFrame'> allowfullscreen</iframe>
+</body>
+
+</html>

@@ -87,7 +87,7 @@ function AjaxClass() {
         };
         xt.open("POST", script, true); // true for asyncrhonuous
         xt.timeout = self.maxTime;
-        xt.setRequestHeader("Content-type", "multipart/form-data");
+        xt.setRequestHeader("Content-type", "application/json");
         xt.send(content);
     };
 

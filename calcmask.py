@@ -10,30 +10,68 @@ import numpy as np
 import io
 import math
 
+
 from astropy import units as u
 from astropy.coordinates import Angle
 
 
-from smdtLibs import sl
-from smdtLibs.configFile import ConfigFile
-from smdtLibs import utils, dss2Header
-##from maskDesignFile import MaskDesignOutputFitsFile
+import sl
 import maskLayouts
-from smdtLibs import drawUtils, utils
+import utils
+
+
+import pdb
 
 
 
-rpath = os.path.dirname(os.path.realpath(__file__))
-sys.path.extend((rpath + "/smdtLibs",))
 
-def init_dicts(params,raDeg,decDeg,slitpa,pcode,mag,magband):
-#params['ra0'],params['dec0'],params['ha0'],raDeg,decDeg,slitpa,params['pa0'],params['min_slit']/2,params['min_slit']/2,params,pcode,mag,magband
-    centerRADeg=params['ra0']
-    centerDECDeg=params['dec0']
-    haDeg=params['ha0']
-    positionAngle=params['pa0']
-    len1=params['min_slit']/2
-    len2=params['min_slit']/2
+
+
+def init_dicts(data,params):
+    #params {'ProjectNamefd': ['New Mask'], 'OutputFitsfd': ['mask.fits'], 'Telescopefd': ['Keck II'], 'Instrumentfd': ['DEIMOS'], 'ObsDatefd': ['2022-08-31 00:00:00'], 'Authorfd': ['Keck Observatory'], 'Observerfd': ['Observer Name'], 'MaskIdfd': ['123456789'], 'MaskNamefd': ['Mask Name'], 'MinSlitLengthfd': ['5.0'], 'MinSlitSeparationfd': ['0.35'], 'SlitWidthfd': ['1.00'], 'AlignBoxSizefd': ['4.0'], 'BlueWaveLengthfd': ['3200'], 'RedWaveLengthfd': ['3200'], 'ReferenceWaveLengthfd': ['3200'], 'CenterWaveLengthfd': ['3200'], 'ProjSlitLengthfd': ['yes'], 'NoOverlapfd': ['yes'], 'Temperaturefd': ['0.0'], 'Pressurefd': ['615.0'], 'MaskPAfd': ['0.0'], 'SlitPAfd': ['0.0'], 'InputRAfd': ['00:00:00'], 'InputDECfd': ['00:00:00'], 'MaskMarginfd': ['4'], 'HourAnglefd': ['0.001'], 'Extrafd': ['Extra'], 'mouseAction': ['on'], 'showSel': ['on']}
+
+
+    ra=data.loc[:,'raHour']
+    dec=data.loc[:,'decDeg']
+    mag=data.loc[:,'mag']
+    magband=data.loc[:,'pBand']
+    pcode=data.loc[:,'pcode']
+    sel=data.loc[:,'selected']
+
+    try:
+        print('Found tilts')
+        slit_pa=data.loc[:,'slitLPA']
+#        print(slit_pa)
+        tilt=True
+    except:
+        print('No slit tilt')
+        tilt=False
+    raDeg,decDeg=[],[]
+    slitpa=[]
+    _pcode=[]
+    _mag,_magband=[],[]
+    ra=Angle(ra,unit=u.hour)
+    dec=Angle(dec,unit=u.deg)
+    for i in range(len(ra)):
+        if tilt==True:
+            print('range-len(ra)',slit_pa[i])
+            slitpa.append(slit_pa[i])
+        else:
+            slitpa.append(-9999)
+        raDeg.append(ra[i].degree)
+        decDeg.append(dec[i].degree)
+
+
+    print('Line65--->',params['InputRAfd'],params['InputDECfd'])
+    centerRADeg=utils.sexg2Float(params['InputRAfd'][0])*15   ####### Check sexagesimal conversion
+    centerDECDeg=utils.sexg2Float(params['InputDECfd'][0])
+
+
+
+    haDeg=float(params['HourAnglefd'][0])
+    positionAngle=float(params['MaskPAfd'][0])
+    len1=float(params['MinSlitLengthfd'][0])/2
+    len2=float(params['MinSlitLengthfd'][0])/2
 
 
     ra0_fld=np.radians(centerRADeg)
@@ -44,38 +82,33 @@ def init_dicts(params,raDeg,decDeg,slitpa,pcode,mag,magband):
     decRad=np.radians(decDeg)
     lst = ra0_fld + ha0_fld
     pa0_fld=np.radians(positionAngle)
-    
+
     length1,length2=[],[]
     slitLPA=[]
-#    pcode=[]
     slitWidth=[]
     for i in range(len(raRad)): ### Manual Hacks
-#        length1.append(len1)  ### slitlength manual
-#        length2.append(len2)
-#        slitLPA.append(params['pa0'])
         slitLPA.append(slitpa[i])
-#        pcode.append(100)
         print('pcode,slpa',pcode[i],slitpa[i])
         if pcode[i]!=-2:
-            slitWidth.append(params['slit_width'])
+            slitWidth.append(float(params['SlitWidthfd'][0]))    #### Set manually later???  #### <<<<------------
             length1.append(len1)  ### slitlength manual
             length2.append(len2)
             print(i,length1[i],length2[i],slitWidth[i])
         else:
-            slitWidth.append(params['box_sz'])
-            length1.append(params['box_sz']*0.5)  ### slitlength manual
-            length2.append(params['box_sz']*0.5)
+            slitWidth.append(float(params['AlignBoxSizefd'][0]))
+            length1.append(float(params['AlignBoxSizefd'][0])*0.5)  ### slitlength manual
+            length2.append(float(params['AlignBoxSizefd'][0])*0.5)
             print(i,length1[i],length2[i],slitWidth[i])
 
     obs_lat= 19.8
     obs_alt = 4150.
     mm_arcs = 0.7253
-    waver=7500
-    wavemn=5000
-    wavemx=9000
-    pres=615
-    temp=0
-    obs_rh=0.4
+    waver=float(params['ReferenceWaveLengthfd'][0])
+    wavemn=float(params['BlueWaveLengthfd'][0])
+    wavemx=float(params['RedWaveLengthfd'][0])
+    pres=float(params['Pressurefd'][0])
+    temp=float(params['Temperaturefd'][0])
+    obs_rh=0.4                                               ######### <--------- Add to webpage params!
 
 
     lat = np.radians(obs_lat)        # radians
@@ -90,10 +123,6 @@ def init_dicts(params,raDeg,decDeg,slitpa,pcode,mag,magband):
 
     return obs,site
 
-
-
-def target_import():
-    pass
 
 def refr_coords(obs,site):
 
@@ -268,7 +297,6 @@ def tel_coords(obs,ra_ref,dec_ref,ra_telref,dec_telref):
     return obs
 
 
-
 def gen_slits(obs):
 
 
@@ -330,9 +358,6 @@ def gen_slits(obs):
     obs["sel"]=_sel
 
     return obs
-
-
-
 def sky_coords(obs):
 
     ra,dec=[],[]
@@ -359,14 +384,14 @@ def sky_coords(obs):
         r = np.arctan (r/206264.8)
 
         phi = pa0 - np.arctan2 (y, x)        # WORK
- 
+
         sind = np.sin(dec0) * np.cos(r) + np.cos(dec0) * np.sin(r) * np.cos(phi)
 
         sina = np.sin(r) * np.sin(phi) / np.sqrt(1. - sind*sind)
 
         _dec = np.arcsin(sind)
         _ra = ra0 + np.arcsin(sina)
- 
+
         dec.append(_dec)
         ra.append(_ra)
 
@@ -618,123 +643,33 @@ def proj_to_mask(xp,yp,ap):
 
 
 
-########################
-########################
-########################
-########################
-########################
-
-def readparams(infile):
-    dict={}
-    with open(infile) as f:
-        for line in f:
-            (k,v) = line.strip().split('=')
-            dict[k]=v
-    return dict
 
 
 
-def runDsim():
-
-    params={
-        'objfile':'NGC2459_315.input',
-        'output':'NGC2459_315.out',
-        'mdf':'NGC2459_315_.fits',
-        'plotfile':'',
-        'ra0':7.8672*15,
-        'dec0':9.557,
-        'pa0':315,
-        'equinox':2000.0,
-        'ha0':-2.5,
-        'min_slit':20.0,
-        'sep_slit':0.35,
-        'slit_width':1.0,
-        'box_sz':4.0,
-        'blue':6000.0,
-        'red':8000.0,
-        'proj_len':False,
-        'no_overlap':False,
-        'lambda_cen':7000.0,
-        'temp':0.0,
-        'pressure':615,
-        'maskid':'N2459Z',
-        'guiname':'N2459Z',
-        'dateobs':'2023-01-16',
-        'author':'Lundquist <mlundquist@keck.hawaii.edu>',
-        'observer':'Lundquist <mlundquist@keck.hawaii.edu>',
-        'project':'ENG',
-        'instrument':'DEIMOS',
-        'telescope':'Keck II'
-    }
-    params={}
-
-
-####
-##Currently reading in the dsim output##
-####
-
-
-    fileparams=readparams('temp_config.params')
 
 
 
-##### This needs to be replaced with target info from GUI   #####
-    data=pd.read_table(fileparams['objfile'],skiprows=0,comment='#',delim_whitespace=True)
-
-
-    print(data)
 
 
 
-    ra=data.iloc[:,1]
-    dec=data.iloc[:,2]
-    mag=data.iloc[:,4]
-    magband=data.iloc[:,5]
-    pcode=data.iloc[:,6]
-    sel=data.iloc[:,8]
-    
-    try:
-        print('Found tilts')
-        slit_pa=data.iloc[:,9]
-        print(slit_pa)
-        tilt=True
-    except:
-        print('No slit tilt')
-        tile=False
-    raDeg,decDeg=[],[]
-    slitpa=[]
-    _pcode=[]
-    _mag,_magband=[],[]
-    ra=Angle(ra,unit=u.hour)
-    dec=Angle(dec,unit=u.deg)
-    for i in range(len(ra)):
-        if sel[i]==1:
-            if tilt==True:
-                print('range-len(ra)',slit_pa[i])
-                slitpa.append(slit_pa[i])
-            else:
-                slitpa.append(-9999)
-            raDeg.append(ra[i].degree)
-            decDeg.append(dec[i].degree)
-            _pcode.append(pcode[i])
-            _mag.append(mag[i])
-            _magband.append(magband[i])
-
-    pcode=_pcode
-    mag=_mag
-    magband=_magband
-
-    ####
-    ## Selection hack.  Will do in GUI later##
-    ####
-
-    from datetime import datetime
-
-    fileparams['descreate']=datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
-
-    obs,site=init_dicts(fileparams,raDeg,decDeg,slitpa,pcode,mag,magband)
 
 
+
+
+
+def genObs(df,fileparams):
+
+    obs,site=init_dicts(df,fileparams)
+    obs=refr_coords(obs,site)
+    obs=fld2telax(obs,'ra_fldR','dec_fldR','ra_telR','dec_telR')
+    obs=tel_coords(obs,'raRadR','decRadR','ra_telR','dec_telR')
+
+    df['xarcs']=obs['xarcs']
+    df['yarcs']=obs['yarcs']
+    return df
+
+def genSlits(df,fileparams):
+    obs,site=init_dicts(df,fileparams)
     obs=refr_coords(obs,site)
     obs=fld2telax(obs,'ra_fldR','dec_fldR','ra_telR','dec_telR')
     obs=tel_coords(obs,'raRadR','decRadR','ra_telR','dec_telR')
@@ -745,38 +680,93 @@ def runDsim():
     slit=tel_coords(slit,'raRadU','decRadU','ra_telU','dec_telU')
     slit=mask_coords(slit)
 
+    df['xarcs']=slit['xarcs']
+    df['yarcs']=slit['yarcs']
+
+    return df
+
+def genMaskOut(df,fileparams):
+    obs,site=init_dicts(df,fileparams)
+    obs=refr_coords(obs,site)
+    obs=fld2telax(obs,'ra_fldR','dec_fldR','ra_telR','dec_telR')
+    obs=tel_coords(obs,'raRadR','decRadR','ra_telR','dec_telR')
+    slit=gen_slits(obs)
+    slit=sky_coords(slit)
+    slit=unrefr_coords(slit,site)
+    slit=fld2telax(slit,'ra0_fldU','dec0_fldU','ra_telU','dec_telU')
+    slit=tel_coords(slit,'raRadU','decRadU','ra_telU','dec_telU')
+    slit=mask_coords(slit)
+
+    df['xarcs']=slit['xarcs']
+    df['yarcs']=slit['yarcs']
+
+
     tel={}
     tel['newcenterRADeg']=obs['newcenterRADeg']
     tel['newcenterDECDeg']=obs['newcenterDECDeg']
-    tel['dateobs']=fileparams['dateobs']
+    tel['dateobs']=fileparams['ObsDatefd']
     tel['lst']=obs['lst']
 
 
 
-    #slit={k:([v] if type(v)!=list else v) for (k,v) in slit.items()}
+
+
+    params={
+        'objfile':'',      #Pass separately?
+        'output':fileparams['OutputFitsfd'][0]+'.out',
+        'mdf':fileparams['OutputFitsfd'][0],
+        'plotfile':'',
+        'ra0':(15*utils.sexg2Float(fileparams['InputRAfd'][0])),
+        'dec0':(utils.sexg2Float(fileparams['InputDECfd'][0])),
+        'pa0':float(fileparams['MaskPAfd'][0]),
+        'equinox':2000.0,
+        'ha0':float(fileparams['HourAnglefd'][0]),
+        'min_slit':float(fileparams['MinSlitLengthfd'][0]),
+        'sep_slit':float(fileparams['MinSlitSeparationfd'][0]),
+        'slit_width':float(fileparams['SlitWidthfd'][0]),
+        'box_sz':float(fileparams['AlignBoxSizefd'][0]),
+        'blue':float(fileparams['BlueWaveLengthfd'][0]),
+        'red':float(fileparams['RedWaveLengthfd'][0]),
+        'proj_len':False,
+        'no_overlap':False,
+#    'std_format':True,     #Remove this option
+        'lambda_cen':float(fileparams['CenterWaveLengthfd'][0]),
+        'temp':float(fileparams['Temperaturefd'][0]),
+        'pressure':float(fileparams['Pressurefd'][0]),
+        'maskid':fileparams['MaskIdfd'][0],
+        'guiname':fileparams['MaskNamefd'][0],
+        'dateobs':fileparams['ObsDatefd'][0],
+        'author':fileparams['Authorfd'][0],
+        'observer':fileparams['Observerfd'][0],
+        'project':fileparams['ProjectNamefd'][0],
+        'instrument':'DEIMOS',
+        'telescope':'Keck II'
+ }
+
+
+#    print(fileparams['OutputFitsfd'][0])
+
+    params['descreate']='2022-12-01T01:00:00'
+
+
+
+
+
+
     site={k:([v] if type(v)!=list else v) for (k,v) in site.items()}
-    fileparams={k:([v] if type(v)!=list else v) for (k,v) in fileparams.items()}
+    params={k:([v] if type(v)!=list else v) for (k,v) in params.items()}     ####   <-----fix this for correct outputs
     tel={k:([v] if type(v)!=list else v) for (k,v) in tel.items()}
 
 
 
     slitsdf=pd.DataFrame(slit)
-    paramdf=pd.DataFrame(fileparams)
+    paramdf=pd.DataFrame(params)
     sitedf=pd.DataFrame(site)
     teldf=pd.DataFrame(tel)
 
-
-    ## Currently an import error with targets so turning this off
-    #from writeMask import MaskDesignOutputFitsFile
-    #mdf=MaskDesignOutputFitsFile(slitsdf,sitedf,paramdf,teldf)
-    #os.system("rm basictest_tilts.fits")
-    #mdf.writeTo('basictest_tilts.fits')
+    from writeMask import MaskDesignOutputFitsFile
+    mdf=MaskDesignOutputFitsFile(slitsdf,sitedf,paramdf,teldf)
+    mdf.writeTo(params['mdf'][0])
 
 
-
-
-    print('site')
-    print(site.keys())
-    print('Slits')
-    print(slit.keys())
-
+    return df

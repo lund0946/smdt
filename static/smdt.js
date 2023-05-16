@@ -194,35 +194,35 @@ function SlitmaskDesignTool() {
                 // Updates params.
                 // Sends params to server
 
-                let projname = String(E('projectnamefd').value);
-                let outfits = String(E('outputfitsfd').value);
-                let tel = String(E('telescopefd').value);
-                let inst = String(E('instrumentfd').value);
-                let obsdate =  String(E('obsdatefd').value)
-                let auth =  String(E('authorfd').value)
-                let observer =  String(E('observerfd').value)
-                let maskid = String(E('maskidfd').value)
-                let maskname = String(E('masknamefd').value)
-                let minslitlen = Number(E('minslitlengthfd').value)
-                let minslitsep = Number(E('minslitseparationfd').value)
-                let slitwidth = Number(E('slitwidthfd').value)
-                let boxsz = Number(E('alignboxsizefd').value)
-                let bluewave = Number(E('bluewavelengthfd').value)
-                let redwave = Number(E('redwavelengthfd').value)
-                let cenwave = Number(E('centerwavelengthfd').value)
-                let projlen =  Number(E('projslitlengthfd').value)
-                let nooverlap = Number(E('nooverlapfd').value)
-                let temp =  Number(E('temperaturefd').value)
-                let maskpa =  Number(E('maskpafd').value)
-                let slitpa = Number(E('slitpafd').value)
-                let inputra = String(E('inputrafd').value)
-                let inputdec = String(E('inputdecfd').value)
-                let maskmargin = Number(E('maskmarginfd').value)
-                let hourangle = Number(E('houranglefd').value)
+                let projname = String(E('ProjectNamefd').value);
+                let outfits = String(E('OutputFitsfd').value);
+                let tel = String(E('Telescopefd').value);
+                let inst = String(E('Instrumentfd').value);
+                let obsdate =  String(E('ObsDatefd').value)
+                let auth =  String(E('Authorfd').value)
+                let observer =  String(E('Observerfd').value)
+                let maskid = String(E('MaskIdfd').value)
+                let maskname = String(E('MaskNamefd').value)
+                let minslitlen = Number(E('MinSlitLengthfd').value)
+                let minslitsep = Number(E('MinSlitSeparationfd').value)
+                let slitwidth = Number(E('SlitWidthfd').value)
+                let boxsz = Number(E('AlignBoxSizefd').value)
+                let bluewave = Number(E('BlueWaveLengthfd').value)
+                let redwave = Number(E('RedWaveLengthfd').value)
+                let cenwave = Number(E('CenterWaveLengthfd').value)
+                let projlen =  Number(E('ProjSlitLengthfd').value)
+                let nooverlap = Number(E('NoOverlapfd').value)
+                let temp =  Number(E('Temperaturefd').value)
+                let maskpa =  Number(E('MaskPAfd').value)
+                let slitpa = Number(E('SlitPAfd').value)
+                let inputra = String(E('InputRAfd').value)
+                let inputdec = String(E('InputDECfd').value)
+                let maskmargin = Number(E('MaskMarginfd').value)
+                let hourangle = Number(E('HourAnglefd').value)
                 self.canvasShow.setMaskPA(maskpa);
-
+/*
                 let params = {
-                        'mdf': outfits, 'ra0': inputra, 'dec0': inputDEC, 'equinox': 2000,
+                        'mdf': outfits, 'ra0': inputra, 'dec0': inputdec, 'equinox': 2000,
                         'pa0': maskpa, 'ha0': hourangle,
                         'min_slit': minslitlen, 'sep_slit': minslitsep, 'slit_width': slitwidth, 'box_sz': boxsz,
                         'blue': bluewave, 'red': redwave, 'lambda_cen': cenwave, 'proj_len': projlen,
@@ -231,7 +231,7 @@ function SlitmaskDesignTool() {
                         'observer': observer, 'project': projname, 'instrument': inst, 'telescope':'tel'
 
                 };
-
+*/
                 let form2 = E('form2');
                 form2.submit();
 
@@ -249,12 +249,12 @@ function SlitmaskDesignTool() {
 
 
 	self.setMaskPA = function (evt) {
-		let pa = Number(E('maskpafd').value);
+		let pa = Number(E('MaskPAfd').value);
 		self.canvasShow.setMaskPA(pa);
 	};
 
 	self.setSlitsPA = function (evt) {
-		let pa = Number(E('slitpafd').value);
+		let pa = Number(E('SlitPAfd').value);
 		let tgs = self.canvasShow.targets;
 		let ntgs = tgs.length1.length;
 		let i;
@@ -272,9 +272,9 @@ function SlitmaskDesignTool() {
 	};
 
 	self.setSlitsLength = function (evt) {
-		let asize = Number(E('alignboxsizefd').value);
+		let asize = Number(E('AlignBoxSizefd').value);
 		let ahalf = 0.5 * asize;
-		let halfLen = 0.5 * Number(E('minslitlengthfd').value);
+		let halfLen = 0.5 * Number(E('MinSlitLengthfd').value);
 		let tgs = self.canvasShow.targets;
 		let ntgs = tgs.length1.length;
 		let i;
@@ -303,7 +303,7 @@ function SlitmaskDesignTool() {
 	};
 
 	self.setSlitsWidth = function (evt) {
-		let width = Number(E('slitwidthfd').value);
+		let width = Number(E('SlitWidthfd').value);
 		let tgs = self.canvasShow.targets;
 		let ntgs = tgs.length1.length;
 		let i;
@@ -348,9 +348,9 @@ function SlitmaskDesignTool() {
 		cs.centerRaDeg = cs.currRaDeg;
 		cs.centerDecDeg = cs.currDecDeg;
 
-		let minSepAs = E('minslitseparationfd').value;
-		let minSlitLengthAs = E('minslitlengthfd').value;
-		let boxSizeAs = E('alignboxsizefd').value;
+		let minSepAs = E('MinSlitSeparationfd').value;
+		let minSlitLengthAs = E('MinSlitLengthfd').value;
+		let boxSizeAs = E('AlignBoxSizefd').value;
 		let extendSlits = E('extendSlits').checked ? 1 : 0;
 
 		let params = {
@@ -377,6 +377,42 @@ function SlitmaskDesignTool() {
 		self.recalculateMaskHelper(callback);
 	};
 
+
+        self.updateColumn = function (evt) {
+                // Updates an existing target column with a set value.
+                function callback(data) {
+                        let i = idx;
+                        if (data && data.length > 0)
+                                i = data[0]
+                        self.reloadTargets(idx, i);
+                        self.canvasShow.selectedTargetIdx = i;
+                }
+                // Sends new target info to server
+                let idx = self.canvasShow.selectedTargetIdx;
+                let prior = Number(E('targetPrior').value);
+                let selected = Number(E('targetSelect').value);
+                let slitLPA = Number(E('targetSlitPA').value);
+                let slitWidth = Number(E('targetSlitWidth').value);
+                let length1 = Number(E('targetLength1').value);
+                let length2 = Number(E('targetLength2').value);
+                let tname = E("targetName").value;
+                let targetRA = E("targetRA").value;
+                let targetDEC = E("targetDEC").value;
+                let targetMagn = E("targetMagn").value;
+                let targetBand = E('targetBand').value;
+
+                let params = {
+                        'idx': idx, 'raSexa': targetRA, 'decSexa': targetDEC, 'eqx': 2000,
+                        'mag': targetMagn, 'pBand': targetBand,
+                        'prior': prior, 'selected': selected, 'slitLPA': slitLPA, 'slitWidth': slitWidth,
+                        'len1': length1, 'len2': length2, 'targetName': tname
+                };
+                let ajax = new AjaxClass();
+                ajax.postRequest('updateColumn', { 'values': JSON.stringify(params) }, callback);
+        };
+
+
+
 	self.updateTarget = function (evt) {
 		// Updates an existing or adds a new target.
 		function callback(data) {
@@ -385,6 +421,9 @@ function SlitmaskDesignTool() {
 				i = data[0]
 			self.reloadTargets(idx, i);
 			self.canvasShow.selectedTargetIdx = i;
+                        self.canvasShow.reDrawTable();
+                        self.redraw();
+
 		}
 		// Sends new target info to server
 		let idx = self.canvasShow.selectedTargetIdx;
@@ -490,7 +529,7 @@ function SlitmaskDesignTool() {
 			ajaxCall("saveMaskDesignFile", params, callbackSave);
 		}
 
-		let mdFile = E('outputfitsfd').value;
+		let mdFile = E('OutputFitsfd').value;
 		let params = { 'mdFile': mdFile };
 		self.recalculateMaskHelper(callback);
 	};
@@ -540,7 +579,8 @@ function SlitmaskDesignTool() {
 	E('setMaskPA').onclick = self.setMaskPA;
 	E('setSlitsLength').onclick = self.setSlitsLength;
 	E('setSlitsWidth').onclick = self.setSlitsWidth;
-        E('updateParams').onclick = self.updateParams;
+//        E('updateParams').onclick = self.updateParams;
+        E('updateParams').onclick = self.sendTargets2Server;
 
 	E('recalculateMask').onclick = self.recalculateMask;
 	E('clearSelection').onclick = self.clearSelection;

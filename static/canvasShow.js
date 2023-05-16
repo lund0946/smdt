@@ -544,10 +544,10 @@ function CanvasShow(containerName, zoomContainer) {
         var decSexa = toSexa(self.currDecDeg);
         var paDeg = self.positionAngle + self.origPA;
 
-        if (E("inputrafd")) {
-            E("inputrafd").value = raSexa;
-            E("inputdecfd").value = decSexa;
-            E("maskpafd").value = paDeg.toFixed(3);
+        if (E("InputRAfd")) {
+            E("InputRAfd").value = raSexa;
+            E("InputDECfd").value = decSexa;
+            E("MaskPAfd").value = paDeg.toFixed(3);
 
             showMsg(
                 "statusDiv",
@@ -659,7 +659,7 @@ function CanvasShow(containerName, zoomContainer) {
 
     self.drawGaps = function (ctx, gaps, y0, color, lw) {
         let tmax = self.tMatrix;
-        let minSlitLen = Number(E("minslitlengthfd").value);
+        let minSlitLen = Number(E("MinSlitLengthfd").value);
 
         let x0 = 0,
             x1 = 0;
@@ -906,7 +906,7 @@ function CanvasShow(containerName, zoomContainer) {
         var arc2Pixel = tmScale / self.xAsPerPixel;
         var minDist = 1e10;
 
-        var projSlitLen = toBoolean(E("projslitlengthfd").value);
+        var projSlitLen = toBoolean(E("ProjSlitLengthfd").value);
 
         var showAll = E("showAll").checked;
         var showAlignBox = E("showAlignBox").checked;

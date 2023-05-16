@@ -19,7 +19,6 @@ import sys
 import io
 import math
 import os
-import dsim
 
 os.environ["NUMEXPR_MAX_THREADS"] = "4"
 os.environ["NUMEXPR_NUM_THREADS"] = "4"
@@ -334,7 +333,7 @@ class TargetList:
             data1[colName] = data[i]
 
         data2 = {"info": self.getROIInfo(), "targets": data1, "xgaps": self.xgaps}
-
+        print(data2)
         return json.dumps(data2, cls=MyJsonEncoder)
 
     def setColum(self, colName, value):
@@ -461,15 +460,174 @@ class TargetList:
             inMask.append(isIn)
         self.targets["inMask"] = inMask
 
+    def calcRefrCoords(self, centerRADeg, centerDECDeg, haDeg=100.52916667*np.pi/180):
+        """
+        Applies refraction on the center of mask coordinates
+        """
+        atRefr = DARCalculator.DARCalculator(
+            self.config.properties["tellatitude"], self.config.properties["referencewavelen"] * 1000, 615, 0,
+        )
+
+
+        raDeg, decDeg, refr = atRefr.getRefr([centerRADeg], [centerDECDeg], centerRADeg, haDeg)
+        refa,refb,ra,rb,pMMHg, temperature, centerWavelength,zd,el=(atRefr.getRefTest([centerRADeg], [centerDECDeg], centerRADeg, haDeg))
+        print('el:',el)
+        print(refa-ra,refb-rb)
+        print('getrefr:',refr*3600.,np.degrees(zd)*3600.)
+        return raDeg, decDeg
+
+    def calcUnrefrCoords(self, centerRADeg, centerDECDeg, haDeg=100.52916667*np.pi/180):
+        """
+        Applies reverse refraction on the center of mask coordinates
+        """
+        atRefr = DARCalculator.DARCalculator(
+            self.config.properties["tellatitude"], self.config.properties["referencewavelen"] * 1000, 615, 0,
+        )
+        raDeg, decDeg, refr = atRefr.getUnRefr([centerRADeg], [centerDECDeg], centerRADeg, haDeg)
+
+        return raDeg, decDeg
+
+    def toPNTCenter(self, paDeg, haDeg):
+        """
+        Rotates vector to center of telescope and adds refraction correction to center of mask
+        Result is pointing center to be stored in FITS file.
+        Returns pntRaDeg and pntDecDeg
+        """
+        ra1, dec1 = self.calcRefrCoords(self.centerRADeg, self.centerDEC, haDeg)
+        pntX, pntY = self.config.properties["fldcenx"], self.config.properties["fldceny"]
+
+        ra2, dec2 = utils.rotate(pntX, pntY, -paDeg - 90.0)
+        cosd = np.cos(np.radians(dec1[0]))
+        if abs(cosd) > 1e-5:
+            ra2 = ra2 / cosd
+        pntRaDeg = ra1[0] + ra2 / 3600
+        pntDecDeg = dec1[0] + dec2 / 3600
+
+        return pntRaDeg, pntDecDeg
+
+    def calcSlitXYs(self):
+        """
+        Calculates the corners of the slits
+        """
+        targets = self.targets
+        selector = targets.inMask > 0
+        aboxSelect = targets.pcode == -2
+        targets.loc[aboxSelect, "slitLPA"] = self.positionAngle
+        selected = targets[selector]
+        nSlits = selected.shape[0]
+        if nSlits > 0:
+            slitWidths = selected.slitWidth
+            half = slitWidths / 2
+
+            relAngles = np.radians(self.positionAngle - selected.slitLPA)
+            sines = np.sin(relAngles)
+            cosines = np.cos(relAngles)
+
+            slitX = selected.xarcs
+            slitY = selected.yarcs
+            l1 = selected.length1
+            l2 = selected.length2
+
+            slitX10 = slitX - cosines * l1
+            slitY10 = slitY - sines * l1
+            slitX2, slitY2, pa0 = self.proj_to_mask(slitX10, slitY10 + half, 0)
+            slitX3, slitY3, pa0 = self.proj_to_mask(slitX10, slitY10 - half, 0)
+
+            slitX30 = slitX + cosines * l2
+            slitY30 = slitY + sines * l2
+            slitX4, slitY4, pa0 = self.proj_to_mask(slitX30, slitY30 - half, 0)
+            slitX1, slitY1, pa0 = self.proj_to_mask(slitX30, slitY30 + half, 0)
+
+            targets.loc[selector, "slitX1"] = slitX1
+            targets.loc[selector, "slitY1"] = slitY1
+            targets.loc[selector, "slitX2"] = slitX2
+            targets.loc[selector, "slitY2"] = slitY2
+            targets.loc[selector, "slitX3"] = slitX3
+            targets.loc[selector, "slitY3"] = slitY3
+            targets.loc[selector, "slitX4"] = slitX4
+            targets.loc[selector, "slitY4"] = slitY4
+            targets.loc[selector, "slitLen"] = l1 + l2
+            targets.loc[selector, "TopDist"] = l1
+            targets.loc[selector, "BotDist"] = l2
+
+    def irafcalcSlitXYs(self):
+        """
+        Calculates the corners of the slits
+        """
+        targets = self.targets
+        selector = targets.inMask > 0
+        aboxSelect = targets.pcode == -2
+        targets.loc[aboxSelect, "slitLPA"] = self.positionAngle
+        selected = targets[selector]
+        nSlits = selected.shape[0]
+        if nSlits > 0:
+            slitWidths = selected.slitWidth
+            half = slitWidths / 2
+
+            relAngles = np.radians(self.positionAngle - selected.slitLPA)
+            sines = np.sin(relAngles)
+            cosines = np.cos(relAngles)
+
+            slitX = selected.xarcs
+            slitY = selected.yarcs
+            l1 = selected.length1
+            l2 = selected.length2
+
+            slitX10 = slitX - cosines * l1
+            slitY10 = slitY - sines * l1
+            slitX2, slitY2, pa0 = self.proj_to_mask(slitX10, slitY10 + half, 0)
+            slitX3, slitY3, pa0 = self.proj_to_mask(slitX10, slitY10 - half, 0)
+
+            slitX30 = slitX + cosines * l2
+            slitY30 = slitY + sines * l2
+            slitX4, slitY4, pa0 = self.proj_to_mask(slitX30, slitY30 - half, 0)
+            slitX1, slitY1, pa0 = self.proj_to_mask(slitX30, slitY30 + half, 0)
+
+            targets.loc[selector, "slitX1"] = slitX1
+            targets.loc[selector, "slitY1"] = slitY1
+            targets.loc[selector, "slitX2"] = slitX2
+            targets.loc[selector, "slitY2"] = slitY2
+            targets.loc[selector, "slitX3"] = slitX3
+            targets.loc[selector, "slitY3"] = slitY3
+            targets.loc[selector, "slitX4"] = slitX4
+            targets.loc[selector, "slitY4"] = slitY4
+            targets.loc[selector, "slitLen"] = l1 + l2
+            targets.loc[selector, "TopDist"] = l1
+            targets.loc[selector, "BotDist"] = l2
+
+
+
+    def irafCoordinates(self):
+
+        raDeg,decDeg,posAngleDeg=self.centerRADeg, self.centerDEC, self.positionAngle
+
+        raRad=raDeg*np.pi/180.
+        decRad=decDeg*np.pi/180.
+        paRad=posAngleDeg*np.pi/180.
+
+        refr_coords()
+        fld2telax()
+        tel_coords(ra0,dec0,pa0,raRad,decRad,paRad,r,proj_len)
+
+        # select slits
+
+        sky_coords()
+        unrefr_coords()
+        tel_coords()
+        #convert to mm
+        #gnom to dproj
+        #proj to mask
+
+
+        raRad, decRad = self.calcRefrCoords(raRad, decRad)
+
+        telRaRad, telDecRad = self._fld2telax(raDeg, decDeg, posAngleDeg)
+        self.telRaRad, self.telDecRad = telRaRad, telDecRad
 
 
 
 
-
-
-
-
-    def reCalcCoordinates(self, raDegfld, decDegfld, posAngleDegfld):
+    def reCalcCoordinates(self, raDeg, decDeg, posAngleDeg):
         """
         Recalculates xarcs and yarcs for new center RA/DEC and positionAngle
         Results saved in xarcs, yarcs
@@ -477,76 +635,280 @@ class TargetList:
         Returns xarcs, yarcs in focal plane coordinates in arcs.
         """
 
+        print('-=--=-=-=-=-=-=-=-=-==--=-=-=')
+        print(self.__dict__.keys())
+        #for k,v in self.__dict__.items():
+        #    print(k,v)
+        print(self.config.properties['params'])
+        print(self.targets)
+        print('PA:',self.positionAngle)
 
-        from astropy import units as u
-        from astropy.coordinates import Angle
-
-
-#        telRaRad, telDecRad = self._fld2telax(raDeg, decDeg, posAngleDeg)
-#        self.telRaRad, self.telDecRad = telRaRad, telDecRad
-#        xarcs, yarcs = self._calcTelTargetCoords(telRaRad, telDecRad, self.targets.raRad, self.targets.decRad, posAngleDeg)
-#        self.targets["xarcs"] = xarcs
-#        self.targets["yarcs"] = yarcs
-
-
-        params=dsim.readparams('temp_config.params')
-        tofloat=['ra0','dec0','pa0','ha0','min_slit','sep_slit','slit_width','box_sz','blue','red','lambda_cen','temp','pressure']
-        for k in tofloat:
-            params[k]=float(params[k])
+#        print('TelTarg',self.targets.raRad[15], self.targets.decRad[15])
+#        for i in range(len(self.targets.raRad)):
+#            self.targets.raRad[i], self.targets.decRad[i] = self.calcRefrCoords(self.targets.raRad[i], self.targets.decRad[i])
 
 
-### Note -- make sure center is updated
+#        raDeg, decDeg = self.calcRefrCoords(raDeg, decDeg)
 
-        print(params)
+        telRaRad, telDecRad = self._fld2telax(raDeg, decDeg, posAngleDeg)
+        self.telRaRad, self.telDecRad = telRaRad, telDecRad
 
-#        data=pd.read_table(params['objfile'],skiprows=0,comment='#',delim_whitespace=True)
-   
-        ra=self.targets["raHour"]
-        dec=self.targets["decDeg"]
-        mag=self.targets["mag"]
-        magband=self.targets["pBand"]
-        pcode=self.targets["pcode"]
-        sel=self.targets["selected"]
-        slitpa=self.targets["slitLPA"]
-        pcode=self.targets["pcode"]
+ #       raDeg, decDeg = self.calcUnrefrCoords(raDeg, decDeg)
+ #       telRaRad, telDecRad = self._fld2telax(raDeg, decDeg, posAngleDeg)
+ #       self.telRaRad, self.telDecRad = telRaRad, telDecRad
 
-        raDeg,decDeg=[],[]
-        _pcode=[]
-        _mag,_magband=[],[]
-        ra=Angle(ra,unit=u.hour)
-        dec=Angle(dec,unit=u.deg)
-        for i in range(len(ra)):
-            raDeg.append(ra[i].degree)
-            decDeg.append(dec[i].degree)
-  
-        from datetime import datetime
-        params['descreate']=datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
-        obs,site=dsim.init_dicts(params,raDeg,decDeg,slitpa,pcode,mag,magband)
-        obs=dsim.refr_coords(obs,site)
-        obs=dsim.fld2telax(obs,'ra_fldR','dec_fldR','ra_telR','dec_telR')
-        obs=dsim.tel_coords(obs,'raRadR','decRadR','ra_telR','dec_telR')
-        self.obs=obs
-        self.site=site
-        self.targets["xarcs"],self.targets["yarcs"]=obs['xarcs'],obs['yarcs']
+  #      print('TelTarg',self.targets.raRad[15], self.targets.decRad[15])
+        xarcs, yarcs = self._calcTelTargetCoords(telRaRad, telDecRad, self.targets.raRad, self.targets.decRad, posAngleDeg)
+
+        self.targets["xarcs"] = xarcs
+        self.targets["yarcs"] = yarcs
+
+##        xmm, ymm, pas = self.proj_to_mask(xarcs, yarcs, 0)
+
+##        self.targets["xmm"] = xmm
+##        self.targets["ymm"] = ymm
+
+##        self.targets["orgIndex"] = range(0, self.targets.shape[0])
+
         self.__updateDate()
+        return xarcs, yarcs
+
+    def _project2FocalPlane(self, cenRADeg, cenDecDeg, raHours, decDegs, paDeg):
+        """
+        Alternative to reCalCoordinates
+
+        Use the cosine method to project the RA/DEC to focal plane
+        Then rotate by PA - 90 and shifted by fldcenx, fldceny
+        Returns xs, ys in focal plane in arcsec
+        """
+        cf = self.config
+        fldCenX = cf.getValue("fldCenX", 0)
+        fldCenY = cf.getValue("fldCenY", 0)
+
+        ras = (raHours * 15 - cenRADeg) * 3600
+        decs = (decDegs - cenDecDeg) * 3600
+        ras = ras * np.cos(np.radians(cenDecDeg))
+        xs, ys = utils.rotate(ras, decs, paDeg - 90)
+        return xs + fldCenX, ys + fldCenY
+
+    """
+    Migrated routines from dsimulator by Luca Rizzi
+    ==================================    
+    """
+
+    def _fld2telax(self, raDeg, decDeg, posAngle):
+        """
+        Returns telRaRad and telDecRad.
+
+        This is taken from dsim.x, procedure fld2telax
+        FLD2TELAX:  from field center and rotator PA, calc coords of telescope axis   
+        """
+        cf = self.config
+        fldCenX = cf.getValue("fldCenX", 0)
+        fldCenY = cf.getValue("fldCenY", 0)
+
+        r = math.radians(math.hypot(fldCenX, fldCenY) / 3600.0)
+        pa_fld = math.atan2(fldCenY, fldCenX)
+        cosr = math.cos(r)
+        sinr = math.sin(r)
+
+        #
+        decRad = math.radians(decDeg)
+        # this is the declination of the center of the field
+        cosd = math.cos(decRad)
+        sind = math.sin(decRad)  # same
+        # pa_fld
+
+        pa_diff = math.radians(posAngle) - pa_fld
+
+        # pa_fld is calculated above as arctan(fldceny/fldcenx)
+        cost = math.cos(pa_diff)
+        sint = math.sin(pa_diff)
+
+        sina = sinr * sint / cosd
+        cosa = math.sqrt(1.0 - sina * sina)
+
+        return (
+            math.radians(raDeg) - math.asin(sina),
+            math.asin((sind * cosd * cosa - cosr * sinr * cost) / (cosr * cosd * cosa - sinr * sind * cost)),
+        )
+
+    def _calcTelTargetCoords(self, ra0Rad, dec0Rad, raRads, decRads, posAngle):
+        """
+        Converts targets coordinates (raRads, decRads) to xarcs and yarcs
+        Xarcs and Yarcs are in focal plane coordinates in arcsec.
+
+        Ported from dsimulator
+        ra0Rad and dec0Rad must be calculated via fld2telax().
+        """
+        pa0 = math.radians(posAngle)
+
+        sinDec = np.sin(decRads)
+        sinDec0 = math.sin(dec0Rad)
+        cosDec = np.cos(decRads)
+        cosDec0 = math.cos(dec0Rad)
+
+        deltaRA = raRads - ra0Rad
+        cosDeltaRA = np.cos(deltaRA)
+        sinDeltaRA = np.sin(deltaRA)
+
+        cosr = sinDec * sinDec0 + cosDec * cosDec0 * cosDeltaRA
+        # cosr = np.clip(cosr, 0, 1.0)
+        sinr = np.sqrt(np.abs(1.0 - cosr * cosr))
+        # r = np.arccos(cosr)
+        t1 = np.where(sinr == 0.0, 0, cosDec * sinDeltaRA)
+        t2 = np.where(sinr == 0.0, 1, sinr)
+        sinp = np.divide(t1, t2)
+
+        cosp = np.sqrt(np.abs(1.0 - sinp * sinp)) * np.where(decRads < dec0Rad, -1, 1)
+        p = np.arctan2(sinp, cosp)
+
+        rArcsec = sinr / cosr * math.degrees(1) * 3600
+        deltaPA = pa0 - p
+        return rArcsec * np.cos(deltaPA), rArcsec * np.sin(deltaPA)
+
+    def _calcIrafTelTargetCoords(self, ra0Rad, dec0Rad, raRads, decRads, posAngle):
+        """
+        Converts targets coordinates (raRads, decRads) to xarcs and yarcs
+        Xarcs and Yarcs are in focal plane coordinates in arcsec.
+
+        Ported from dsimulator
+        ra0Rad and dec0Rad must be calculated via fld2telax().
+        """
+        pa0 = math.radians(posAngle)
+
+        sinDec = np.sin(decRads)
+        sinDec0 = math.sin(dec0Rad)
+        cosDec = np.cos(decRads)
+        cosDec0 = math.cos(dec0Rad)
+
+        deltaRA = raRads - ra0Rad
+        cosDeltaRA = np.cos(deltaRA)
+        sinDeltaRA = np.sin(deltaRA)
+
+        cosr = sinDec * sinDec0 + cosDec * cosDec0 * cosDeltaRA
+        # cosr = np.clip(cosr, 0, 1.0)
+        sinr = np.sqrt(np.abs(1.0 - cosr * cosr)) #no abs in iraf sinr
+        r = np.arccos(cosr)
+        #t1 = np.where(sinr == 0.0, 0, cosDec * sinDeltaRA)
+        #t2 = np.where(sinr == 0.0, 1, sinr)
+        sinp = cosDec * sinDeltaRA / sinr 
+        cosp = np.sqrt(np.max(1-sinp*sinp,0))
+        cosp = np.array([-x if decRads[ind] < dec0Rad else x for ind,x in enumerate(cosp)])
+        p = np.arctan2(sinp, cosp)
+
+        r=np.tan(r)*206264.8
+        rArcsec = r * math.degrees(1) * 3600
+#        rArcsec = sinr / cosr * math.degrees(1) * 3600
+        deltaPA = pa0 - p
+        return rArcsec * np.cos(deltaPA), rArcsec * np.sin(deltaPA)
 
 
+    def _gnom_to_dproj(self, xg, yg):
+        """
+        GNOMONIC projection (equiv to iraf)
+        xg, yg in [mm]
+        """
+        rho2 = xg * xg + yg * yg
+        f = 1.0 + DIST_C0 + DIST_C2 * rho2
+        xd = xg * f
+        yd = yg * f
 
-        
-    def calcSlits(self,minX, maxX, minSlitLength, minSep, ext):
+        return xd, yd
 
-        self.markInside()
-        selector = TargetSelector(self.targets, minX, maxX, minSlitLength, minSep)
-        self.targets = selector.performSelection(extendSlits=ext)
-        self.xgaps = selector.xgaps
-        self.selector = selector
-#        self.calcSlitXYs()
+    def _spherical_proj_to_mask(self, xp, yp, ap):
+        """
+        xp, yp: output of the GNOM projection
+        """
+        mu = np.arcsin(np.clip(xp / M_RCURV, -1.0, 1.0))
+        cosm = np.cos(mu)
+        cost = np.cos(M_ANGLERAD)
+        tant = np.tan(M_ANGLERAD)
+        xx = M_RCURV * mu
+        yy = (yp - ZPT_YM) / cost + M_RCURV * tant * (1 - cosm)
 
-        slit=dsim.gen_slits(self.obs)
-        slit=dsim.sky_coords(slit)
-        slit=dsim.unrefr_coords(slit,self.site)
-        slit=dsim.fld2telax(slit,'ra0_fldU','dec0_fldU','ra_telU','dec_telU')
-        slit=dsim.tel_coords(slit,'raRadU','decRadU','ra_telU','dec_telU')
-        slit=dsim.mask_coords(slit)
+        tanpa = np.tan(np.radians(ap)) * cosm / cost + tant * xp / M_RCURV
+        ac = np.degrees(np.arctan(tanpa))
 
+        # spherical image surface height
+        rho = np.sqrt(xp * xp + yp * yp)
+        rho = np.minimum(rho, R_IMSURF)
+        hs = R_IMSURF * (1 - np.sqrt(1 - (rho / R_IMSURF) ** 2))
+        # mask surface height
+        hm = MASK_HT0 + yy * np.sin(M_ANGLERAD) + M_RCURV * (1 - cosm)
+        # correction
+        yc = yy + (hs - hm) * yp / PPLDIST / cost
+        xc = xx + (hs - hm) * xp / PPLDIST / cosm
+        return xc, yc, ac
+
+    def proj_to_mask(self, xs, ys, ap):
+        as2mm = utils.AS2MM
+        xmm, ymm = self._gnom_to_dproj(xs * as2mm, ys * as2mm)
+        return self._spherical_proj_to_mask(xmm, ymm, ap)
+
+    def getDistortionFunctions(self):
+        """
+        Gets distortion coefficients from the configuration
+        Returns the polynomial models for X and Y
+        """
+
+        def _getPoly(coeffs):
+            pol = models.Polynomial2D(degree=4)
+            pol.parameters = [float(x) for x in coeffs.split(",")]
+            return pol
+
+        ccf = self.config
+
+        xPoly = _getPoly(ccf.distortionXCoeffs)
+        yPoly = _getPoly(ccf.distortionYCoeffs)
+        return xPoly, yPoly
+
+    def writeTo(self, fileName):
+        def outputPA(fh):
+            print("# Mark name, center:", file=fh)
+            print("#", file=fh)
+            print(
+                "{:20s} {} {} 2000.0 PA={:.3f}".format(
+                    self.maskName,
+                    utils.toSexagecimal(self.centerRADeg / 15, secFmt="{:06.3f}"),
+                    utils.toSexagecimal(self.centerDEC, plus="+"),
+                    self.positionAngle,
+                ),
+                file=fh,
+            )
+            print("#", file=fh)
+            print("#", file=fh)
+            print ("# Columns", file=fh)
+            print("# Obj_Id, RA, DEC, EQX, Magn, pBand, pCode, sampleNr, selected, slitLPA, length1, length2, slitWidth", file=fh)
+            print("#", file=fh)
+            print("#", file=fh)
+            # end of outputPA
+
+        def outputTargets(fh):
+            for i, row in tgs.iterrows():
+                print(
+                    fmt.format(
+                        row.objectId,
+                        utils.toSexagecimal(row.raHour, secFmt="{:06.3f}"),
+                        utils.toSexagecimal(row.decDeg, plus="+"),
+                        row.eqx,
+                        row.mag,
+                        row.pBand,
+                        row.pcode,
+                        row.sampleNr,
+                        row.selected,
+                        row.slitLPA,
+                        row.length1,
+                        row.length2,
+                        row.slitWidth,
+                    ),
+                    file=fh,
+                )
+            # end outputTargets
+
+        tgs = self.targets
+        fmt = "{:20s} {} {} {} {:.3f} {} {:5.0f} {:.0f} {:.0f} {:.1f} {:.1f} {:.1f} {:.1f}"
+        with open(fileName, "w") as fh:
+            outputPA(fh)
+            outputTargets(fh)
 
