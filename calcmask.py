@@ -31,16 +31,21 @@ def init_dicts(data,params):
     #params {'ProjectNamefd': ['New Mask'], 'OutputFitsfd': ['mask.fits'], 'Telescopefd': ['Keck II'], 'Instrumentfd': ['DEIMOS'], 'ObsDatefd': ['2022-08-31 00:00:00'], 'Authorfd': ['Keck Observatory'], 'Observerfd': ['Observer Name'], 'MaskIdfd': ['123456789'], 'MaskNamefd': ['Mask Name'], 'MinSlitLengthfd': ['5.0'], 'MinSlitSeparationfd': ['0.35'], 'SlitWidthfd': ['1.00'], 'AlignBoxSizefd': ['4.0'], 'BlueWaveLengthfd': ['3200'], 'RedWaveLengthfd': ['3200'], 'ReferenceWaveLengthfd': ['3200'], 'CenterWaveLengthfd': ['3200'], 'ProjSlitLengthfd': ['yes'], 'NoOverlapfd': ['yes'], 'Temperaturefd': ['0.0'], 'Pressurefd': ['615.0'], 'MaskPAfd': ['0.0'], 'SlitPAfd': ['0.0'], 'InputRAfd': ['00:00:00'], 'InputDECfd': ['00:00:00'], 'MaskMarginfd': ['4'], 'HourAnglefd': ['0.001'], 'Extrafd': ['Extra'], 'mouseAction': ['on'], 'showSel': ['on']}
 
 
-    ra=data.loc[:,'raHour']
-    dec=data.loc[:,'decDeg']
-    mag=data.loc[:,'mag']
-    magband=data.loc[:,'pBand']
-    pcode=data.loc[:,'pcode']
-    sel=data.loc[:,'selected']
+    print(data)
+
+    ra=data.loc[:,'raHour'].tolist()
+    dec=data.loc[:,'decDeg'].tolist()
+    mag=data.loc[:,'mag'].tolist()
+    magband=data.loc[:,'pBand'].tolist()
+    pcode=data.loc[:,'pcode'].tolist()
+    sel=data.loc[:,'selected'].tolist()
+    slit_pa=data.loc[:,'slitLPA'].tolist()
+    print(slit_pa)
+
 
     try:
         print('Found tilts')
-        slit_pa=data.loc[:,'slitLPA']
+        slit_pa=data.loc[:,'slitLPA'].tolist()
 #        print(slit_pa)
         tilt=True
     except:
@@ -53,6 +58,7 @@ def init_dicts(data,params):
     ra=Angle(ra,unit=u.hour)
     dec=Angle(dec,unit=u.deg)
     for i in range(len(ra)):
+        print(ra[i],slit_pa[i])
         if tilt==True:
             print('range-len(ra)',slit_pa[i])
             slitpa.append(slit_pa[i])
@@ -686,6 +692,10 @@ def genSlits(df,fileparams):
     return df
 
 def genMaskOut(df,fileparams):
+    print(df)
+    print(df['selected'])
+    df=df.loc[df['selected']==1]
+    print(df)
     obs,site=init_dicts(df,fileparams)
     obs=refr_coords(obs,site)
     obs=fld2telax(obs,'ra_fldR','dec_fldR','ra_telR','dec_telR')

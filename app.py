@@ -162,7 +162,14 @@ def saveMaskDesignFile():
     print('Save Mask Design')
     global df
     print(df)
+    params=session['params']
     print('TYPE-------------',type(df))
+    df=targs.markInside(df)
+    mask = ml.MaskLayouts["deimos"]
+    minX, maxX = np.min(mask, axis=0)[0], np.max(mask, axis=0)[0]
+    selector = TargetSelector(df, minX, maxX, float(params['MinSlitLengthfd'][0]), float(params['MinSlitSeparationfd'][0]))
+    df = selector.performSelection(extendSlits=False)
+
     newdf=calcmask.genMaskOut(df,session['params'])
 
     outp=targs.toJsonWithInfo(session['params'],newdf)

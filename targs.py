@@ -303,7 +303,7 @@ def markInside(targets):
     tgs = targets
     inMask = []
     for i, stg in tgs.iterrows():
-        isIn = 1 if inOutChecker.checkPoint(stg.xarcs, stg.yarcs) else 1##Test1setto0
+        isIn = 1 if inOutChecker.checkPoint(stg.xarcs, stg.yarcs) else 0
         inMask.append(isIn)
     targets["inMask"] = inMask
     return targets

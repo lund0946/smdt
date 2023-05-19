@@ -393,7 +393,7 @@ class MaskDesignOutputFitsFile:
         Writes to file
         """
         hlist = self._getHDUList()
-        hlist.writeto(fileName)
+        hlist.writeto(fileName,overwrite='True')
 
 
 def _outputAsList(fh, targets):
