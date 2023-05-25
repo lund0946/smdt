@@ -17,7 +17,7 @@ Click recalculate mask to visualize slits.
 Click save mask design file to save the file.
 
 ### Known bugs
-- Discrepency between dsimulator and smdt slit angles
-- Mask Design Output includes all 
-- Plot not yet includeed
+- ~Discrepency between dsimulator and smdt slit angles~
+- ~Mask Design Output includes all~ 
+- Plot not yet included
 - Recalculate mask or save mask doesn't automatically update the parameters.
