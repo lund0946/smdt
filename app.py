@@ -12,6 +12,7 @@ import targs
 import pdb
 import calcmask
 import utils
+import plot
 from targetSelector import TargetSelector
 
 def launchBrowser(host, portnr, path):
@@ -171,6 +172,7 @@ def saveMaskDesignFile():
     df = selector.performSelection(extendSlits=False)
 
     newdf=calcmask.genMaskOut(df,session['params'])
+    plot.makeplot(params['OutputFitsfd'][0])
 
     outp=targs.toJsonWithInfo(session['params'],newdf)
     print(outp)
