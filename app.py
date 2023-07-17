@@ -1,7 +1,9 @@
 from flask import Flask, render_template, request, make_response, session, redirect, url_for, jsonify
+from flask_session import Session
 from werkzeug.datastructures import CombinedMultiDict, ImmutableMultiDict
 import webbrowser
 from threading import  Timer
+from datetime import timedelta
 import maskLayouts as ml
 import configFile as cf
 import json
@@ -14,6 +16,8 @@ import calcmask
 import utils
 import plot
 from targetSelector import TargetSelector
+
+
 
 def launchBrowser(host, portnr, path):
     webbrowser.open(f"http://{host}:{portnr}/{path}", new=1)
@@ -45,10 +49,16 @@ def fixType(params):
     return params
 
 
-
-SESSION_TYPE='redis'
 app = Flask(__name__)
 app.secret_key='dsf2315ewd'
+app.config['SESSION_PERMANENT'] = True
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=5)
+
+# The maximum number of items the session stores 
+# before it starts deleting some, default 500
+app.config['SESSION_FILE_THRESHOLD'] = 100  
+
 
 #@app.route('/readparams')
 def readparams():
@@ -71,7 +81,9 @@ def readparams():
 def setColumnValue():
     print('setting column')
     global df
+    global prms
     targets=df
+    params=prms
     print(targets)
 #    pdb.set_trace()
     values=json.loads(request.data.decode().split('=')[2].split('&')[0])
@@ -79,7 +91,7 @@ def setColumnValue():
     print(column,values)
     df=targs.updateColumn(targets,column,values)
     print(df)
-    outp=targs.toJsonWithInfo(session['params'],df)
+    outp=targs.toJsonWithInfo(params,df)
     return outp
 
 
@@ -100,12 +112,13 @@ def updateTarget():
 @app.route('/deleteTarget',methods=["GET","POST"])
 def deleteTarget():
     global df
+    global prms
     print('deleteTarget')
     print('data->',request.data.decode())
     targets=df
     idx=int(request.args.get('idx',None))
     df=targs.deleteTarget(targets,idx)
-    outp=targs.toJsonWithInfo(session['params'],df)
+    outp=targs.toJsonWithInfo(prms,df)
     print(outp)
     return outp
 
@@ -115,14 +128,16 @@ def deleteTarget():
 @app.route('/getTargetsAndInfo')
 def getTargetsAndInfo():
     print('targs and info')
-    print(session['params'])
-    params=session['params']
+    global prms
+    print(prms,session['params'])
+    params=prms
     global df
-    if True:
-#    try:
+#    if True:
+    try:
         print(df)
         print('TYPE-------------',type(df))
-        newdf=calcmask.genObs(df,session['params'])
+        print(session['params'])
+        newdf=calcmask.genObs(df,params)
         print('pre sel')
         print(newdf)
         newdf=targs.markInside(newdf)
@@ -132,9 +147,9 @@ def getTargetsAndInfo():
         newdf = selector.performSelection(extendSlits=False)
         print('post sel')
         print(newdf)
-        outp=targs.toJsonWithInfo(session['params'],newdf)
-#    except:
-#        outp=''
+        outp=targs.toJsonWithInfo(params,newdf)
+    except:
+        outp=''
     print(outp)
     return outp
     
@@ -144,8 +159,9 @@ def recalculateMask():
     global df
     print(df)
     print('TYPE-------------',type(df))
-    params=session['params']
-    newdf=calcmask.genSlits(df,session['params'])
+    global prms
+    params=prms
+    newdf=calcmask.genSlits(df,params)
     print(newdf)
     newdf=targs.markInside(newdf)
     mask = ml.MaskLayouts["deimos"]
@@ -154,7 +170,7 @@ def recalculateMask():
     newdf = selector.performSelection(extendSlits=False)
 
     print(newdf)
-    outp=targs.toJsonWithInfo(session['params'],newdf)
+    outp=targs.toJsonWithInfo(params,newdf)
     print(outp)
     return outp
 
@@ -163,7 +179,8 @@ def saveMaskDesignFile():
     print('Save Mask Design')
     global df
     print(df)
-    params=session['params']
+    global prms
+    params=prms
     print('TYPE-------------',type(df))
     df=targs.markInside(df)
     mask = ml.MaskLayouts["deimos"]
@@ -171,10 +188,10 @@ def saveMaskDesignFile():
     selector = TargetSelector(df, minX, maxX, float(params['MinSlitLengthfd'][0]), float(params['MinSlitSeparationfd'][0]))
     df = selector.performSelection(extendSlits=False)
 
-    newdf=calcmask.genMaskOut(df,session['params'])
+    newdf=calcmask.genMaskOut(df,params)
     plot.makeplot(params['OutputFitsfd'][0])
 
-    outp=targs.toJsonWithInfo(session['params'],newdf)
+    outp=targs.toJsonWithInfo(params,newdf)
     print(outp)
     return outp
 
@@ -182,13 +199,16 @@ def saveMaskDesignFile():
 ##Update Params Button, Load Targets Button
 @app.route('/sendTargets2Server',methods=["GET","POST"])
 def sendTargets2Server():
-    params=request.form.to_dict(flat=False)
+    global prms
+    prms=request.form.to_dict(flat=False)
+    params=prms
     print('Here Are PARAMS! \n\n\n\n\n\n\n')
     print(params['InputRAfd'],params['InputDECfd'])
     centerRADeg,centerDEC,positionAngle=15*utils.sexg2Float(params['InputRAfd'][0]),utils.sexg2Float(params['InputDECfd'][0]),float(params['MaskPAfd'][0])
     print(params)
     fh=[]
     session['params']=params
+    prms=params
     uploaded_file = request.files['targetList']
     print('send2server')
     if uploaded_file.filename != '':
@@ -199,7 +219,7 @@ def sendTargets2Server():
 
         session['file']=fh
         global df
-        df=targs.readRaw(session['file'],session['params'])
+        df=targs.readRaw(session['file'],prms)
 
     return ''    
 
@@ -207,8 +227,12 @@ def sendTargets2Server():
 #Loads original params
 @app.route('/getConfigParams')
 def getConfigParams():
+    global prms
     paramData=readparams()
+    prms=paramData
+    print('params:',paramData)
     session['params']=paramData
+    prms=paramData
     return json.dumps({"params": paramData})
 
 

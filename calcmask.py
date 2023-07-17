@@ -58,9 +58,9 @@ def init_dicts(data,params):
     ra=Angle(ra,unit=u.hour)
     dec=Angle(dec,unit=u.deg)
     for i in range(len(ra)):
-        print(ra[i],slit_pa[i])
+#        print(ra[i],slit_pa[i])
         if tilt==True:
-            print('range-len(ra)',slit_pa[i])
+#            print('range-len(ra)',slit_pa[i])
             slitpa.append(slit_pa[i])
         else:
             slitpa.append(-9999)
@@ -675,6 +675,7 @@ def genObs(df,fileparams):
     return df
 
 def genSlits(df,fileparams):
+    print(fileparams)
     obs,site=init_dicts(df,fileparams)
     obs=refr_coords(obs,site)
     obs=fld2telax(obs,'ra_fldR','dec_fldR','ra_telR','dec_telR')
