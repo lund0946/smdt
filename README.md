@@ -17,9 +17,9 @@ Click recalculate mask to visualize slits.
 Click save mask design file to save the file.
 
 ### Known bugs
-- Discrepency between dsimulator and smdt slit angles by 90 degrees.
+- ~Discrepency between dsimulator and smdt slit angles by 90 degrees.~
 - ~Mask Design Output includes all~ 
-- Plot not yet included
+- ~Plot not yet included~
 - Recalculate mask or save mask doesn't automatically update the parameters.
 - RA/DEC center should come up as average of targets or perhaps first target if nothing is set.
 - If pcode=-2, plot should use alignmentbox size for slitwidth and length and set relPA=0
