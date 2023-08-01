@@ -22,5 +22,5 @@ Click save mask design file to save the file.
 - ~Plot not yet included~
 - Recalculate mask or save mask doesn't automatically update the parameters.
 - RA/DEC center should come up as average of targets or perhaps first target if nothing is set.
-- If pcode=-2, plot should use alignmentbox size for slitwidth and length and set relPA=0
+- ~If pcode=-2, plot should use alignmentbox size for slitwidth and length and set relPA=0~
 - SaveMaskDesignFile Button says that save failed when it really succeeded.
