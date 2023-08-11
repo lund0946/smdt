@@ -829,7 +829,7 @@ function CanvasShow(containerName, zoomContainer) {
 
             // The slit angle is relative to screen
             let slitAngle = radians(Number(slitPAs[idx]));
-            let slitAngleOnScreen = -1*radians(self.slitBaseAngleDeg) - slitAngle;
+            let slitAngleOnScreen = 1*radians(self.slitBaseAngleDeg) + slitAngle;
 
 
             let cosa = Math.cos(slitAngleOnScreen);
@@ -837,22 +837,29 @@ function CanvasShow(containerName, zoomContainer) {
 
             let x11, y11, x12, y12;
 
+            let xgeom = -Math.cos(slitAngleOnScreen);
+            let ygeom = Math.sin(slitAngleOnScreen);
+
             if (projSlitLen) {
-                let scosa = -Math.cos(slitAngle);
-                if (scosa < 0) {
-                    if (scosa > -0.01) scosa = -0.01;
-                }
-                else {
-                    if (scosa < 0.01) scosa = 0.01;
-                }
-                l1 = l1 / scosa;
-                l2 = l2 / scosa;
+
+                xgeom = xgeom / Math.abs(Math.cos(slitAngleOnScreen))
+                ygeom = ygeom / Math.abs(Math.cos(slitAngleOnScreen))
             }
 
-            x11 = x + cosa * l1;
-            y11 = y + sina * l1;
-            x12 = x - cosa * l2;
-            y12 = y - sina * l2;
+            if (xgeom > 0) {
+            x11 = x - l1 * xgeom;
+            y11 = y - l1 * ygeom;
+            x12 = x + l2 * xgeom;
+            y12 = y + l2 * ygeom;
+
+            }
+            else {
+            x11 = x + l2 * xgeom;
+            y11 = y + l2 * ygeom;
+            x12 = x - l1 * xgeom;
+            y12 = y - l1 * ygeom;
+            }
+
 
             drawQuadrilateral(ctx,
                 x11 + maskX, y11 + maskY, x11 - maskX, y11 - maskY,

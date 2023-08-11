@@ -16,7 +16,7 @@ import calcmask
 import utils
 import plot
 from targetSelector import TargetSelector
-
+import dsimselector
 
 
 def launchBrowser(host, portnr, path):
@@ -79,18 +79,14 @@ def readparams():
 
 @app.route('/setColumnValue',methods=["GET","POST"])
 def setColumnValue():
-    print('setting column')
     global df
     global prms
     targets=df
     params=prms
-    print(targets)
 #    pdb.set_trace()
     values=json.loads(request.data.decode().split('=')[2].split('&')[0])
     column=request.data.decode().split('=')[1].split('&')[0]
-    print(column,values)
     df=targs.updateColumn(targets,column,values)
-    print(df)
     outp=targs.toJsonWithInfo(params,df)
     return outp
 
@@ -99,12 +95,8 @@ def setColumnValue():
 @app.route('/updateTarget',methods=["GET","POST"])
 def updateTarget():
     global df
-    print('update target')
     targets=df
-    print(targets)
     values=json.loads(request.data.decode().split('=')[1].split('}&')[0]+'}')
-    print(values)
-    print(values['targetName'])
     df,idx=targs.updateTarget(targets,values)
     return json.dumps({'idx':idx})
 
@@ -113,13 +105,10 @@ def updateTarget():
 def deleteTarget():
     global df
     global prms
-    print('deleteTarget')
-    print('data->',request.data.decode())
     targets=df
     idx=int(request.args.get('idx',None))
     df=targs.deleteTarget(targets,idx)
     outp=targs.toJsonWithInfo(prms,df)
-    print(outp)
     return outp
 
 
@@ -127,72 +116,59 @@ def deleteTarget():
 
 @app.route('/getTargetsAndInfo')
 def getTargetsAndInfo():
-    print('targs and info')
     global prms
-    print(prms,session['params'])
     params=prms
     global df
-#    if True:
     try:
-        print(df)
-        print('TYPE-------------',type(df))
-        print(session['params'])
+        print('newdf/getTargetsAndInfo')
         newdf=calcmask.genObs(df,params)
-        print('pre sel')
-        print(newdf)
         newdf=targs.markInside(newdf)
         mask = ml.MaskLayouts["deimos"]
         minX, maxX = np.min(mask, axis=0)[0], np.max(mask, axis=0)[0]
-        selector = TargetSelector(newdf, minX, maxX, float(params['MinSlitLengthfd'][0]), float(params['MinSlitSeparationfd'][0]))
-        newdf = selector.performSelection(extendSlits=False)
-        print('post sel')
-        print(newdf)
+        #selector = TargetSelector(newdf, minX, maxX, float(params['MinSlitLengthfd'][0]), float(params['MinSlitSeparationfd'][0]))
+        #newdf = selector.performSelection(extendSlits=False)
         outp=targs.toJsonWithInfo(params,newdf)
     except:
         outp=''
-    print(outp)
     return outp
     
 @app.route('/recalculateMask',methods=["GET","POST"])
 def recalculateMask():
-    print('recalculate mask')
     global df
-    print(df)
-    print('TYPE-------------',type(df))
     global prms
     params=prms
     newdf=calcmask.genSlits(df,params)
+    print('newdf')
     print(newdf)
     newdf=targs.markInside(newdf)
+    print(newdf)
     mask = ml.MaskLayouts["deimos"]
     minX, maxX = np.min(mask, axis=0)[0], np.max(mask, axis=0)[0]
-    selector = TargetSelector(newdf, minX, maxX, float(params['MinSlitLengthfd'][0]), float(params['MinSlitSeparationfd'][0]))
-    newdf = selector.performSelection(extendSlits=False)
-
+ #   selector = TargetSelector(newdf, minX, maxX, float(params['MinSlitLengthfd'][0]), float(params['MinSlitSeparationfd'][0]))
+#    newdf = selector.performSelection(extendSlits=False)
+    df=newdf
     print(newdf)
     outp=targs.toJsonWithInfo(params,newdf)
+    print('recalculate')
     print(outp)
     return outp
 
 @app.route('/saveMaskDesignFile',methods=["GET","POST"])
-def saveMaskDesignFile():
-    print('Save Mask Design')
+def saveMaskDesignFile():  # should only save current rather than re-running everything!
     global df
-    print(df)
     global prms
     params=prms
-    print('TYPE-------------',type(df))
     df=targs.markInside(df)
     mask = ml.MaskLayouts["deimos"]
     minX, maxX = np.min(mask, axis=0)[0], np.max(mask, axis=0)[0]
-    selector = TargetSelector(df, minX, maxX, float(params['MinSlitLengthfd'][0]), float(params['MinSlitSeparationfd'][0]))
-    df = selector.performSelection(extendSlits=False)
+ #   selector = TargetSelector(df, minX, maxX, float(params['MinSlitLengthfd'][0]), float(params['MinSlitSeparationfd'][0]))
+#    df = selector.performSelection(extendSlits=False)
 
     newdf=calcmask.genMaskOut(df,params)
     plot.makeplot(params['OutputFitsfd'][0])
+    df=newdf
 
     outp=targs.toJsonWithInfo(params,newdf)
-    print(outp)
     return outp
 
 
@@ -202,19 +178,14 @@ def sendTargets2Server():
     global prms
     prms=request.form.to_dict(flat=False)
     params=prms
-    print('Here Are PARAMS! \n\n\n\n\n\n\n')
-    print(params['InputRAfd'],params['InputDECfd'])
     centerRADeg,centerDEC,positionAngle=15*utils.sexg2Float(params['InputRAfd'][0]),utils.sexg2Float(params['InputDECfd'][0]),float(params['MaskPAfd'][0])
-    print(params)
     fh=[]
     session['params']=params
     prms=params
     uploaded_file = request.files['targetList']
-    print('send2server')
     if uploaded_file.filename != '':
         input=uploaded_file.stream
         for line in input:
-            print(line.strip().decode('UTF-8'))
             fh.append(line.strip().decode('UTF-8'))
 
         session['file']=fh

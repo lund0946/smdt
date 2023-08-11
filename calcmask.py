@@ -43,6 +43,16 @@ def init_dicts(data,params):
     print(slit_pa)
 
 
+
+    ####      <---------  Needs an if since it's an optional parameter?
+    dlength1=data.loc[:,'length1'].tolist()
+    dlength2=data.loc[:,'length2'].tolist()
+
+    print('\n\n\n\n\n dlength')
+    print(dlength1)
+    print(dlength2)
+    ####
+
     try:
         print('Found tilts')
         slit_pa=data.loc[:,'slitLPA'].tolist()
@@ -97,13 +107,17 @@ def init_dicts(data,params):
         print('pcode,slpa',pcode[i],slitpa[i])
         if pcode[i]!=-2:
             slitWidth.append(float(params['SlitWidthfd'][0]))    #### Set manually later???  #### <<<<------------
-            length1.append(len1)  ### slitlength manual
-            length2.append(len2)
+##            length1.append(len1)  ### slitlength manual
+##            length2.append(len2)
+            length1.append(dlength1[i])
+            length2.append(dlength2[i])
+            slitLPA.append(slitpa[i])
             print(i,length1[i],length2[i],slitWidth[i])
         else:
             slitWidth.append(float(params['AlignBoxSizefd'][0]))
             length1.append(float(params['AlignBoxSizefd'][0])*0.5)  ### slitlength manual
             length2.append(float(params['AlignBoxSizefd'][0])*0.5)
+            slitLPA.append(0)
             print(i,length1[i],length2[i],slitWidth[i])
 
     obs_lat= 19.8
@@ -221,7 +235,7 @@ def fld2telax(obs,ra_fld,dec_fld,ratel,dectel):
 
 
 
-def tel_coords(obs,ra_ref,dec_ref,ra_telref,dec_telref):
+def tel_coords(obs,ra_ref,dec_ref,ra_telref,dec_telref,proj_len=False):
     xarcs,yarcs=[],[]
     X1,Y1,X2,Y2=[],[],[],[]
     relpa=[]
@@ -271,7 +285,6 @@ def tel_coords(obs,ra_ref,dec_ref,ra_telref,dec_telref):
 
         xgeom = (flip) * np.cos (rangle)
         ygeom = np.sin (rangle)
-        proj_len=False
         if (proj_len == True):
             xgeom = xgeom / np.abs (np.cos (rangle))
             ygeom = ygeom / np.abs (np.cos (rangle))
@@ -303,7 +316,7 @@ def tel_coords(obs,ra_ref,dec_ref,ra_telref,dec_telref):
     return obs
 
 
-def gen_slits(obs):
+def gen_slits(obs,adj_len=False):
 
 
     CODE_GS=-11 #code for guidestars
@@ -347,7 +360,6 @@ def gen_slits(obs):
 # This is where we also assign slit index to object
             _SLNDX.append(ndx)
             ndx = ndx + 1
-
     nslit = ndx
     obs["index"]=_ndx
     obs["slitLPA"]=_PA
@@ -363,6 +375,20 @@ def gen_slits(obs):
     obs["slitIndex"]=_SLNDX
     obs["sel"]=_sel
 
+
+    print(obs)
+    print('Selector')
+
+    import dsimselector
+    obs=dsimselector.from_dict(obs)
+
+    print(obs)
+    print('/////// ... adj len')
+
+    if adj_len:
+        import gslit
+        obs=gslit.len_slits(obs)
+    print(obs)
     return obs
 def sky_coords(obs):
 
@@ -676,16 +702,38 @@ def genObs(df,fileparams):
 
 def genSlits(df,fileparams):
     print(fileparams)
+    if fileparams['NoOverlapfd'][0]=='yes':
+        adj_len=True
+    else:
+        adj_len=False
+    if fileparams['ProjSlitLengthfd'][0]=='yes':
+        proj_len=True
+    else:
+        proj_len=False
     obs,site=init_dicts(df,fileparams)
     obs=refr_coords(obs,site)
     obs=fld2telax(obs,'ra_fldR','dec_fldR','ra_telR','dec_telR')
     obs=tel_coords(obs,'raRadR','decRadR','ra_telR','dec_telR')
-    slit=gen_slits(obs)
+    slit=gen_slits(obs,adj_len)
     slit=sky_coords(slit)
     slit=unrefr_coords(slit,site)
     slit=fld2telax(slit,'ra0_fldU','dec0_fldU','ra_telU','dec_telU')
-    slit=tel_coords(slit,'raRadU','decRadU','ra_telU','dec_telU')
+    slit=tel_coords(slit,'raRadU','decRadU','ra_telU','dec_telU',proj_len)
     slit=mask_coords(slit)
+
+    print(slit['length1'])
+    print(df['length1'])
+    print([x*2 for x in slit['length1']])
+
+#    df['length1']=[x*2 for x in slit['length1']]
+#    df['length2']=[x*2 for x in slit['length2']]
+    df['slitWidth']=slit['slitWidth']
+
+
+    print(slit.keys())
+#    print(slit['pcode'])
+#    print(slit['SLITDWID']
+
 
     df['xarcs']=slit['xarcs']
     df['yarcs']=slit['yarcs']
@@ -693,6 +741,14 @@ def genSlits(df,fileparams):
     return df
 
 def genMaskOut(df,fileparams):
+    if fileparams['NoOverlapfd'][0]=='yes':
+        adj_len=True
+    else:
+        adj_len=False
+    if fileparams['ProjSlitLengthfd'][0]=='yes':
+        proj_len=True
+    else:
+        proj_len=False
     print(df)
     print(df['selected'])
     df=df.loc[df['selected']==1]
@@ -701,11 +757,11 @@ def genMaskOut(df,fileparams):
     obs=refr_coords(obs,site)
     obs=fld2telax(obs,'ra_fldR','dec_fldR','ra_telR','dec_telR')
     obs=tel_coords(obs,'raRadR','decRadR','ra_telR','dec_telR')
-    slit=gen_slits(obs)
+    slit=gen_slits(obs,adj_len)
     slit=sky_coords(slit)
     slit=unrefr_coords(slit,site)
     slit=fld2telax(slit,'ra0_fldU','dec0_fldU','ra_telU','dec_telU')
-    slit=tel_coords(slit,'raRadU','decRadU','ra_telU','dec_telU')
+    slit=tel_coords(slit,'raRadU','decRadU','ra_telU','dec_telU',proj_len)
     slit=mask_coords(slit)
 
     df['xarcs']=slit['xarcs']
@@ -713,14 +769,10 @@ def genMaskOut(df,fileparams):
 
 
     tel={}
-    tel['newcenterRADeg']=obs['newcenterRADeg']
-    tel['newcenterDECDeg']=obs['newcenterDECDeg']
+    tel['newcenterRADeg']=slit['newcenterRADeg']
+    tel['newcenterDECDeg']=slit['newcenterDECDeg']
     tel['dateobs']=fileparams['ObsDatefd']
-    tel['lst']=obs['lst']
-
-
-
-
+    tel['lst']=slit['lst']
 
     params={
         'objfile':'',      #Pass separately?
@@ -754,21 +806,11 @@ def genMaskOut(df,fileparams):
         'telescope':'Keck II'
  }
 
-
-#    print(fileparams['OutputFitsfd'][0])
-
     params['descreate']='2022-12-01T01:00:00'
-
-
-
-
-
 
     site={k:([v] if type(v)!=list else v) for (k,v) in site.items()}
     params={k:([v] if type(v)!=list else v) for (k,v) in params.items()}     ####   <-----fix this for correct outputs
     tel={k:([v] if type(v)!=list else v) for (k,v) in tel.items()}
-
-
 
     slitsdf=pd.DataFrame(slit)
     paramdf=pd.DataFrame(params)
@@ -778,6 +820,5 @@ def genMaskOut(df,fileparams):
     from writeMask import MaskDesignOutputFitsFile
     mdf=MaskDesignOutputFitsFile(slitsdf,sitedf,paramdf,teldf)
     mdf.writeTo(params['mdf'][0])
-
 
     return df
