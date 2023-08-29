@@ -31,7 +31,6 @@ def init_dicts(data,params):
     #params {'ProjectNamefd': ['New Mask'], 'OutputFitsfd': ['mask.fits'], 'Telescopefd': ['Keck II'], 'Instrumentfd': ['DEIMOS'], 'ObsDatefd': ['2022-08-31 00:00:00'], 'Authorfd': ['Keck Observatory'], 'Observerfd': ['Observer Name'], 'MaskIdfd': ['123456789'], 'MaskNamefd': ['Mask Name'], 'MinSlitLengthfd': ['5.0'], 'MinSlitSeparationfd': ['0.35'], 'SlitWidthfd': ['1.00'], 'AlignBoxSizefd': ['4.0'], 'BlueWaveLengthfd': ['3200'], 'RedWaveLengthfd': ['3200'], 'ReferenceWaveLengthfd': ['3200'], 'CenterWaveLengthfd': ['3200'], 'ProjSlitLengthfd': ['yes'], 'NoOverlapfd': ['yes'], 'Temperaturefd': ['0.0'], 'Pressurefd': ['615.0'], 'MaskPAfd': ['0.0'], 'SlitPAfd': ['0.0'], 'InputRAfd': ['00:00:00'], 'InputDECfd': ['00:00:00'], 'MaskMarginfd': ['4'], 'HourAnglefd': ['0.001'], 'Extrafd': ['Extra'], 'mouseAction': ['on'], 'showSel': ['on']}
 
 
-    print(data)
 
     ra=data.loc[:,'raHour'].tolist()
     dec=data.loc[:,'decDeg'].tolist()
@@ -40,7 +39,6 @@ def init_dicts(data,params):
     pcode=data.loc[:,'pcode'].tolist()
     sel=data.loc[:,'selected'].tolist()
     slit_pa=data.loc[:,'slitLPA'].tolist()
-    print(slit_pa)
 
 
 
@@ -48,18 +46,12 @@ def init_dicts(data,params):
     dlength1=data.loc[:,'length1'].tolist()
     dlength2=data.loc[:,'length2'].tolist()
 
-    print('\n\n\n\n\n dlength')
-    print(dlength1)
-    print(dlength2)
     ####
 
     try:
-        print('Found tilts')
         slit_pa=data.loc[:,'slitLPA'].tolist()
-#        print(slit_pa)
         tilt=True
     except:
-        print('No slit tilt')
         tilt=False
     raDeg,decDeg=[],[]
     slitpa=[]
@@ -68,9 +60,7 @@ def init_dicts(data,params):
     ra=Angle(ra,unit=u.hour)
     dec=Angle(dec,unit=u.deg)
     for i in range(len(ra)):
-#        print(ra[i],slit_pa[i])
         if tilt==True:
-#            print('range-len(ra)',slit_pa[i])
             slitpa.append(slit_pa[i])
         else:
             slitpa.append(-9999)
@@ -78,7 +68,6 @@ def init_dicts(data,params):
         decDeg.append(dec[i].degree)
 
 
-    print('Line65--->',params['InputRAfd'],params['InputDECfd'])
     centerRADeg=utils.sexg2Float(params['InputRAfd'][0])*15   ####### Check sexagesimal conversion
     centerDECDeg=utils.sexg2Float(params['InputDECfd'][0])
 
@@ -104,7 +93,6 @@ def init_dicts(data,params):
     slitWidth=[]
     for i in range(len(raRad)): ### Manual Hacks
         slitLPA.append(slitpa[i])
-        print('pcode,slpa',pcode[i],slitpa[i])
         if pcode[i]!=-2:
             slitWidth.append(float(params['SlitWidthfd'][0]))    #### Set manually later???  #### <<<<------------
 ##            length1.append(len1)  ### slitlength manual
@@ -112,13 +100,11 @@ def init_dicts(data,params):
             length1.append(dlength1[i])
             length2.append(dlength2[i])
             slitLPA.append(slitpa[i])
-            print(i,length1[i],length2[i],slitWidth[i])
         else:
             slitWidth.append(float(params['AlignBoxSizefd'][0]))
             length1.append(float(params['AlignBoxSizefd'][0])*0.5)  ### slitlength manual
             length2.append(float(params['AlignBoxSizefd'][0])*0.5)
             slitLPA.append(0)
-            print(i,length1[i],length2[i],slitWidth[i])
 
     obs_lat= 19.8
     obs_alt = 4150.
@@ -207,7 +193,6 @@ def fld2telax(obs,ra_fld,dec_fld,ratel,dectel):
     FLDCEN_X=0.
     FLDCEN_Y=270.
     PA_ROT=obs['pa0_fld']
-    print('PAROT',np.degrees(PA_ROT))
 
 # convert field center offset (arcsec) to radians
     r = np.radians(np.sqrt (FLDCEN_X*FLDCEN_X + FLDCEN_Y*FLDCEN_Y) / 3600.)
@@ -277,7 +262,6 @@ def tel_coords(obs,ra_ref,dec_ref,ra_telref,dec_telref,proj_len=False):
             rangle = 0.
         else:
             _relpa= obs['slitpa'][i] - pa0  ###check that slitLPA is available
-            print('relpa - ',_relpa)
             relpa.append(_relpa)
             rangle = _relpa
 
@@ -333,11 +317,9 @@ def gen_slits(obs,adj_len=False):
 
             _ndx.append(ndx)
             if (obs['slitpa'][i] == -9999):   ### Never none?
-                print('slitLPA is None')
                 _PA.append(obs['PA_ROT'][i])
                 _RELPA.append(None)
             else:
-                print('Slit LPA equals ',obs['slitLPA'][i],obs['slitpa'][i],' for ',np.degrees(obs['raRad'][i]))
                 _PA.append(obs['slitpa'][i])
                 _RELPA.append(obs['relpa'][i])
             _PCODE.append(obs['pcode'][i])
@@ -376,19 +358,14 @@ def gen_slits(obs,adj_len=False):
     obs["sel"]=_sel
 
 
-    print(obs)
-    print('Selector')
 
     import dsimselector
     obs=dsimselector.from_dict(obs)
 
-    print(obs)
-    print('/////// ... adj len')
 
     if adj_len:
         import gslit
         obs=gslit.len_slits(obs)
-    print(obs)
     return obs
 def sky_coords(obs):
 
@@ -480,12 +457,10 @@ def unrefr_coords(obs,site):
     obs['ra0_fldU']=ra0_fld
     obs['dec0_fldU']=dec0_fld
 
-    print('ra0fld',ra0_fld,np.degrees(ra0_fld))
 
 
     obs['newcenterRADeg']=np.degrees(ra0_fld)
     obs['newcenterDECDeg']=np.degrees(dec0_fld)
-    print(obs['newcenterRADeg'],obs['newcenterDECDeg'])
 
 # Loop and apply to targets:
     for i in range(len(raRad)):
@@ -533,17 +508,16 @@ def mask_coords(obs):
 
     SLWID=[]
     XMM1,YMM1,XMM2,YMM2,XMM3,YMM3,XMM4,YMM4=[],[],[],[],[],[],[],[]
+    xfp1,yfp1,xfp2,yfp2,xfp3,yfp3,xfp4,yfp4=[],[],[],[],[],[],[],[]
     for i in range(len(RELPA)):
 
         SLWID.append(obs['slitWidth'][i])
-        print('------------------',obs['pcode'][i],obs['slitWidth'][i],SLWID[i])
 #        if obs['pcode'][i]==-2:           ########## <--- alignment box                       <<<----should be done earlier?
 #            SLWID.append(4)
 #        else:
 #            SLWID.append(obs['slitWidth'][i])
 
 # XXX For now, carry through the RELPA thing; in end, must be specified!
-#        print('----=====---',RELPA[i])
         if (RELPA[i] != None):
             cosa = np.cos (RELPA[i])
             sina = np.sin (RELPA[i])
@@ -557,13 +531,15 @@ def mask_coords(obs):
         X2[i] = XARCS[i] + LEN2[i] * cosa * FLIP
         Y2[i] = YARCS[i] + LEN2[i] * sina
 
-###        print('xyarc',XARCS[i],YARCS[i],X1[i],Y1[i],X2[i],Y2[i])
 
 # X1,Y1 are now tan projections already!
 
         xfp = FL_TEL *  X1[i] / asec_rad
         yfp = FL_TEL * (Y1[i] - 0.5*SLWID[i]) / asec_rad
         pa = 0.
+
+        xfp1.append(X1[i])
+        yfp1.append(Y1[i] - 0.5*SLWID[i])
 
         xfp,yfp=gnom_to_dproj (xfp, yfp)         # (allowed)
         xsm,ysm,pa=proj_to_mask (xfp, yfp, pa)
@@ -574,6 +550,10 @@ def mask_coords(obs):
         xfp = FL_TEL *  X2[i] / asec_rad
         yfp = FL_TEL * (Y2[i] - 0.5*SLWID[i]) / asec_rad
         pa = 0.
+
+        xfp2.append(X2[i])
+        yfp2.append(Y2[i] - 0.5*SLWID[i])
+
         xfp,yfp=gnom_to_dproj (xfp, yfp)         # (allowed)
         xsm,ysm,pa=proj_to_mask (xfp, yfp, pa)
 
@@ -583,6 +563,10 @@ def mask_coords(obs):
         xfp = FL_TEL *  X2[i] / asec_rad
         yfp = FL_TEL * (Y2[i] + 0.5*SLWID[i]) / asec_rad
         pa = 0.
+
+        xfp3.append(X2[i])
+        yfp3.append(Y2[i] + 0.5*SLWID[i])
+
         xfp,yfp=gnom_to_dproj (xfp, yfp)         # (allowed)
         xsm,ysm,pa=proj_to_mask (xfp, yfp, pa)
 
@@ -592,15 +576,20 @@ def mask_coords(obs):
         xfp = FL_TEL *  X1[i] / asec_rad
         yfp = FL_TEL * (Y1[i] + 0.5*SLWID[i]) / asec_rad
         pa = 0.
+
+        xfp4.append(X1[i])
+        yfp4.append(Y1[i] + 0.5*SLWID[i])
+
         xfp,yfp=gnom_to_dproj (xfp, yfp)         # (allowed)
         xsm,ysm,pa=proj_to_mask (xfp, yfp, pa)
 
         XMM4.append(xsm + xoff)
         YMM4.append(ysm + yoff)
-#        print('YMM diff:',YMM4[i]-YMM1[i],YMM3[i]-YMM2[i])
 
     obs['slitX1'],obs['slitX2'],obs['slitX3'],obs['slitX4']=XMM1,XMM2,XMM3,XMM4
     obs['slitY1'],obs['slitY2'],obs['slitY3'],obs['slitY4']=YMM1,YMM2,YMM3,YMM4
+    obs['arcslitX1'],obs['arcslitX2'],obs['arcslitX3'],obs['arcslitX4']=xfp1,xfp2,xfp3,xfp4
+    obs['arcslitY1'],obs['arcslitY2'],obs['arcslitY3'],obs['arcslitY4']=yfp1,yfp2,yfp3,yfp4
     return obs
 
 #
@@ -701,7 +690,6 @@ def genObs(df,fileparams):
     return df
 
 def genSlits(df,fileparams):
-    print(fileparams)
     if fileparams['NoOverlapfd'][0]=='yes':
         adj_len=True
     else:
@@ -721,23 +709,19 @@ def genSlits(df,fileparams):
     slit=tel_coords(slit,'raRadU','decRadU','ra_telU','dec_telU',proj_len)
     slit=mask_coords(slit)
 
-    print(slit['length1'])
-    print(df['length1'])
-    print([x*2 for x in slit['length1']])
-
-#    df['length1']=[x*2 for x in slit['length1']]
-#    df['length2']=[x*2 for x in slit['length2']]
     df['slitWidth']=slit['slitWidth']
 
-
-    print(slit.keys())
-#    print(slit['pcode'])
-#    print(slit['SLITDWID']
+    df['xarcs']=slit['xarcsS']
+    df['yarcs']=slit['yarcsS']
 
 
-    df['xarcs']=slit['xarcs']
-    df['yarcs']=slit['yarcs']
 
+    df['slitX1'],df['slitX2'],df['slitX3'],df['slitX4']=slit['slitX1'],slit['slitX2'],slit['slitX3'],slit['slitX4']
+    df['slitY1'],df['slitY2'],df['slitY3'],df['slitY4']=slit['slitY1'],slit['slitY2'],slit['slitY3'],slit['slitY4']
+    df['arcslitX1'],df['arcslitX2'],df['arcslitX3'],df['arcslitX4']=slit['arcslitX1'],slit['arcslitX2'],slit['arcslitX3'],slit['arcslitX4']
+    df['arcslitY1'],df['arcslitY2'],df['arcslitY3'],df['arcslitY4']=slit['arcslitY1'],slit['arcslitY2'],slit['arcslitY3'],slit['arcslitY4']
+#    df['slitX1'],df['slitX2'],df['slitX3'],df['slitX4']=slit['X1'],slit['X1'],slit['X2'],slit['X2']
+#    df['slitY1'],df['slitY2'],df['slitY3'],df['slitY4']=slit['Y1'],slit['Y2'],slit['Y2'],slit['Y1']
     return df
 
 def genMaskOut(df,fileparams):
@@ -749,10 +733,7 @@ def genMaskOut(df,fileparams):
         proj_len=True
     else:
         proj_len=False
-    print(df)
-    print(df['selected'])
     df=df.loc[df['selected']==1]
-    print(df)
     obs,site=init_dicts(df,fileparams)
     obs=refr_coords(obs,site)
     obs=fld2telax(obs,'ra_fldR','dec_fldR','ra_telR','dec_telR')
@@ -813,6 +794,9 @@ def genMaskOut(df,fileparams):
     tel={k:([v] if type(v)!=list else v) for (k,v) in tel.items()}
 
     slitsdf=pd.DataFrame(slit)
+    slitsdf=slitsdf[(slitsdf['sel']==1) & (slitsdf['inMask']==1)]
+    slitsdf.reset_index(drop=True,inplace=True)
+
     paramdf=pd.DataFrame(params)
     sitedf=pd.DataFrame(site)
     teldf=pd.DataFrame(tel)

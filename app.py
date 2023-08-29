@@ -72,8 +72,8 @@ def readparams():
                     dict[k]=(stripquote(v),stripquote(sep[1]),stripquote(sep[2]),stripquote(sep[3]))
                 else:
                     continue
-            except:
-                print('Failed to load parameters')
+            except Exception as e:
+                print('Failed to load parameters',e)
     return dict
 
 
@@ -128,7 +128,8 @@ def getTargetsAndInfo():
         #selector = TargetSelector(newdf, minX, maxX, float(params['MinSlitLengthfd'][0]), float(params['MinSlitSeparationfd'][0]))
         #newdf = selector.performSelection(extendSlits=False)
         outp=targs.toJsonWithInfo(params,newdf)
-    except:
+    except Exception as e:
+        print('Exception',e)
         outp=''
     return outp
     
@@ -137,20 +138,14 @@ def recalculateMask():
     global df
     global prms
     params=prms
+    df=targs.markInside(df)
     newdf=calcmask.genSlits(df,params)
-    print('newdf')
-    print(newdf)
-    newdf=targs.markInside(newdf)
-    print(newdf)
     mask = ml.MaskLayouts["deimos"]
     minX, maxX = np.min(mask, axis=0)[0], np.max(mask, axis=0)[0]
  #   selector = TargetSelector(newdf, minX, maxX, float(params['MinSlitLengthfd'][0]), float(params['MinSlitSeparationfd'][0]))
 #    newdf = selector.performSelection(extendSlits=False)
     df=newdf
-    print(newdf)
     outp=targs.toJsonWithInfo(params,newdf)
-    print('recalculate')
-    print(outp)
     return outp
 
 @app.route('/saveMaskDesignFile',methods=["GET","POST"])

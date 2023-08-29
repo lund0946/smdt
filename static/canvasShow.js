@@ -723,6 +723,46 @@ function CanvasShow(containerName, zoomContainer) {
                 var sxy = tmax.w2s(x, y);
                 var sx = sxy[0];
                 var sy = sxy[1];
+/*
+                if (tyipeof slitX1[i] != "undefined") {
+                    var xy1 = self.targetMatrix.w2s(slitX1[i], slitY1[i]);
+                    var x1 = xy1[0];
+                    var y1 = xy1[1];
+                    var sxy1 = tmax.w2s(x1, y1);
+                    var sx1 = sxy1[0];
+                    var sy1 = sxy1[1];
+    
+                    var xy2 = self.targetMatrix.w2s(slitX2[i], slitY2[i]);
+                    var x2 = xy2[0];
+                    var y2 = xy2[1];
+                    var sxy2 = tmax.w2s(x2, y2);
+                    var sx2 = sxy2[0];
+                    var sy2 = sxy2[1];
+
+                    var xy3 = self.targetMatrix.w2s(slitX3[i], slitY3[i]);
+                    var x3 = xy3[0];
+                    var y3 = xy3[1];
+                    var sxy3 = tmax.w2s(x3, y3);
+                    var sx3 = sxy3[0];
+                    var sy3 = sxy3[1];
+    
+                    var xy4 = self.targetMatrix.w2s(slitX4[i], slitY4[i]);
+                    var x4 = xy4[0];
+                    var y4 = xy4[1];
+                    var sxy4 = tmax.w2s(x4, y4);
+                    var sx4 = sxy4[0];
+                    var sy4 = sxy4[1];
+
+                    x1Out.push(sx1);
+                    y1Out.push(sy1);
+                    x2Out.push(sx2);
+                    y2Out.push(sy2);
+                    x3Out.push(sx3);
+                    y3Out.push(sy3);
+                    x4Out.push(sx4);
+                    y4Out.push(sy4);
+                }
+*/
 
                 var pri = pcode[i];
                 var inMask = checker.checkPoint(sx, sy);
@@ -861,9 +901,56 @@ function CanvasShow(containerName, zoomContainer) {
             }
 
 
+
+            let xy1 = self.targetMatrix.w2s(slitX1[idx], slitY1[idx]);
+            let x1 = xy1[0];
+            let y1 = xy1[1];
+            let sxy1 = tmax.w2s(x1, y1);
+            let sx1 = sxy1[0];
+            let sy1 = sxy1[1];
+
+            let xy2 = self.targetMatrix.w2s(slitX2[idx], slitY2[idx]);
+            let x2 = xy2[0];
+            let y2 = xy2[1];
+            let sxy2 = tmax.w2s(x2, y2);
+            let sx2 = sxy2[0];
+            let sy2 = sxy2[1];
+
+            let xy3 = self.targetMatrix.w2s(slitX3[idx], slitY3[idx]);
+            let x3 = xy3[0];
+            let y3 = xy3[1];
+            let sxy3 = tmax.w2s(x3, y3);
+            let sx3 = sxy3[0];
+            let sy3 = sxy3[1];
+
+            let xy4 = self.targetMatrix.w2s(slitX4[idx], slitY4[idx]);
+            let x4 = xy4[0];
+            let y4 = xy4[1];
+            let sxy4 = tmax.w2s(x4, y4);
+            let sx4 = sxy4[0];
+            let sy4 = sxy4[1];
+
+
             drawQuadrilateral(ctx,
-                x11 + maskX, y11 + maskY, x11 - maskX, y11 - maskY,
-                x12 - maskX, y12 - maskY, x12 + maskX, y12 + maskY);
+                sx1, sy1, sx2, sy2,
+                sx3, sy3, sx4, sy4);
+
+//                x1Out.push(sx1);
+//                y1Out.push(sy1);
+//                x2Out.push(sx2);
+//                y2Out.push(sy2);
+//                x3Out.push(sx3);
+//                y3Out.push(sy3);
+//                x4Out.push(sx4);
+//                y4Out.push(sy4);
+
+
+
+
+
+//            drawQuadrilateral(ctx,
+//                x11 + maskX, y11 + maskY, x11 - maskX, y11 - maskY,
+//                x12 - maskX, y12 - maskY, x12 + maskX, y12 + maskY);
 
             drawPlus(ctx, x, y, halfWidth, halfWidth);
         } // end drawSlit
@@ -884,6 +971,18 @@ function CanvasShow(containerName, zoomContainer) {
         var tmax = self.tMatrix;
         var xpos = targets.xarcs;
         var ypos = targets.yarcs;
+
+        var slitX1 = targets.arcslitX1;
+        var slitX2 = targets.arcslitX2;
+        var slitX3 = targets.arcslitX3;
+        var slitX4 = targets.arcslitX4;
+
+        var slitY1 = targets.arcslitY1;
+        var slitY2 = targets.arcslitY2;
+        var slitY3 = targets.arcslitY3;
+        var slitY4 = targets.arcslitY4;
+
+
         var slitPAs = targets.slitLPA;
         var slitWidths = targets.slitWidth;
         var length1s = targets.length1;
@@ -903,6 +1002,10 @@ function CanvasShow(containerName, zoomContainer) {
         var guideBoxOutIdx = [];
         var xOut = [];
         var yOut = [];
+
+      
+      
+
         var magn = targets.mag;
 
         var height2 = self._Canvas.height;

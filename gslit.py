@@ -33,9 +33,9 @@ def gs_ingest():
 
 
     gsx2={'Polynomial':3,\
-            'XX order':2,\
-            'XY order':2,\
-            'No cross terms':0,\
+            'XX order':4,\
+            'XY order':3,\
+            'No cross terms':1,\
             'Min XX':-520,\
             'Max XX':520,\
             'Min XY':60,\
@@ -57,9 +57,9 @@ def gs_ingest():
 
 
     gsy2={'Polynomial':3,\
-            'YX order':2,\
-            'YY order':2,\
-            'No cross terms':0,\
+            'YX order':3,\
+            'YY order':3,\
+            'No cross terms':1,\
             'Min YX':-520,\
             'Max YX':520,\
             'Min YY':60,\
@@ -82,7 +82,9 @@ def gs_ingest():
 
 
 def gseval(x1,x2,cen,yas):
-    dx = (x1['a11gsx1'] +x2['a11gsx2'])+(x1['a21gsx1']+x2['a21gsx2'])*cen +x2['a31gsx2']*cen**2 +x2['a41gsx2']*cen**3 +(x1['a12gsx1']+x2['a12gsx2'])*yas + x2['a22gsx2']*cen*yas + x2['a32gsx2']*cen**2*yas +x2['a42gsx2']*cen**3*yas + x2['a13gsx2']*yas**2+x2['a23gsx2']*cen*yas**2 +x2['a33gsx2']*cen**2*yas**2 + x2['a43gsx2']*cen**3*yas**2
+    dx = (x1['a11gsx1'] +x2['a11gsx2'])+(x1['a21gsx1']+x2['a21gsx2'])*cen +x2['a31gsx2']*(cen**2) +x2['a41gsx2']*(cen**3) +(x1['a12gsx1']+x2['a12gsx2'])*yas + x2['a22gsx2']*cen*yas + x2['a32gsx2']*(cen**2)*yas +x2['a42gsx2']*(cen**3)*yas + x2['a13gsx2']*(yas**2)+x2['a23gsx2']*cen*(yas**2) +x2['a33gsx2']*(cen**2)*(yas**2) + x2['a43gsx2']*(cen**3)*(yas**2)
+
+
     return dx
 
 
@@ -92,8 +94,8 @@ def gseval(x1,x2,cen,yas):
 ##Adjust slit lengths to fit
 def len_slits(dict):
     print('len')
-    print(dict)
     df=pd.DataFrame.from_dict(dict)
+    print(df)
     FLIP=-1
     SLIT_GAP=0.35 #parameter min distance gap between slits
 
@@ -105,11 +107,10 @@ def len_slits(dict):
     for i,row in enumerate(tg.iterrows()):
         if i==len(tg)-1:
             continue
-        pc1=tg.pcode[i]
-        pc2=tg.pcode[i+1]
-
-        ndx1=i
-        ndx2=i+1
+        ndx1=tg.index[i]
+        ndx2=tg.index[i+1]
+        pc1=tg.pcode[ndx1]
+        pc2=tg.pcode[ndx2]
 
         if pc1==-2 and pc2 ==-2:
             continue
@@ -120,12 +121,16 @@ def len_slits(dict):
          
         yas = tg.Y2[ndx1]
         dxlow = gseval (gsx1,gsx2, xcen, yas)
+        print('dxl',dxlow)
         yas = tg.Y1[ndx2]
         dxupp = gseval (gsx1,gsx2, xcen, yas)
+        print('dxu',dxupp)
         dxavg = 0.5 * (dxupp + dxlow)
         dxlow = dxlow - dxavg
         dxupp = dxupp - dxavg
- 
+
+        print('len_slits dx:')
+        print(dxlow,dxupp,dxavg) 
         
         if (pc1 == -2):
             del1 = 0.
@@ -137,6 +142,7 @@ def len_slits(dict):
             del1 = xcen - 0.5*SLIT_GAP - tg.X2[ndx1] + dxlow
             del2 = tg.X1[ndx2] - (xcen + 0.5*SLIT_GAP) - dxupp
                
+        print(del1,del2)
 
         tg.X2[ndx1] = tg.X2[ndx1] + del1
         if (del1 != 0. and tg.relpa[ndx1] != None):
@@ -153,6 +159,7 @@ def len_slits(dict):
     print(tg)
     print(df)
     print('\n\n\n\n\n\n\n\n\n')
+    df=df.sort_values(by=["index"])
     df.loc[df.index.isin(tg.index), cols]=tg[cols]
     print(df)
     dfout=df.to_dict('list')

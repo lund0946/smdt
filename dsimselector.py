@@ -50,6 +50,7 @@ def selector(df,xmin,xmax,min_slit,slit_gap):
 
     print(opt)
     cols=list(df.columns)
+    df=df.sort_values(by=["index"])
     df.loc[df.index.isin(opt.index), cols]=opt[cols]
     dfout=df.to_dict('list')
     print(dfout)
