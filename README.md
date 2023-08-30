@@ -20,7 +20,9 @@ Click save mask design file to save the file.
 - ~Discrepency between dsimulator and smdt slit angles by 90 degrees.~
 - ~Mask Design Output includes all~ 
 - ~Plot not yet included~
-- Recalculate mask or save mask doesn't automatically update the parameters.
-- RA/DEC center should come up as average of targets or perhaps first target if nothing is set.
-- ~If pcode=-2, plot should use alignmentbox size for slitwidth and length and set relPA=0~
 - SaveMaskDesignFile Button says that save failed when it really succeeded.
+
+
+### Other items
+- Recalculate mask or save mask doesn't automatically update the parameters, instead it required the update parameters button to be pressed first by design.
+- RA/DEC center could come up as average of targets or perhaps first target if nothing is set in the parameters.
