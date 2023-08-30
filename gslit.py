@@ -99,9 +99,8 @@ def len_slits(dict):
     FLIP=-1
     SLIT_GAP=0.35 #parameter min distance gap between slits
 
-    tg=df[df['pcode']!=-1] # remove pcode=-1 from list
-    tg.sort_values('xarcs')  ### Correct value to sort on?
-
+    tg=df[(df['pcode']!=-1) & (df['sel']==1) & (df['inMask']==1)] # remove pcode=-1 from list  ## was just tg=df[(df['pcode']!=-1) prev
+    tg=tg.sort_values(by=['xarcs'],ascending=True)  ### Correct value to sort on?
     gsx1,gsx2=gs_ingest() ## only x used
         
     for i,row in enumerate(tg.iterrows()):
@@ -142,8 +141,9 @@ def len_slits(dict):
             del1 = xcen - 0.5*SLIT_GAP - tg.X2[ndx1] + dxlow
             del2 = tg.X1[ndx2] - (xcen + 0.5*SLIT_GAP) - dxupp
                
-        print(del1,del2)
-
+        print(tg.xarcs[ndx1],tg.xarcs[ndx2],tg.X2[ndx1]+del1,tg.X1[ndx2]-del2)
+        print('X2:',xcen-0.175+dxlow)
+        print('X1:',xcen+0.175+dxupp)
         tg.X2[ndx1] = tg.X2[ndx1] + del1
         if (del1 != 0. and tg.relpa[ndx1] != None):
             tana = math.tan (tg.relpa[ndx1])
@@ -156,14 +156,10 @@ def len_slits(dict):
             tg.Y1[ndx2] = tg.Y1[ndx2] - del2 * FLIP * tana
                  
     cols=list(df.columns)
-    print(tg)
-    print(df)
     print('\n\n\n\n\n\n\n\n\n')
-    df=df.sort_values(by=["index"])
+    tg=tg.sort_values(by=["index"])
     df.loc[df.index.isin(tg.index), cols]=tg[cols]
-    print(df)
     dfout=df.to_dict('list')
-    print(dfout)
 
     dfout['ra0_fld']=dfout['ra0_fld'][0]
     dfout['dec0_fld']=dfout['dec0_fld'][0]
@@ -179,10 +175,3 @@ def len_slits(dict):
     return dfout
 
 
-#import pickle
-
-#with open('dict.pickle','rb') as f:
-#    dict=pickle.load(f)
-#print(dict)
-#out=len_slits(dict)
-#print(out)

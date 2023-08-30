@@ -490,8 +490,8 @@ def mask_coords(obs):
     RELPA=obs['relpa']
     XARCS=obs['xarcsS']
     YARCS=obs['yarcsS']
-    LEN1=obs['length1']
-    LEN2=obs['length2']
+    LEN1=obs['length1S']  ##Correct?
+    LEN2=obs['length2S']  ##Correct?
     FL_TEL=150327.0
 
     X1=obs['X1']
