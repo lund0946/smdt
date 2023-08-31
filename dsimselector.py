@@ -8,7 +8,7 @@ def selector(df,xmin,xmax,min_slit,slit_gap):
     print(df)
 
     #need to check for preselected
-    npre=len(df[df["sel"]==1])
+    npre=len(df[(df["sel"]==1) & (df["pcode"]!=-1)])
 
     #need to select options
 
@@ -18,7 +18,9 @@ def selector(df,xmin,xmax,min_slit,slit_gap):
     tg=df[df['pcode']!=-1]
 
     sel=tg[tg['sel']==1]
+    print('sel\n',len(sel),sel)
     opt=tg[(tg['sel']!=1) & (tg['inMask']==1) & (df['pcode']>0)]
+    print('opt\n',opt)
     nopt=len(tg[(tg['sel']!=1) & (tg['inMask']==1) & (df['pcode']>0)])
 
 
@@ -33,8 +35,10 @@ def selector(df,xmin,xmax,min_slit,slit_gap):
     xskip = 0.
     nselect = 0                     # triggers init in sel_rank
     print('sel conditions',len(sel.xarcs),npre,nopt,minsep,slit_gap)
-    if (len(opt) > 0):            #was sel originally, but didnt make sense
+    if (len(opt) > 0 and len(sel) > 0 ):            #was sel originally, but didnt make sense
         for i in range(npre):
+            print(i,npre,range(npre))
+            print(sel.index[i])
             ndx=sel.index[i]
             if (i < npre):
                 xupp = sel.X1[ndx]
@@ -149,7 +153,7 @@ def from_dict(dict):
     df=targs.markInside(df)
     min_slit,slit_gap=10,0.35  ## set from inputs
     dfout=selector(df,minX,maxX,min_slit,slit_gap)
-    #dfout=df.to_dict('list')
+    #dfout=dfout.to_dict('list')
     print(dfout)
 
     dfout['ra0_fld']=dfout['ra0_fld'][0]

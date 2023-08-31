@@ -18,6 +18,7 @@ from astropy.coordinates import Angle
 import sl
 import maskLayouts
 import utils
+import dsimselector
 
 
 import pdb
@@ -124,7 +125,7 @@ def init_dicts(data,params):
     rel_h20 = obs_rh                # relative humidity
     w = waver/10000. ##reference wavelength conv. to micron
 
-    obs={'ra0_fld':ra0_fld,'dec0_fld':dec0_fld,'ha0_fld':ha0_fld,'raRad':raRad,'decRad':decRad,'lst':lst,'pa0_fld':pa0_fld,'length1':length1,'length2':length2,'slitLPA':slitLPA,'pcode':pcode,'slitWidth':slitWidth,'slitpa':slitpa,'mag':mag,'magband':magband}
+    obs={'ra0_fld':ra0_fld,'dec0_fld':dec0_fld,'ha0_fld':ha0_fld,'raRad':raRad,'decRad':decRad,'lst':lst,'pa0_fld':pa0_fld,'length1':length1,'length2':length2,'slitLPA':slitLPA,'pcode':pcode,'slitWidth':slitWidth,'slitpa':slitpa,'mag':mag,'magband':magband,'sel':sel}
     site={'lat':lat,'htm':htm,'tdk':tdk,'pmb':pmb,'rel_h20':rel_h20,'w':w,'wavemn':wavemn,'wavemx':wavemx}
 
     return obs,site
@@ -303,6 +304,7 @@ def tel_coords(obs,ra_ref,dec_ref,ra_telref,dec_telref,proj_len=False):
 def gen_slits(obs,adj_len=False):
 
 
+
     CODE_GS=-11 #code for guidestars
     n_targs=len(obs['raRadR'])
     ndx = 0
@@ -311,7 +313,7 @@ def gen_slits(obs,adj_len=False):
     _ndx=[]
     for i in range(n_targs):
         if True:#(obs[SEL[i] !=0):     # or != 0
-            _sel.append(1)            #until selection is implemented #########
+#            _sel.append(obs['sel'][i])            #until selection is implemented #########
             x = obs['xarcs'][i]       # unclear TY of XYARCS
             y = obs['yarcs'][i]
 
@@ -355,13 +357,13 @@ def gen_slits(obs,adj_len=False):
     obs["yarcs"]=_YARCS
 #    obs["slitWidth"]=_SLWID      # not needed?
     obs["slitIndex"]=_SLNDX
-    obs["sel"]=_sel
+ #   obs["sel"]=_sel
 
 
-
-    import dsimselector
+    print(obs)
+    print('\n\n\n\n\n\n\n\ =================')
     obs=dsimselector.from_dict(obs)
-
+    print(obs)
 
     if adj_len:
         import gslit
@@ -690,6 +692,8 @@ def genObs(df,fileparams):
     return df
 
 def genSlits(df,fileparams):
+    print('genSlits\n\n\n\n\n\n\n\n\n')
+    print(df)
     if fileparams['NoOverlapfd'][0]=='yes':
         adj_len=True
     else:
@@ -699,6 +703,8 @@ def genSlits(df,fileparams):
     else:
         proj_len=False
     obs,site=init_dicts(df,fileparams)
+    print('init_dicts')
+    print(obs)
     obs=refr_coords(obs,site)
     obs=fld2telax(obs,'ra_fldR','dec_fldR','ra_telR','dec_telR')
     obs=tel_coords(obs,'raRadR','decRadR','ra_telR','dec_telR')
@@ -713,7 +719,7 @@ def genSlits(df,fileparams):
 
     df['xarcs']=slit['xarcsS']
     df['yarcs']=slit['yarcsS']
-
+    df['selected']=slit['sel']
 
 
     df['slitX1'],df['slitX2'],df['slitX3'],df['slitX4']=slit['slitX1'],slit['slitX2'],slit['slitX3'],slit['slitX4']
@@ -747,6 +753,7 @@ def genMaskOut(df,fileparams):
 
     df['xarcs']=slit['xarcs']
     df['yarcs']=slit['yarcs']
+    df['selected']=slit['sel']
 
 
     tel={}
