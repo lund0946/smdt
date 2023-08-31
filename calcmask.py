@@ -720,6 +720,8 @@ def genSlits(df,fileparams):
     df['xarcs']=slit['xarcsS']
     df['yarcs']=slit['yarcsS']
     df['selected']=slit['sel']
+    df['length1']=slit['length1S']
+    df['length2']=slit['length2S']
 
 
     df['slitX1'],df['slitX2'],df['slitX3'],df['slitX4']=slit['slitX1'],slit['slitX2'],slit['slitX3'],slit['slitX4']
@@ -754,6 +756,7 @@ def genMaskOut(df,fileparams):
     df['xarcs']=slit['xarcs']
     df['yarcs']=slit['yarcs']
     df['selected']=slit['sel']
+    df['length2']=slit['length2S']
 
 
     tel={}

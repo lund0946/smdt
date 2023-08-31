@@ -96,8 +96,11 @@ def setColumnValue():
 def updateTarget():
     global df
     targets=df
+    print(df)
     values=json.loads(request.data.decode().split('=')[1].split('}&')[0]+'}')
     df,idx=targs.updateTarget(targets,values)
+    print(idx,values)
+    print(df)
     return json.dumps({'idx':idx})
 
 
