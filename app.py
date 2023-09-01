@@ -53,11 +53,11 @@ app = Flask(__name__)
 app.secret_key='dsf2315ewd'
 app.config['SESSION_PERMANENT'] = True
 app.config['SESSION_TYPE'] = 'filesystem'
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=5)
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=0.001)
 
 # The maximum number of items the session stores 
 # before it starts deleting some, default 500
-app.config['SESSION_FILE_THRESHOLD'] = 100  
+app.config['SESSION_FILE_THRESHOLD'] = 10000  
 
 
 #@app.route('/readparams')

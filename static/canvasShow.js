@@ -952,7 +952,7 @@ function CanvasShow(containerName, zoomContainer) {
 //                x11 + maskX, y11 + maskY, x11 - maskX, y11 - maskY,
 //                x12 - maskX, y12 - maskY, x12 + maskX, y12 + maskY);
 
-            drawPlus(ctx, x, y, halfWidth, halfWidth);
+            drawPlus(ctx, x, y, 2*halfWidth, 2*halfWidth);
         } // end drawSlit
 
         function drawListIdx(tlist, color, fnc) {

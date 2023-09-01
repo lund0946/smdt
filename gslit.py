@@ -93,9 +93,9 @@ def gseval(x1,x2,cen,yas):
 
 ##Adjust slit lengths to fit
 def len_slits(dict):
-    print('len')
+    print('len_slits')
     df=pd.DataFrame.from_dict(dict)
-    print(df)
+#    print(df)
     FLIP=-1
     SLIT_GAP=0.35 #parameter min distance gap between slits
 
@@ -120,16 +120,16 @@ def len_slits(dict):
          
         yas = tg.Y2[ndx1]
         dxlow = gseval (gsx1,gsx2, xcen, yas)
-        print('dxl',dxlow)
+#        print('dxl',dxlow)
         yas = tg.Y1[ndx2]
         dxupp = gseval (gsx1,gsx2, xcen, yas)
-        print('dxu',dxupp)
+#        print('dxu',dxupp)
         dxavg = 0.5 * (dxupp + dxlow)
         dxlow = dxlow - dxavg
         dxupp = dxupp - dxavg
 
-        print('len_slits dx:')
-        print(dxlow,dxupp,dxavg) 
+#        print('len_slits dx:')
+#        print(dxlow,dxupp,dxavg) 
         
         if (pc1 == -2):
             del1 = 0.
@@ -141,9 +141,9 @@ def len_slits(dict):
             del1 = xcen - 0.5*SLIT_GAP - tg.X2[ndx1] + dxlow
             del2 = tg.X1[ndx2] - (xcen + 0.5*SLIT_GAP) - dxupp
                
-        print(tg.xarcs[ndx1],tg.xarcs[ndx2],tg.X2[ndx1]+del1,tg.X1[ndx2]-del2)
-        print('X2:',xcen-0.175+dxlow)
-        print('X1:',xcen+0.175+dxupp)
+#        print(tg.xarcs[ndx1],tg.xarcs[ndx2],tg.X2[ndx1]+del1,tg.X1[ndx2]-del2)
+#        print('X2:',xcen-0.175+dxlow)
+#        print('X1:',xcen+0.175+dxupp)
         tg.X2[ndx1] = tg.X2[ndx1] + del1
         if (del1 != 0. and tg.relpa[ndx1] != None):
             tana = math.tan (tg.relpa[ndx1])
@@ -156,7 +156,7 @@ def len_slits(dict):
             tg.Y1[ndx2] = tg.Y1[ndx2] - del2 * FLIP * tana
                  
     cols=list(df.columns)
-    print('\n\n\n\n\n\n\n\n\n')
+#    print('\n\n\n\n\n\n\n\n\n')
     tg=tg.sort_values(by=["index"])
     df.loc[df.index.isin(tg.index), cols]=tg[cols]
     dfout=df.to_dict('list')
