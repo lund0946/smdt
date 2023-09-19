@@ -44,6 +44,14 @@ function SlitmaskDesignTool() {
 		form2.submit();
 	};
 
+        self.sendParamUpdate = function () {
+
+                self.setStatus("Updating ...");
+
+                let form2 = E('form2');
+                form2.submit();
+        };
+
 	self.loadBackgroundImage = function () {
 		// This is the DSS image if requested
 		// or a blank image, if no DSS.
@@ -337,6 +345,18 @@ function SlitmaskDesignTool() {
 		ajaxPost('setColumnValue', params, function () { });
 	};
 
+
+        self.resetSelection = function (evt) {
+                function callback() {
+                        self.reloadTargets(0);
+                }
+
+                let params = {};
+
+                ajaxCall("resetSelection", params, callback);
+        };
+
+
 	self.recalculateMaskHelper = function (callback) {
 		// Send targets that are inside mask to server.
 		// Retrieve selected mask information and display.
@@ -579,11 +599,12 @@ function SlitmaskDesignTool() {
 	E('setMaskPA').onclick = self.setMaskPA;
 	E('setSlitsLength').onclick = self.setSlitsLength;
 	E('setSlitsWidth').onclick = self.setSlitsWidth;
-//        E('updateParams').onclick = self.updateParams;
-        E('updateParams').onclick = self.sendTargets2Server;
+        E('updateParams').onclick = self.sendParamUpdate;
+//        E('updateParams').onclick = self.sendTargets2Server;
 
 	E('recalculateMask').onclick = self.recalculateMask;
 	E('clearSelection').onclick = self.clearSelection;
+        E('resetSelection').onclick = self.resetSelection;
 
 	E('updateTarget').onclick = self.updateTarget;
 	E('deleteTarget').onclick = self.deleteTarget;

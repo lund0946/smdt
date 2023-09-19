@@ -935,23 +935,6 @@ function CanvasShow(containerName, zoomContainer) {
                 sx1, sy1, sx2, sy2,
                 sx3, sy3, sx4, sy4);
 
-//                x1Out.push(sx1);
-//                y1Out.push(sy1);
-//                x2Out.push(sx2);
-//                y2Out.push(sy2);
-//                x3Out.push(sx3);
-//                y3Out.push(sy3);
-//                x4Out.push(sx4);
-//                y4Out.push(sy4);
-
-
-
-
-
-//            drawQuadrilateral(ctx,
-//                x11 + maskX, y11 + maskY, x11 - maskX, y11 - maskY,
-//                x12 - maskX, y12 - maskY, x12 + maskX, y12 + maskY);
-
             drawPlus(ctx, x, y, 2*halfWidth, 2*halfWidth);
         } // end drawSlit
 
@@ -1145,6 +1128,90 @@ function CanvasShow(containerName, zoomContainer) {
         self.targetTable.highLight(idx);
         self.reallyDrawTxImage();
     };
+
+
+    self.selTarget = function () {
+            function callback(data) {
+                    let i = idx;
+                    if (data && data.length > 0)
+                            i = data[0]
+              //      self.updateTarget(idx);
+
+//                    self.selectedTargetIdx = i;
+ //                   self.reDrawTable();
+ //                   self.redraw();
+                    self.smdt.reloadTargets(idx, i);
+                    self.selectedTargetIdx = i;
+                    self.reDrawTable();
+                    self.smdt.redraw();
+
+            }
+            // Updates an existing or adds a new target.
+            // Sends new target info to server
+            let idx = self.selectedTargetIdx;
+            let prior = Number(E('targetPrior').value);
+            let selected = Number(1);
+            let slitLPA = Number(E('targetSlitPA').value);
+            let slitWidth = Number(E('targetSlitWidth').value);
+            let length1 = Number(E('targetLength1').value);
+            let length2 = Number(E('targetLength2').value);
+            let tname = E("targetName").value;
+            let targetRA = E("targetRA").value;
+            let targetDEC = E("targetDEC").value;
+            let targetMagn = E("targetMagn").value;
+            let targetBand = E('targetBand').value;
+
+            let params = {
+                    'idx': idx, 'raSexa': targetRA, 'decSexa': targetDEC, 'eqx': 2000,
+                    'mag': targetMagn, 'pBand': targetBand,
+                    'prior': prior, 'selected': selected, 'slitLPA': slitLPA, 'slitWidth': slitWidth,
+                    'len1': length1, 'len2': length2, 'targetName': tname
+            };
+            let ajax = new AjaxClass();
+            ajax.postRequest('updateTarget', { 'values': JSON.stringify(params) }, callback);
+    };
+
+    self.deselTarget = function () {
+            function callback(data) {
+                    let i = idx;
+                    if (data && data.length > 0)
+                            i = data[0]
+              //      self.updateTarget(idx);
+
+//                    self.selectedTargetIdx = i;
+ //                   self.reDrawTable();
+ //                   self.redraw();
+                    self.smdt.reloadTargets(idx, i);
+                    self.selectedTargetIdx = i;
+                    self.reDrawTable();
+                    self.smdt.redraw();
+
+            }
+            // Updates an existing or adds a new target.
+            // Sends new target info to server
+            let idx = self.selectedTargetIdx;
+            let prior = Number(E('targetPrior').value);
+            let selected = Number(0);
+            let slitLPA = Number(E('targetSlitPA').value);
+            let slitWidth = Number(E('targetSlitWidth').value);
+            let length1 = Number(E('targetLength1').value);
+            let length2 = Number(E('targetLength2').value);
+            let tname = E("targetName").value;
+            let targetRA = E("targetRA").value;
+            let targetDEC = E("targetDEC").value;
+            let targetMagn = E("targetMagn").value;
+            let targetBand = E('targetBand').value;
+
+            let params = {
+                    'idx': idx, 'raSexa': targetRA, 'decSexa': targetDEC, 'eqx': 2000,
+                    'mag': targetMagn, 'pBand': targetBand,
+                    'prior': prior, 'selected': selected, 'slitLPA': slitLPA, 'slitWidth': slitWidth,
+                    'len1': length1, 'len2': length2, 'targetName': tname
+            };
+            let ajax = new AjaxClass();
+            ajax.postRequest('updateTarget', { 'values': JSON.stringify(params) }, callback);
+    };
+
 
     self.clickedRow = function (evt) {
         // Called when clicked on a row in the target table
@@ -1380,6 +1447,9 @@ function CanvasShow(containerName, zoomContainer) {
         var mx = evt.pageX;
         var my = evt.pageY;
 
+        self.mousemx=mx;
+        self.mousemy=my;
+
         var dx = mx - self.lastmx;
         var dy = my - self.lastmy;
         var ePos = getAbsPosition(self.contElem);
@@ -1432,12 +1502,27 @@ function CanvasShow(containerName, zoomContainer) {
         self.origSkyMatrix.translate(0, 10);
     };
 
+
     self.keypressed = function (evt) {
         var activeElem = document.activeElement;
         if (self.contElem != activeElem) return true;
         evt.preventDefault();
         var k = evt.key;
         switch (k) {
+            case "a":
+                var mx = self.mousemx;
+                var my = self.mousemy;
+                var ePos = getAbsPosition(self.contElem);
+                self.selectTarget(mx - ePos.x, my - ePos.y);
+                self.selTarget();
+                break;
+            case "d":
+                var mx = self.mousemx;
+                var my = self.mousemy;
+                var ePos = getAbsPosition(self.contElem);
+                self.selectTarget(mx - ePos.x, my - ePos.y);
+                self.deselTarget();
+                break;
             case "h":
                 self.panSky(-5, 0);
                 break;

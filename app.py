@@ -114,7 +114,13 @@ def deleteTarget():
     outp=targs.toJsonWithInfo(prms,df)
     return outp
 
-
+@app.route('/resetSelection',methods=["GET","POST"])
+def resetSelection():
+    global df
+    global prms
+    df.selected=df.loadselected
+    outp=targs.toJsonWithInfo(prms,df)
+    return outp
 
 
 @app.route('/getTargetsAndInfo')
@@ -177,6 +183,7 @@ def sendTargets2Server():
     prms=request.form.to_dict(flat=False)
     params=prms
     centerRADeg,centerDEC,positionAngle=15*utils.sexg2Float(params['InputRAfd'][0]),utils.sexg2Float(params['InputDECfd'][0]),float(params['MaskPAfd'][0])
+#    pdb.set_trace()
     fh=[]
     session['params']=params
     prms=params
@@ -189,7 +196,7 @@ def sendTargets2Server():
         session['file']=fh
         global df
         df=targs.readRaw(session['file'],prms)
-
+        df['loadselected']=df.selected                   #Only backup selected targets on file load.
     return ''    
 
 
