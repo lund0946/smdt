@@ -143,7 +143,7 @@ def sel_rank(opt, xlow, xupp, minsep, slit_gap):
 
 
 
-def from_dict(dict):
+def from_dict(dict,sel=True):
     import maskLayouts as ml
     import targs
     mask=ml.MaskLayouts["deimos"]
@@ -151,8 +151,10 @@ def from_dict(dict):
     df=pd.DataFrame.from_dict(dict)
     df=targs.markInside(df)
     min_slit,slit_gap=10,0.35  ## set from inputs
-    dfout=selector(df,minX,maxX,min_slit,slit_gap)
-    #dfout=dfout.to_dict('list')
+    if sel:
+        dfout=selector(df,minX,maxX,min_slit,slit_gap)
+    else:
+        dfout=df.to_dict('list')
 #    print(dfout)
 
     dfout['ra0_fld']=dfout['ra0_fld'][0]

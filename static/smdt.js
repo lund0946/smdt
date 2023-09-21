@@ -391,11 +391,52 @@ function SlitmaskDesignTool() {
 			if (!data) return;
 			if (!data.targets) return;
 
-			self.canvasShow.slitsReady = true;
+			self.canvasShow.slitsReady = false;
 			self.updateLoadedTargets(data);
 		}
 		self.recalculateMaskHelper(callback);
 	};
+
+
+        self.generateSlitsHelper = function (callback) {
+                // Send targets that are inside mask to server.
+                // Retrieve selected mask information and display.
+                let cs = self.canvasShow;
+                if (!cs) {
+                        alert("No targets available");
+                        return;
+                }
+                cs.centerRaDeg = cs.currRaDeg;
+                cs.centerDecDeg = cs.currDecDeg;
+
+                let minSepAs = E('MinSlitSeparationfd').value;
+                let minSlitLengthAs = E('MinSlitLengthfd').value;
+                let boxSizeAs = E('AlignBoxSizefd').value;
+                let extendSlits = E('extendSlits').checked ? 1 : 0;
+
+                let params = {
+                        'currRaDeg': cs.currRaDeg, 'currDecDeg': cs.currDecDeg,
+                        'currAngleDeg': cs.positionAngle + cs.origPA,
+                        'minSepAs': minSepAs,
+                        'minSlitLengthAs': minSlitLengthAs,
+                        'boxSize': boxSizeAs,
+                        'extendSlits': extendSlits
+                };
+                let ajax = new AjaxClass();
+                ajax.postRequest('generateSlits', params, callback);
+        };
+
+        self.generateSlits = function (evt) {
+                function callback(data) {
+                        self.canvasShow.slitsReady = false;
+                        if (!data) return;
+                        if (!data.targets) return;
+
+                        self.canvasShow.slitsReady = true;
+                        self.updateLoadedTargets(data);
+                }
+                self.generateSlitsHelper(callback);
+        };
 
 
         self.updateColumn = function (evt) {
@@ -603,6 +644,7 @@ function SlitmaskDesignTool() {
 //        E('updateParams').onclick = self.sendTargets2Server;
 
 	E('recalculateMask').onclick = self.recalculateMask;
+        E('generateSlits').onclick = self.generateSlits;
 	E('clearSelection').onclick = self.clearSelection;
         E('resetSelection').onclick = self.resetSelection;
 

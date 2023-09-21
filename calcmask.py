@@ -301,7 +301,7 @@ def tel_coords(obs,ra_ref,dec_ref,ra_telref,dec_telref,proj_len=False):
     return obs
 
 
-def gen_slits(obs,adj_len=False):
+def gen_slits(obs,adj_len=False,auto_sel=True):
 
 
 
@@ -362,8 +362,8 @@ def gen_slits(obs,adj_len=False):
 
     print(obs)
     print('\n\n\n\n\n\n\n\ =================')
-    obs=dsimselector.from_dict(obs)
-    print(obs)
+#    if auto_sel:
+    obs=dsimselector.from_dict(obs,auto_sel)
 
     if adj_len:
         import gslit
@@ -691,7 +691,7 @@ def genObs(df,fileparams):
     df['yarcs']=obs['yarcs']
     return df
 
-def genSlits(df,fileparams):
+def genSlits(df,fileparams,auto_sel=True):
     print('genSlits\n\n\n\n\n\n\n\n\n')
     print(df)
     if fileparams['NoOverlapfd'][0]=='yes':
@@ -708,7 +708,7 @@ def genSlits(df,fileparams):
     obs=refr_coords(obs,site)
     obs=fld2telax(obs,'ra_fldR','dec_fldR','ra_telR','dec_telR')
     obs=tel_coords(obs,'raRadR','decRadR','ra_telR','dec_telR')
-    slit=gen_slits(obs,adj_len)
+    slit=gen_slits(obs,adj_len,auto_sel)
     slit=sky_coords(slit)
     slit=unrefr_coords(slit,site)
     slit=fld2telax(slit,'ra0_fldU','dec0_fldU','ra_telU','dec_telU')

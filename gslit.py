@@ -95,10 +95,9 @@ def gseval(x1,x2,cen,yas):
 def len_slits(dict):
     print('len_slits')
     df=pd.DataFrame.from_dict(dict)
-#    print(df)
+    #print(df)
     FLIP=-1
     SLIT_GAP=0.35 #parameter min distance gap between slits
-
     tg=df[(df['pcode']!=-1) & (df['sel']==1) & (df['inMask']==1)] # remove pcode=-1 from list  ## was just tg=df[(df['pcode']!=-1) prev
     tg=tg.sort_values(by=['xarcs'],ascending=True)  ### Correct value to sort on?
     gsx1,gsx2=gs_ingest() ## only x used

@@ -142,13 +142,30 @@ def getTargetsAndInfo():
         outp=''
     return outp
     
+
+@app.route('/generateSlits',methods=["GET","POST"])
+def generateSlits():
+    global df
+    global prms
+    params=prms
+    df=targs.markInside(df)
+#    print(df)
+    newdf=calcmask.genSlits(df,params,auto_sel=True)
+    mask = ml.MaskLayouts["deimos"]
+    minX, maxX = np.min(mask, axis=0)[0], np.max(mask, axis=0)[0]
+    df=newdf
+    outp=targs.toJsonWithInfo(params,newdf)
+    return outp
+
+
+##Performs auto-selection of slits##
 @app.route('/recalculateMask',methods=["GET","POST"])
 def recalculateMask():
     global df
     global prms
     params=prms
     df=targs.markInside(df)
-    newdf=calcmask.genSlits(df,params)
+    newdf=calcmask.genSlits(df,params,auto_sel=True)
     mask = ml.MaskLayouts["deimos"]
     minX, maxX = np.min(mask, axis=0)[0], np.max(mask, axis=0)[0]
  #   selector = TargetSelector(newdf, minX, maxX, float(params['MinSlitLengthfd'][0]), float(params['MinSlitSeparationfd'][0]))
