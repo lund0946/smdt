@@ -1130,6 +1130,47 @@ function CanvasShow(containerName, zoomContainer) {
     };
 
 
+    self.addAlign = function () {
+            function callback(data) {
+                    let i = idx;
+                    if (data && data.length > 0)
+                            i = data[0]
+              //      self.updateTarget(idx);
+
+//                    self.selectedTargetIdx = i;
+ //                   self.reDrawTable();
+ //                   self.redraw();
+                    self.smdt.reloadTargets(idx, i);
+                    self.selectedTargetIdx = i;
+                    self.reDrawTable();
+                    self.smdt.redraw();
+
+            }
+            // Updates an existing or adds a new target.
+            // Sends new target info to server
+            let idx = self.selectedTargetIdx;
+            let prior = Number(-2);
+            let selected = Number(E('targetSelect').value);
+            let slitLPA = Number(E('targetSlitPA').value);
+            let slitWidth = Number(E('targetSlitWidth').value);
+            let length1 = Number(E('targetLength1').value);
+            let length2 = Number(E('targetLength2').value);
+            let tname = E("targetName").value;
+            let targetRA = E("targetRA").value;
+            let targetDEC = E("targetDEC").value;
+            let targetMagn = E("targetMagn").value;
+            let targetBand = E('targetBand').value;
+
+            let params = {
+                    'idx': idx, 'raSexa': targetRA, 'decSexa': targetDEC, 'eqx': 2000,
+                    'mag': targetMagn, 'pBand': targetBand,
+                    'prior': prior, 'selected': selected, 'slitLPA': slitLPA, 'slitWidth': slitWidth,
+                    'len1': length1, 'len2': length2, 'targetName': tname
+            };
+            let ajax = new AjaxClass();
+            ajax.postRequest('updateTarget', { 'values': JSON.stringify(params) }, callback);
+    };
+
     self.selTarget = function () {
             function callback(data) {
                     let i = idx;
@@ -1510,6 +1551,13 @@ function CanvasShow(containerName, zoomContainer) {
         var k = evt.key;
         switch (k) {
             case "a":
+                var mx = self.mousemx;
+                var my = self.mousemy;
+                var ePos = getAbsPosition(self.contElem);
+                self.selectTarget(mx - ePos.x, my - ePos.y);
+                self.addAlign();
+                break;
+            case "s":
                 var mx = self.mousemx;
                 var my = self.mousemy;
                 var ePos = getAbsPosition(self.contElem);

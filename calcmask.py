@@ -694,6 +694,10 @@ def genObs(df,fileparams):
 def genSlits(df,fileparams,auto_sel=True):
     print('genSlits\n\n\n\n\n\n\n\n\n')
     print(df)
+
+    global slit
+    global site
+
     if fileparams['NoOverlapfd'][0]=='yes':
         adj_len=True
     else:
@@ -733,30 +737,42 @@ def genSlits(df,fileparams,auto_sel=True):
     return df
 
 def genMaskOut(df,fileparams):
-    if fileparams['NoOverlapfd'][0]=='yes':
-        adj_len=True
-    else:
-        adj_len=False
-    if fileparams['ProjSlitLengthfd'][0]=='yes':
-        proj_len=True
-    else:
-        proj_len=False
-    df=df.loc[df['selected']==1]
-    obs,site=init_dicts(df,fileparams)
-    obs=refr_coords(obs,site)
-    obs=fld2telax(obs,'ra_fldR','dec_fldR','ra_telR','dec_telR')
-    obs=tel_coords(obs,'raRadR','decRadR','ra_telR','dec_telR')
-    slit=gen_slits(obs,adj_len)
-    slit=sky_coords(slit)
-    slit=unrefr_coords(slit,site)
-    slit=fld2telax(slit,'ra0_fldU','dec0_fldU','ra_telU','dec_telU')
-    slit=tel_coords(slit,'raRadU','decRadU','ra_telU','dec_telU',proj_len)
-    slit=mask_coords(slit)
 
-    df['xarcs']=slit['xarcs']
-    df['yarcs']=slit['yarcs']
-    df['selected']=slit['sel']
-    df['length2']=slit['length2S']
+    global slit
+    global site
+
+    if 'slitX1' not in df.columns:
+        if fileparams['NoOverlapfd'][0]=='yes':
+            adj_len=True
+        else:
+            adj_len=False
+        if fileparams['ProjSlitLengthfd'][0]=='yes':
+            proj_len=True
+        else:
+            proj_len=False
+        df=df.loc[df['selected']==1]
+        obs,site=init_dicts(df,fileparams)
+        obs=refr_coords(obs,site)
+        obs=fld2telax(obs,'ra_fldR','dec_fldR','ra_telR','dec_telR')
+        obs=tel_coords(obs,'raRadR','decRadR','ra_telR','dec_telR')
+        slit=gen_slits(obs,adj_len)
+        slit=sky_coords(slit)
+        slit=unrefr_coords(slit,site)
+        slit=fld2telax(slit,'ra0_fldU','dec0_fldU','ra_telU','dec_telU')
+        slit=tel_coords(slit,'raRadU','decRadU','ra_telU','dec_telU',proj_len)
+        slit=mask_coords(slit)
+
+        df['slitX1'],df['slitX2'],df['slitX3'],df['slitX4']=slit['slitX1'],slit['slitX2'],slit['slitX3'],slit['slitX4']
+        df['slitY1'],df['slitY2'],df['slitY3'],df['slitY4']=slit['slitY1'],slit['slitY2'],slit['slitY3'],slit['slitY4']
+        df['arcslitX1'],df['arcslitX2'],df['arcslitX3'],df['arcslitX4']=slit['arcslitX1'],slit['arcslitX2'],slit['arcslitX3'],slit['arcslitX4']
+        df['arcslitY1'],df['arcslitY2'],df['arcslitY3'],df['arcslitY4']=slit['arcslitY1'],slit['arcslitY2'],slit['arcslitY3'],slit['arcslitY4']
+
+        df['slitWidth']=slit['slitWidth'] ##????? This too?
+
+        df['xarcs']=slit['xarcs']
+        df['yarcs']=slit['yarcs']
+        df['selected']=slit['sel']
+        df['length2']=slit['length2S']
 
 
     tel={}

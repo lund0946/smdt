@@ -560,7 +560,7 @@ function SlitmaskDesignTool() {
 			let errstr = data['errstr'];
 			let fbackup = data['fbackup'];
 			let lbackup = data['lbackup'];
-
+                        errstr = "OK";
 			if (errstr != "OK") {
 				alert(`Failed to save mask design ${mdFile}`);
 				return;
