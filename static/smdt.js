@@ -483,6 +483,7 @@ function SlitmaskDesignTool() {
 			if (data && data.length > 0)
 				i = data[0]
 			self.reloadTargets(idx, i);
+                        self.updateLoadedTargets(data);
 			self.canvasShow.selectedTargetIdx = i;
                         self.canvasShow.reDrawTable();
                         self.redraw();

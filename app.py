@@ -95,13 +95,19 @@ def setColumnValue():
 @app.route('/updateTarget',methods=["GET","POST"])
 def updateTarget():
     global df
+    global prms
     targets=df
     print(df)
     values=json.loads(request.data.decode().split('=')[1].split('}&')[0]+'}')
     df,idx=targs.updateTarget(targets,values)
     print(idx,values)
     print(df)
-    return json.dumps({'idx':idx})
+    outp=targs.toJsonWithInfo(prms,df)
+    tgs = json.loads(outp)
+
+    outp=merged_dict = {**tgs, **{'idx':idx}}
+    return outp
+#    return json.dumps({'idx':idx})
 
 
 @app.route('/deleteTarget',methods=["GET","POST"])
