@@ -47,9 +47,11 @@ function SlitmaskDesignTool() {
         self.sendParamUpdate = function () {
 
                 self.setStatus("Updating ...");
-
-                let form2 = E('form2');
-                form2.submit();
+                //let form2 = E('form2');
+                //form2.submit();
+                document.form2.action = "updateParams4Server";
+                form2.submit()
+                //return false;
         };
 
 	self.loadBackgroundImage = function () {
@@ -641,7 +643,6 @@ function SlitmaskDesignTool() {
 	E('setSlitsLength').onclick = self.setSlitsLength;
 	E('setSlitsWidth').onclick = self.setSlitsWidth;
         E('updateParams').onclick = self.sendParamUpdate;
-//        E('updateParams').onclick = self.sendTargets2Server;
 
 	E('recalculateMask').onclick = self.recalculateMask;
         E('generateSlits').onclick = self.generateSlits;

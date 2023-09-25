@@ -1144,7 +1144,9 @@ function CanvasShow(containerName, zoomContainer) {
                     self.selectedTargetIdx = i;
                     self.reDrawTable();
                     self.smdt.redraw();
-
+                    self.targetTable.scrollTo(idx);
+                    self.targetTable.highLight(idx);
+                    self.reallyDrawTxImage();
             }
             // Updates an existing or adds a new target.
             // Sends new target info to server
@@ -1185,6 +1187,9 @@ function CanvasShow(containerName, zoomContainer) {
                     self.selectedTargetIdx = i;
                     self.reDrawTable();
                     self.smdt.redraw();
+                    self.targetTable.scrollTo(idx);
+                    self.targetTable.highLight(idx);
+                    self.reallyDrawTxImage();
 
             }
             // Updates an existing or adds a new target.
@@ -1226,7 +1231,9 @@ function CanvasShow(containerName, zoomContainer) {
                     self.selectedTargetIdx = i;
                     self.reDrawTable();
                     self.smdt.redraw();
-
+                    self.targetTable.scrollTo(idx);
+                    self.targetTable.highLight(idx);
+                    self.reallyDrawTxImage();
             }
             // Updates an existing or adds a new target.
             // Sends new target info to server

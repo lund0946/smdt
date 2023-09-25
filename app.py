@@ -190,6 +190,7 @@ def saveMaskDesignFile():  # should only save current rather than re-running eve
     df=newdf
 
     outp=targs.toJsonWithInfo(params,newdf)
+    print(outp)
     return outp
 
 
@@ -215,6 +216,15 @@ def sendTargets2Server():
         df=targs.readRaw(session['file'],prms)
         df['loadselected']=df.selected                   #Only backup selected targets on file load.
     return ''    
+
+##Update Params Button
+@app.route('/updateParams4Server',methods=["GET","POST"])
+def updateParams4Server():
+    global prms
+    prms=request.form.to_dict(flat=False)
+    centerRADeg,centerDEC,positionAngle=15*utils.sexg2Float(prms['InputRAfd'][0]),utils.sexg2Float(prms['InputDECfd'][0]),float(prms['MaskPAfd'][0])
+    session['params']=prms
+    return ''
 
 
 #Loads original params
