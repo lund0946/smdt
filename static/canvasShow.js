@@ -1140,10 +1140,10 @@ function CanvasShow(containerName, zoomContainer) {
 //                    self.selectedTargetIdx = i;
  //                   self.reDrawTable();
  //                   self.redraw();
-                    self.smdt.reloadTargets(idx, i);
+                    self.SlitmaskDesignTool.reloadTargets(idx, i);
                     self.selectedTargetIdx = i;
                     self.reDrawTable();
-                    self.smdt.redraw();
+                    self.SlitmaskDesignTool.redraw();
                     self.targetTable.scrollTo(idx);
                     self.targetTable.highLight(idx);
                     self.reallyDrawTxImage();
@@ -1183,10 +1183,11 @@ function CanvasShow(containerName, zoomContainer) {
 //                    self.selectedTargetIdx = i;
  //                   self.reDrawTable();
  //                   self.redraw();
-                    self.smdt.reloadTargets(idx, i);
+                    
+                    self.smdt.reloadTargets(idx);
                     self.selectedTargetIdx = i;
                     self.reDrawTable();
-                    self.smdt.redraw();
+                    self.SlitmaskDesignTool.redraw();
                     self.targetTable.scrollTo(idx);
                     self.targetTable.highLight(idx);
                     self.reallyDrawTxImage();
@@ -1227,10 +1228,10 @@ function CanvasShow(containerName, zoomContainer) {
 //                    self.selectedTargetIdx = i;
  //                   self.reDrawTable();
  //                   self.redraw();
-                    self.smdt.reloadTargets(idx, i);
+                    self.SlitmaskDesignTool.reloadTargets(idx, i);
                     self.selectedTargetIdx = i;
                     self.reDrawTable();
-                    self.smdt.redraw();
+                    self.SlitmaskDesignTool.redraw();
                     self.targetTable.scrollTo(idx);
                     self.targetTable.highLight(idx);
                     self.reallyDrawTxImage();

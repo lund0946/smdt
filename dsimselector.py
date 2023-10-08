@@ -5,7 +5,7 @@ import math
 
 
 def selector(df,xmin,xmax,min_slit,slit_gap):
-
+    print('/n/n/n/n/n Running Selector /n/n/n/n/n')
     #need to check for preselected
     npre=len(df[(df["sel"]==1) & (df["pcode"]!=-1)])
 
@@ -13,7 +13,7 @@ def selector(df,xmin,xmax,min_slit,slit_gap):
 
     ###sel_sort() low-to high sort of x1 and xarcs
     df=df.sort_values(by=["xarcs"])  
-
+#    print(df)
     tg=df[df['pcode']!=-1]
 
     sel=tg[tg['sel']==1]
@@ -57,6 +57,8 @@ def selector(df,xmin,xmax,min_slit,slit_gap):
     df.loc[df.index.isin(opt.index), cols]=opt[cols]
     dfout=df.to_dict('list')
 #    print(dfout)
+#    import time
+#    time.sleep(10)
     return dfout
 
 

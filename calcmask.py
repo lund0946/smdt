@@ -110,7 +110,7 @@ def init_dicts(data,params):
     obs_lat= 19.8
     obs_alt = 4150.
     mm_arcs = 0.7253
-    waver=float(params['ReferenceWaveLengthfd'][0])
+    waver=float(params['CenterWaveLengthfd'][0])
     wavemn=float(params['BlueWaveLengthfd'][0])
     wavemx=float(params['RedWaveLengthfd'][0])
     pres=float(params['Pressurefd'][0])

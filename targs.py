@@ -70,10 +70,16 @@ def readRaw(fh,params):
         mag, pBand, pcode = 99, "I", 99
 
         try:
-            raHour = utils.sexg2Float(template[0])
+            try:
+                raHour=float(template[0])
+            except:
+                raHour = utils.sexg2Float(template[0])
             if raHour < 0 or raHour > 24:
                 raise Exception("Bad RA value " + raHour)
-            decDeg = utils.sexg2Float(template[1])
+            try:
+                decDeg=float(template[1])
+            except:
+                decDeg = utils.sexg2Float(template[1])
             if decDeg < -90 or decDeg > 90:
                 raise Exception("Bad DEC value " + decDeg)
 
