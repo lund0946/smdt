@@ -686,9 +686,12 @@ def genObs(df,fileparams):
     obs=refr_coords(obs,site)
     obs=fld2telax(obs,'ra_fldR','dec_fldR','ra_telR','dec_telR')
     obs=tel_coords(obs,'raRadR','decRadR','ra_telR','dec_telR')
-
-    df['xarcs']=obs['xarcs']
-    df['yarcs']=obs['yarcs']
+    slit=gen_slits(obs,False,False)
+    slit=sky_coords(slit)
+    df['xarcs']=slit['xarcsS']
+    df['yarcs']=slit['yarcsS']
+#    df['xarcs']=obs['xarcs']
+#    df['yarcs']=obs['yarcs']
     return df
 
 def genSlits(df,fileparams,auto_sel=True):
@@ -711,7 +714,7 @@ def genSlits(df,fileparams,auto_sel=True):
     print(obs)
     obs=refr_coords(obs,site)
     obs=fld2telax(obs,'ra_fldR','dec_fldR','ra_telR','dec_telR')
-    obs=tel_coords(obs,'raRadR','decRadR','ra_telR','dec_telR')
+    obs=tel_coords(obs,'raRadR','decRadR','ra_telR','dec_telR',proj_len)
     slit=gen_slits(obs,adj_len,auto_sel)
     slit=sky_coords(slit)
     slit=unrefr_coords(slit,site)
@@ -754,7 +757,7 @@ def genMaskOut(df,fileparams):
         obs,site=init_dicts(df,fileparams)
         obs=refr_coords(obs,site)
         obs=fld2telax(obs,'ra_fldR','dec_fldR','ra_telR','dec_telR')
-        obs=tel_coords(obs,'raRadR','decRadR','ra_telR','dec_telR')
+        obs=tel_coords(obs,'raRadR','decRadR','ra_telR','dec_telR',proj_len)
         slit=gen_slits(obs,adj_len)
         slit=sky_coords(slit)
         slit=unrefr_coords(slit,site)
