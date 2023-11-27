@@ -305,7 +305,7 @@ def gen_slits(obs,adj_len=False,auto_sel=True):
 
 
 
-    CODE_GS=-11 #code for guidestars
+    CODE_GS=-1 #code for guidestars
     n_targs=len(obs['raRadR'])
     ndx = 0
     _PA,_RELPA,_PCODE,_X1,_Y1,_X2,_Y2,_XARCS,_YARCS,_SLWID,_SLNDX=[],[],[],[],[],[],[],[],[],[],[]
@@ -688,10 +688,10 @@ def genObs(df,fileparams):
     obs=tel_coords(obs,'raRadR','decRadR','ra_telR','dec_telR')
     slit=gen_slits(obs,False,False)
     slit=sky_coords(slit)
-    df['xarcs']=slit['xarcsS']
-    df['yarcs']=slit['yarcsS']
-#    df['xarcs']=obs['xarcs']
-#    df['yarcs']=obs['yarcs']
+    df['xarcsS']=slit['xarcsS']
+    df['yarcsS']=slit['yarcsS']
+    df['xarcs']=obs['xarcs']
+    df['yarcs']=obs['yarcs']
     return df
 
 def genSlits(df,fileparams,auto_sel=True):
@@ -724,12 +724,15 @@ def genSlits(df,fileparams,auto_sel=True):
 
     df['slitWidth']=slit['slitWidth']
 
-    df['xarcs']=slit['xarcsS']
-    df['yarcs']=slit['yarcsS']
+    df['xarcsS']=slit['xarcsS']
+    df['yarcsS']=slit['yarcsS']
+    df['xarcs']=obs['xarcs']
+    df['yarcs']=obs['yarcs']
     df['selected']=slit['sel']
-    df['length1']=slit['length1S']
-    df['length2']=slit['length2S']
-
+    df['length1']=obs['length1']
+    df['length2']=obs['length2']
+    df['length1S']=slit['length1S']
+    df['length2S']=slit['length2S']
 
     df['slitX1'],df['slitX2'],df['slitX3'],df['slitX4']=slit['slitX1'],slit['slitX2'],slit['slitX3'],slit['slitX4']
     df['slitY1'],df['slitY2'],df['slitY3'],df['slitY4']=slit['slitY1'],slit['slitY2'],slit['slitY3'],slit['slitY4']
@@ -744,7 +747,7 @@ def genMaskOut(df,fileparams):
     global slit
     global site
 
-    if 'slitX1' not in df.columns:
+    if 'slitX1' not in df.columns:    #rethink this?!
         if fileparams['NoOverlapfd'][0]=='yes':
             adj_len=True
         else:
@@ -772,10 +775,18 @@ def genMaskOut(df,fileparams):
 
         df['slitWidth']=slit['slitWidth'] ##????? This too?
 
-        df['xarcs']=slit['xarcs']
-        df['yarcs']=slit['yarcs']
+        df['xarcsS']=slit['xarcsS']
+        df['yarcsS']=slit['yarcsS']
+        df['xarcs']=obs['xarcs']
+        df['yarcs']=obs['yarcs']
+#        df['xarcs']=slit['xarcs']
+#        df['yarcs']=slit['yarcs']
         df['selected']=slit['sel']
-        df['length2']=slit['length2S']
+#        df['length2']=slit['length2S']
+        df['length1']=obs['length1']
+        df['length2']=obs['length2']
+        df['length1S']=slit['length1S']
+        df['length2S']=slit['length2S']
 
 
     tel={}
