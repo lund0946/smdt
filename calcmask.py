@@ -90,6 +90,8 @@ def init_dicts(data,params):
     pa0_fld=np.radians(positionAngle)
 
     length1,length2=[],[]
+    rlength1,rlength2=[],[]
+
     slitLPA=[]
     slitWidth=[]
     for i in range(len(raRad)): ### Manual Hacks
@@ -100,11 +102,15 @@ def init_dicts(data,params):
 ##            length2.append(len2)
             length1.append(dlength1[i])
             length2.append(dlength2[i])
+            rlength1.append(dlength1[i])
+            rlength2.append(dlength2[i])
             slitLPA.append(slitpa[i])
         else:
             slitWidth.append(float(params['AlignBoxSizefd'][0]))
             length1.append(float(params['AlignBoxSizefd'][0])*0.5)  ### slitlength manual
             length2.append(float(params['AlignBoxSizefd'][0])*0.5)
+            rlength1.append(float(params['AlignBoxSizefd'][0])*0.5)  ### slitlength manual
+            rlength2.append(float(params['AlignBoxSizefd'][0])*0.5)
             slitLPA.append(0)
 
     obs_lat= 19.8
@@ -125,7 +131,7 @@ def init_dicts(data,params):
     rel_h20 = obs_rh                # relative humidity
     w = waver/10000. ##reference wavelength conv. to micron
 
-    obs={'ra0_fld':ra0_fld,'dec0_fld':dec0_fld,'ha0_fld':ha0_fld,'raRad':raRad,'decRad':decRad,'lst':lst,'pa0_fld':pa0_fld,'length1':length1,'length2':length2,'slitLPA':slitLPA,'pcode':pcode,'slitWidth':slitWidth,'slitpa':slitpa,'mag':mag,'magband':magband,'sel':sel}
+    obs={'ra0_fld':ra0_fld,'dec0_fld':dec0_fld,'ha0_fld':ha0_fld,'raRad':raRad,'decRad':decRad,'lst':lst,'pa0_fld':pa0_fld,'length1':length1,'length2':length2,'rlength1':rlength1,'rlength2':rlength2,'slitLPA':slitLPA,'pcode':pcode,'slitWidth':slitWidth,'slitpa':slitpa,'mag':mag,'magband':magband,'sel':sel}
     site={'lat':lat,'htm':htm,'tdk':tdk,'pmb':pmb,'rel_h20':rel_h20,'w':w,'wavemn':wavemn,'wavemx':wavemx}
 
     return obs,site
@@ -374,7 +380,7 @@ def sky_coords(obs):
     ra,dec=[],[]
     xarcs,yarcs=[],[]
     len1,len2=[],[]
-
+    rlen1,rlen2=[],[]
 
     x1=obs['X1']
     x2=obs['X2']
@@ -423,11 +429,29 @@ def sky_coords(obs):
         len1.append(_len1)
         len2.append(_len1)
 
+# Slit length on either side of target
+
+        xl2 = x2[i] - obs['xarcs'][i]
+        yl2 = y2[i] - obs['yarcs'][i]
+        xl1 = obs['xarcs'][i] - x1[i]
+        yl1 = obs['yarcs'][i] - y1[i]
+        _rlen1 = np.sqrt (xl1*xl1 + yl1*yl1)
+        _rlen2 = np.sqrt (xl2*xl2 + yl2*yl2)
+
+        rlen1.append(_rlen1)
+        rlen2.append(_rlen2)
+
     obs['xarcsS']=xarcs
     obs['yarcsS']=yarcs
 
     obs['length1S']=len1
     obs['length2S']=len2
+
+    obs['rlength1']=rlen1
+    obs['rlength2']=rlen2
+
+    print(rlen1)
+    print(rlen2)
 
     obs['raRadS']=ra
     obs['decRadS']=dec
@@ -492,7 +516,7 @@ def mask_coords(obs):
     RELPA=obs['relpa']
     XARCS=obs['xarcsS']
     YARCS=obs['yarcsS']
-    LEN1=obs['length1S']  ##Correct?
+    LEN1=obs['length1S']  ##Correct?  -- correct for xarcsS since both are centered on the slit
     LEN2=obs['length2S']  ##Correct?
     FL_TEL=150327.0
 
@@ -733,6 +757,8 @@ def genSlits(df,fileparams,auto_sel=True):
     df['length2']=obs['length2']
     df['length1S']=slit['length1S']
     df['length2S']=slit['length2S']
+    df['rlength1']=slit['rlength1']
+    df['rlength2']=slit['rlength2']
 
     df['slitX1'],df['slitX2'],df['slitX3'],df['slitX4']=slit['slitX1'],slit['slitX2'],slit['slitX3'],slit['slitX4']
     df['slitY1'],df['slitY2'],df['slitY3'],df['slitY4']=slit['slitY1'],slit['slitY2'],slit['slitY3'],slit['slitY4']
@@ -787,7 +813,8 @@ def genMaskOut(df,fileparams):
         df['length2']=obs['length2']
         df['length1S']=slit['length1S']
         df['length2S']=slit['length2S']
-
+        df['rlength1']=slit['rlength1'] #not needed?
+        df['rlength2']=slit['rlength2'] #not needed?
 
     tel={}
     tel['newcenterRADeg']=slit['newcenterRADeg']

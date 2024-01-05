@@ -49,6 +49,11 @@ def fixType(params):
     return params
 
 
+def dbprint(st):
+    print("\033[95m {}\033[00m" .format(st))
+
+
+
 app = Flask(__name__)
 app.secret_key='dsf2315ewd'
 app.config['SESSION_PERMANENT'] = True

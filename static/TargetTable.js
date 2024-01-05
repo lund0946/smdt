@@ -71,8 +71,8 @@ function TargetTable(targets) {
 			let slitPAs = targets.slitLPA;
 			let mags = targets.mag;
 			let bands = targets.pBand;
-			let len1s = targets.length1;
-			let len2s = targets.length2;
+			let len1s = targets.rlength1;
+			let len2s = targets.rlength2;
 			let slitWidths = targets.slitWidth;
 
 			// Table body content

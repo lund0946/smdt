@@ -968,8 +968,8 @@ function CanvasShow(containerName, zoomContainer) {
 
         var slitPAs = targets.slitLPA;
         var slitWidths = targets.slitWidth;
-        var length1s = targets.length1;
-        var length2s = targets.length2;
+        var length1s = targets.rlength1;
+        var length2s = targets.rlength2;
 
         var selected = targets.selected;
         var pcode = targets.pcode;

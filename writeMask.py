@@ -392,8 +392,14 @@ class MaskDesignOutputFitsFile:
         """
         Writes to file
         """
-        hlist = self._getHDUList()
-        hlist.writeto(fileName,overwrite='True')
+        from astropy.config import get_config_dir,create_config_file
+        from astropy.io.fits import conf
+
+        if os.path.isfile(os.path.expanduser('~/.astropy/config/astropy.cfg'))==False:
+            create_config_file('astropy')
+        with conf.set_temp('extension_name_case_sensitive',True):
+            hlist = self._getHDUList()
+            hlist.writeto(fileName,overwrite='True')
 
 
 def _outputAsList(fh, targets):
