@@ -1,10 +1,9 @@
 # DEIMOS Slitmask Design Tool
 
-This software is still in active development and not yet ready for release, but feedback is welcome
+This software is still in active development and close to ready for release.  Any feedback is welcome
 
 ### Installation
 Several python modules may need to be installed including flask, astropy, numpy, etc.
-In your `.astropy/configs/astropy.cfg` set `extension_name_case_sensitive = True`
 
 Launch using `python app.py`
 
