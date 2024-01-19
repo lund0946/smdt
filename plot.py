@@ -11,9 +11,11 @@ matplotlib.use('agg')
 def makeplot(plotname):
     sx1,sx2,sx3,sx4=[],[],[],[]
     sy1,sy2,sy3,sy4=[],[],[],[]
+    col=[]
 
     f=fits.open(plotname)
     slitdata=f[7].data
+    typedata=f[4].data
     for i in range(len(slitdata)):
         print(slitdata[i])
         sx1.append(slitdata[i][3])
@@ -24,7 +26,16 @@ def makeplot(plotname):
         sy3.append(slitdata[i][8])
         sx4.append(slitdata[i][9])
         sy4.append(slitdata[i][10])
-
+        if typedata[i][5]=='P':      #color blue for slits
+            col.append('royalblue')
+        elif typedata[i][5]=='G':    #color gold for guidestars
+            col.append('gold')
+        elif typedata[i][5]=='A':    #color purple for alignment boxes
+            col.append('violet')
+        else:
+            #can't identify slit type?
+            col.append('crimson')    #color red if something else
+    
 
 
     import matplotlib.pyplot as plt
@@ -41,7 +52,7 @@ def makeplot(plotname):
     drawUtils.drawPatch(ax, layoutMM, fc="None", ec="g")
   
     for i in range(len(sx1)):
-        plt.plot([sx1[i],sx2[i],sx3[i],sx4[i],sx1[i]],[sy1[i],sy2[i],sy3[i],sy4[i],sy1[i]],color='b',alpha=0.8)
+        plt.plot([sx1[i],sx2[i],sx3[i],sx4[i],sx1[i]],[sy1[i],sy2[i],sy3[i],sy4[i],sy1[i]],color=col[i],alpha=0.8)
 
     plt.gca().invert_xaxis()
     plt.grid()

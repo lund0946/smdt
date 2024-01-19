@@ -323,9 +323,12 @@ def gen_slits(obs,adj_len=False,auto_sel=True):
             x = obs['xarcs'][i]       # unclear TY of XYARCS
             y = obs['yarcs'][i]
 
+            if obs['pcode'][i]==-2:   #If PCODE=-2, set slitpa to -9999
+                obs['slitpa'][i] == -9999
+
             _ndx.append(ndx)
             if (obs['slitpa'][i] == -9999):   ### Never none?
-                _PA.append(obs['PA_ROT'][i])
+                _PA.append(obs['pa0_fld'])
                 _RELPA.append(None)
             else:
                 _PA.append(obs['slitpa'][i])
