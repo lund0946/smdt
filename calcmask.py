@@ -874,5 +874,6 @@ def genMaskOut(df,fileparams):
     from writeMask import MaskDesignOutputFitsFile
     mdf=MaskDesignOutputFitsFile(slitsdf,sitedf,paramdf,teldf)
     mdf.writeTo(params['mdf'][0])
+    mdf.writeOut(params['mdf'][0]+'.out')
 
     return df

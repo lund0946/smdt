@@ -401,6 +401,45 @@ class MaskDesignOutputFitsFile:
             hlist = self._getHDUList()
             hlist.writeto(fileName,overwrite='True')
 
+    def writeOut(self, fileName):
+        """
+        Writes output catalog to file
+        """
+        params=self.params
+        tel=self.tel
+        tlist=self.targetList
+        selected = tlist[tlist.sel == 1]
+        objClassTable = ("Alignment_Star", "Guide_Star", "Ignored", "Program_Target")
+        cols = []
+        nTargets = selected.shape[0]
+        zeros = [0] * nTargets
+        objClass = [objClassTable[min(3, p + 2)] for p in selected.pcode]
+        MajAxPA = np.degrees(selected.slitLPA)
+        for i in range(len(MajAxPA)):
+            if selected.pcode[i]==-2:
+                MajAxPA[i]=0
+
+        import pickle
+        # open a file, where you ant to store the data
+        file = open('selected.pkl', 'wb')
+
+        # dump information to that file
+        pickle.dump(selected, file)
+
+        # close the file
+        file.close()
+
+        with open(fileName,"w") as f:
+            f.write("# Mask name, center:\n")
+            f.write("#"+str(params.maskid[0])+"             "+str(tel.newcenterRADeg[0])+"    "+str(tel.newcenterDECDeg[0])+"  2000.0 PA="+str(params.pa0[0])+" ##\n")
+            f.write("#\n")
+            f.write("#  Guider center:\n")
+            f.write("#\n")
+            f.write("# Selected Objects:\n")
+            for i in range(len(selected)):
+                f.write(str(selected.slitIndex[i].astype(str))+"       "+str(np.degrees(float(selected.raRadU[i].astype(float))))+" "+str(np.degrees(float(selected.decRadU[i].astype(float))))+" 2000.0 "+str(selected.mag[i].astype(str))+" "+str(selected.magband[i])+" "+str(selected.pcode[i].astype(str))+ " 1 "+str(selected.sel[i].astype(str))+" "+str(MajAxPA[i])+" "+str(selected.length1[i].astype(str))+" "+str(selected.length2[i].astype(str))+" "+str(selected.slitWidth[i].astype(str))+"\n")
+
+
 
 def _outputAsList(fh, targets):
     for i, row in targets.iterrows():
