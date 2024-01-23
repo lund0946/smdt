@@ -148,7 +148,7 @@ class MaskDesignOutputFitsFile:
         MajAxPA = np.degrees(selected.slitLPA)
         for i in range(len(MajAxPA)):
             if selected.pcode[i]==-2:
-                MajAxPA[i]=0
+                MajAxPA[i]=self.params.pa0[0]
 
         cols.append(pf.Column(name="ObjectId", format="I6", null="-9999", unit="None", array=selected.index))
         cols.append(pf.Column(name="OBJECT", format="A68", null="INDEF", unit="None", array=selected.index))                             ##object eventually
@@ -417,7 +417,7 @@ class MaskDesignOutputFitsFile:
         MajAxPA = np.degrees(selected.slitLPA)
         for i in range(len(MajAxPA)):
             if selected.pcode[i]==-2:
-                MajAxPA[i]=0
+                MajAxPA[i]=params.pa0[0]
 
         import pickle
         # open a file, where you ant to store the data
