@@ -419,16 +419,6 @@ class MaskDesignOutputFitsFile:
             if selected.pcode[i]==-2:
                 MajAxPA[i]=params.pa0[0]
 
-        import pickle
-        # open a file, where you ant to store the data
-        file = open('selected.pkl', 'wb')
-
-        # dump information to that file
-        pickle.dump(selected, file)
-
-        # close the file
-        file.close()
-
         with open(fileName,"w") as f:
             f.write("# Mask name, center:\n")
             f.write("#"+str(params.maskid[0])+"             "+str(tel.newcenterRADeg[0])+"    "+str(tel.newcenterDECDeg[0])+"  2000.0 PA="+str(params.pa0[0])+" ##\n")
