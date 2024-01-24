@@ -51,6 +51,7 @@ def fixType(params):
 
 def dbprint(st):
     print("\033[95m {}\033[00m" .format(st))
+    pass
 
 
 
@@ -63,6 +64,7 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=0.001)
 # The maximum number of items the session stores 
 # before it starts deleting some, default 500
 app.config['SESSION_FILE_THRESHOLD'] = 10000  
+Session(app)
 
 
 #@app.route('/readparams')
@@ -78,6 +80,7 @@ def readparams():
                 else:
                     continue
             except Exception as e:
+                pass
                 print('Failed to load parameters',e)
     return dict
 
@@ -212,7 +215,6 @@ def sendTargets2Server():
     prms=request.form.to_dict(flat=False)
     params=prms
     centerRADeg,centerDEC,positionAngle=15*utils.sexg2Float(params['InputRAfd'][0]),utils.sexg2Float(params['InputDECfd'][0]),float(params['MaskPAfd'][0])
-#    pdb.set_trace()
     fh=[]
     session['params']=params
     prms=params

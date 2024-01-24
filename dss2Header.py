@@ -180,6 +180,7 @@ class DssHeader:
         print("ppo3", self.ppo3, "ppo6", self.ppo6)
         print("raDeg", self.raDeg, "decDeg", self.decDeg)
         print("platescale", self.platescl)
+        pass
 
     def _xy2rd(self, xin, yin):
         """ xin, yin in image pixel coordinates

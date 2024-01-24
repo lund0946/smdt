@@ -1,3 +1,6 @@
 **/__pychache__/
 *.pyc
 *.pyo
+*.pkl
+flask_session/
+*.txt
