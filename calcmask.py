@@ -264,9 +264,13 @@ def tel_coords(obs,ra_ref,dec_ref,ra_telref,dec_telref,proj_len=False):
         xarcs.append(_xarcs)
         yarcs.append(_yarcs)
 
+        if obs['pcode'][i]==-2:
+            obs['slitpa'][i]=-9999
+
+
         if obs['slitpa'][i]==-9999:   ##No individual slit angles
             relpa.append(None)
-            rangle = 0.
+            rangle = 0.                #90 not zero??
         else:
             _relpa= obs['slitpa'][i] - pa0  ###check that slitLPA is available
             relpa.append(_relpa)
@@ -369,7 +373,6 @@ def gen_slits(obs,adj_len=False,auto_sel=True):
  #   obs["sel"]=_sel
 
 
-    print(obs)
     print('\n\n\n\n\n\n\n\ =================')
 #    if auto_sel:
     obs=dsimselector.from_dict(obs,auto_sel)
@@ -453,8 +456,6 @@ def sky_coords(obs):
     obs['rlength1']=rlen1
     obs['rlength2']=rlen2
 
-    print(rlen1)
-    print(rlen2)
 
     obs['raRadS']=ra
     obs['decRadS']=dec
@@ -723,7 +724,6 @@ def genObs(df,fileparams):
 
 def genSlits(df,fileparams,auto_sel=True):
     print('genSlits\n\n\n\n\n\n\n\n\n')
-    print(df)
 
     global slit
     global site
@@ -738,7 +738,6 @@ def genSlits(df,fileparams,auto_sel=True):
         proj_len=False
     obs,site=init_dicts(df,fileparams)
     print('init_dicts')
-    print(obs)
     obs=refr_coords(obs,site)
     obs=fld2telax(obs,'ra_fldR','dec_fldR','ra_telR','dec_telR')
     obs=tel_coords(obs,'raRadR','decRadR','ra_telR','dec_telR',proj_len)

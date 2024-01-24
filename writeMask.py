@@ -427,7 +427,7 @@ class MaskDesignOutputFitsFile:
             f.write("#\n")
             f.write("# Selected Objects:\n")
             for i in range(len(selected)):
-                f.write(str(selected.slitIndex[i].astype(str))+"       "+str(np.degrees(float(selected.raRadU[i].astype(float))))+" "+str(np.degrees(float(selected.decRadU[i].astype(float))))+" 2000.0 "+str(selected.mag[i].astype(str))+" "+str(selected.magband[i])+" "+str(selected.pcode[i].astype(str))+ " 1 "+str(selected.sel[i].astype(str))+" "+str(MajAxPA[i])+" "+str(selected.length1[i].astype(str))+" "+str(selected.length2[i].astype(str))+" "+str(selected.slitWidth[i].astype(str))+"\n")
+                f.write(str(selected.slitIndex[i].astype(str))+"       "+str(toSexagecimal(np.degrees(float(selected.raRadU[i].astype(float)))/15.))+" "+str(toSexagecimal(np.degrees(float(selected.decRadU[i].astype(float)))))+" 2000.0 "+str(selected.mag[i].astype(str))+" "+str(selected.magband[i])+" "+str(selected.pcode[i].astype(str))+ " 1 "+str(selected.sel[i].astype(str))+" "+str(MajAxPA[i])+" "+str(selected.length1[i].astype(str))+" "+str(selected.length2[i].astype(str))+" "+str(selected.slitWidth[i].astype(str))+"\n")
 
 
 

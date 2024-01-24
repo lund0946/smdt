@@ -105,11 +105,8 @@ def updateTarget():
     global df
     global prms
     targets=df
-    print(df)
     values=json.loads(request.data.decode().split('=')[1].split('}&')[0]+'}')
     df,idx=targs.updateTarget(targets,values)
-    print(idx,values)
-    print(df)
     outp=targs.toJsonWithInfo(prms,df)
     tgs = json.loads(outp)
 
@@ -163,7 +160,6 @@ def generateSlits():
     global prms
     params=prms
     df=targs.markInside(df)
-#    print(df)
     newdf=calcmask.genSlits(df,params,auto_sel=True)
     mask = ml.MaskLayouts["deimos"]
     minX, maxX = np.min(mask, axis=0)[0], np.max(mask, axis=0)[0]
@@ -204,7 +200,6 @@ def saveMaskDesignFile():  # should only save current rather than re-running eve
     df=newdf
 
     outp=targs.toJsonWithInfo(params,newdf)
-    print(outp)
     return outp
 
 
