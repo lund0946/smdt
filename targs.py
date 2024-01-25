@@ -1,17 +1,12 @@
 import pandas as pd
-import numpy as np
 
 import utils
-import datetime
 import json
-import traceback
-import sys
-import io
 import math
-import os
 import dss2Header
 from inOutChecker import InOutChecker
 from maskLayouts import MaskLayouts
+from app import logger
 
 def readRaw(fh,params):
     def toFloat(x):
@@ -60,7 +55,6 @@ def readRaw(fh,params):
         parts = parts[1:]
         if len(parts) < 3:
             continue
-        # print (nr, "len", parts)
 
         template = ["", "", "2000", "99", "I", "0", "-1", "0", slitpa, halfLen, halfLen, slitWidth, "0", "0"]
         minLength = min(len(parts), len(template))
@@ -100,9 +94,8 @@ def readRaw(fh,params):
             length2 = toFloat(template[10])
             slitWidth = toFloat(template[11])
             inMask = int(template[12])
-        except Exception as e:
-            # traceback.print_exc()
-            # break
+        except Exception as err:
+            logger.error(err)
             pass
         raRad = math.radians(raHour * 15)
         decRad = math.radians(decDeg)
@@ -210,7 +203,7 @@ def updateColumn(targets,col,value):
         targets['length2']=float(value)
     else:
         targets[col]=float(value)
-    print(targets[col])
+    logger.debug(targets[col])
     return targets
 
 
@@ -220,7 +213,7 @@ def updateTarget(targets, jvalues):
     Used by GUI to change values in a target.
     """
 
-    print('Running updateTarget\n\n\n\n\n\n\n\n\n')
+    logger.debug('Running updateTarget')
 
     values=jvalues
     tgs = targets
@@ -262,7 +255,7 @@ def updateTarget(targets, jvalues):
     else:
         # Add a new entry
         idx = len(targets.index)
-        print('idx= ',idx)
+        logger.debug('idx= ',idx)
 
         newItem = {
             "objectId": targetName,
@@ -293,7 +286,7 @@ def deleteTarget(targets, idx):
     Remove a row idx from the data frame
     """
     tgs = targets
-    print('Index to delete',idx)
+    logger.debug('Index to delete',idx)
     if idx < 0:
         return
     targets = tgs.drop(tgs.index[idx])

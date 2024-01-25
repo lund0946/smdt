@@ -4,3 +4,4 @@
 *.pkl
 flask_session/
 *.txt
+*.live.ini

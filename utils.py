@@ -9,6 +9,7 @@ import os
 import datetime
 import webbrowser
 import traceback
+from app import logger
 
 #MM2AS = math.degrees(3600 / 150327) 
 MM2AS = math.degrees(3600 / 150280)  # 
@@ -20,7 +21,7 @@ def tryEx(f):
         try:
             return f(*args, **kargs)
         except:
-            traceback.print_exc()
+            logger.error(traceback.print_exc())
 
     return ff
 

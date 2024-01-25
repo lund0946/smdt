@@ -6,20 +6,18 @@ Initial version: 2018-10-03, skwok
 """
 
 import os
-import sys
 import math
-import datetime
 import numpy as np
 
 import io
 import pandas as pd
 import astropy.io.fits as pf
-import astropy.table as atb
 
 from astropy.utils.exceptions import AstropyWarning
 import warnings
 
-from utils import sexg2Float, toSexagecimal, rotate
+from utils import toSexagecimal, rotate
+from app import logger
 
 
 SMDT_Name = "SMDT Version 0.9"
@@ -169,9 +167,9 @@ class MaskDesignOutputFitsFile:
         cols.append(pf.Column(name="ObjClass", format="A20", null="INDEF", unit="None", array=objClass))
         cols.append(pf.Column(name="CatFilePK", format="I6", null="-9999", unit="None", array=[1] * nTargets))
 
-        print(cols)
+        logger.debug(cols)
 
-        print(pf.TableHDU.from_columns(cols, name="ObjectCat"))
+        logger.debug(pf.TableHDU.from_columns(cols, name="ObjectCat"))
 
         return pf.TableHDU.from_columns(cols, name="ObjectCat")
 
@@ -184,8 +182,8 @@ class MaskDesignOutputFitsFile:
         cols.append(pf.Column(name="CatFilePK", format="I6", null="-9999", unit="None", array=[1]))
         cols.append(pf.Column(name="CatFileName", format="A255", null="INDEF", unit="None", array=["INDEF"],))
 
-        print(cols)
-        print(pf.TableHDU.from_columns(cols, name="CatFiles"))
+        logger.debug(cols)
+        logger.debug(pf.TableHDU.from_columns(cols, name="CatFiles"))
         
         return pf.TableHDU.from_columns(cols, name="CatFiles")
 
@@ -222,9 +220,9 @@ class MaskDesignOutputFitsFile:
         cols.append(pf.Column(name="PA_PNT", format="F12.7", null="-9999.00", unit="deg", array=[params.pa0],))
         cols.append(pf.Column(name="DATE_PNT", format="A19", null="INDEF", unit="None", array=[tel.dateobs],))
         cols.append(pf.Column(name="LST_PNT", format="F8.3", null="-9999.00", unit="deg", array=[params.ha0*15]))                   # May be HourAngle in deg??
-        print(cols)
+        logger.debug(cols)
 
-        print(pf.TableHDU.from_columns(cols, name="MaskDesign"))
+        logger.debug(pf.TableHDU.from_columns(cols, name="MaskDesign"))
 
         return pf.TableHDU.from_columns(cols, name="MaskDesign")
 
@@ -297,9 +295,8 @@ class MaskDesignOutputFitsFile:
         refWave = float(params.lambda_cen[0]) / 10  # to nanometer
 
 
-        print('hhgjjghgjhkghjkghjkkghjghjkghjkjghk')
-        print(params.guiname)
-        print(params.maskid,type(params.guiname))
+        logger.debug(params.guiname)
+        logger.debug(params.maskid,type(params.guiname))
 
         cols.append(pf.Column(name="BluId", format="I11", null="-9999", unit="None", array=[1]))
         cols.append(pf.Column(name="DesId", format="I11", null="-9999", unit="None", array=[1]))
@@ -433,7 +430,7 @@ class MaskDesignOutputFitsFile:
 
 def _outputAsList(fh, targets):
     for i, row in targets.iterrows():
-        print(
+        logger.debug(
             "{:18s}{} {} {:.0f}{:>6.2f} {} {:5d} {} {} {}".format(
                 row.objectId,
                 toSexagecimal(row.raHour),

@@ -1,26 +1,11 @@
-import sys
-import os
-import logging
-import argparse
-import datetime
-import json
-import traceback
 import pandas as pd
 import numpy as np
-import io
-import math
-
-
 from astropy import units as u
 from astropy.coordinates import Angle
-
-
 import sl
-import maskLayouts
 import utils
 import dsimselector
-
-
+from app import logger
 import pdb
 
 
@@ -368,13 +353,9 @@ def gen_slits(obs,adj_len=False,auto_sel=True):
     obs["Y2"]=_Y2
     obs["xarcs"]=_XARCS
     obs["yarcs"]=_YARCS
-#    obs["slitWidth"]=_SLWID      # not needed?
     obs["slitIndex"]=_SLNDX
- #   obs["sel"]=_sel
 
 
-    print('\n\n\n\n\n\n\n\ =================')
-#    if auto_sel:
     obs=dsimselector.from_dict(obs,auto_sel)
 
     if adj_len:
@@ -723,7 +704,7 @@ def genObs(df,fileparams):
     return df
 
 def genSlits(df,fileparams,auto_sel=True):
-    print('genSlits\n\n\n\n\n\n\n\n\n')
+    logger.debug('genSlits')
 
     global slit
     global site
@@ -737,7 +718,7 @@ def genSlits(df,fileparams,auto_sel=True):
     else:
         proj_len=False
     obs,site=init_dicts(df,fileparams)
-    print('init_dicts')
+    logger.debug('init_dicts')
     obs=refr_coords(obs,site)
     obs=fld2telax(obs,'ra_fldR','dec_fldR','ra_telR','dec_telR')
     obs=tel_coords(obs,'raRadR','decRadR','ra_telR','dec_telR',proj_len)

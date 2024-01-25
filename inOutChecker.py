@@ -13,6 +13,7 @@ Author: Shui Hung Kwok
 
 """
 import math
+from app import logger
 
 
 class InOutChecker:
@@ -57,7 +58,6 @@ class InOutChecker:
             y1i, y2i = int(yy1), int(yy2)
             if y1i == y2i:
                 continue
-            # print (y1i, y2i)
             m = (xx2 - xx1) / (yy2 - yy1)
             b = -m * yy1 + xx1
             for yidx in range(y1i, y2i):
@@ -70,8 +70,8 @@ class InOutChecker:
         for y in range(ymin, ymax):
             try:
                 edges[y].sort()
-            except Exception as e:
-                print("Exception in sort ", y, e)
+            except Exception as err:
+                logger.error("Exception in sort ", y, err)
                 pass
         return ymin, ymax, edges
 
@@ -91,7 +91,7 @@ class InOutChecker:
                 x0, x1 = row[idx : idx + 2]
                 if x0 < x < x1:
                     return True
-        except Exception as e:
-            print("Check point exception", e)
+        except Exception as err:
+            logger.error("Check point exception", err)
             pass
         return False
