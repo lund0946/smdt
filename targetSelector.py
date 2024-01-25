@@ -20,7 +20,8 @@ and returned in getSelected.
 """
 
 import numpy as np
-from app import logger
+import logging
+logger = logging.getLogger('smdt')
 
 class TargetSelector:
     """

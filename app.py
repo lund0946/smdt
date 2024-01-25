@@ -52,7 +52,7 @@ def fixType(params):
 
 
 app = Flask(__name__)
-app.config.from_file('config.live.ini', load=json.load)
+app.config.from_pyfile('config.live.ini')
 Session(app)
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=app.config['PERMANENT_SESSION_LIFETIME'])
 

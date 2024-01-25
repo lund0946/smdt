@@ -17,7 +17,8 @@ from astropy.utils.exceptions import AstropyWarning
 import warnings
 
 from utils import toSexagecimal, rotate
-from app import logger
+import logging
+logger = logging.getLogger('smdt')
 
 
 SMDT_Name = "SMDT Version 0.9"

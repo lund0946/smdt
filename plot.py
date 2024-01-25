@@ -6,7 +6,8 @@ import drawUtils
 import utils
 import matplotlib
 import matplotlib.pyplot as plt
-from app import logger
+import logging
+logger = logging.getLogger('smdt')
 matplotlib.use('agg')
 
 def makeplot(plotname):

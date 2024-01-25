@@ -1,5 +1,6 @@
 import math
-from app import logger
+import logging
+logger = logging.getLogger('smdt')
 
 import numpy as np
 import astropy.wcs as wcs

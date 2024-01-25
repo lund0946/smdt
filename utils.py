@@ -9,7 +9,8 @@ import os
 import datetime
 import webbrowser
 import traceback
-from app import logger
+import logging
+logger = logging.getLogger('smdt')
 
 #MM2AS = math.degrees(3600 / 150327) 
 MM2AS = math.degrees(3600 / 150280)  # 

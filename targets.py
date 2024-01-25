@@ -14,7 +14,8 @@ import datetime
 import json
 import pandas as pd
 import numpy as np
-from app import logger
+import logging
+logger = logging.getLogger('smdt')
 import io
 import math
 import os

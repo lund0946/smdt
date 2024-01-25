@@ -6,7 +6,8 @@ import math
 import dss2Header
 from inOutChecker import InOutChecker
 from maskLayouts import MaskLayouts
-from app import logger
+import logging
+logger = logging.getLogger('smdt')
 
 def readRaw(fh,params):
     def toFloat(x):

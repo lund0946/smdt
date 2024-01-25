@@ -13,7 +13,8 @@ Author: Shui Hung Kwok
 
 """
 import math
-from app import logger
+import logging
+logger = logging.getLogger('smdt')
 
 
 class InOutChecker:

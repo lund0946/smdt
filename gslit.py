@@ -1,6 +1,7 @@
 import math
 import pandas as pd
-from app import logger
+import logging
+logger = logging.getLogger('smdt')
 
 
 
