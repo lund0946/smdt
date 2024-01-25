@@ -223,7 +223,9 @@ def sendTargets2Server():
         global df
         df=targs.readRaw(session['file'],prms)
         df['loadselected']=df.selected                   #Only backup selected targets on file load.
-    return ''    
+    outp=targs.toJsonWithInfo(params,df)
+    return outp
+#    return ''    
 
 ##Update Params Button
 @app.route('/updateParams4Server',methods=["GET","POST"])

@@ -40,7 +40,7 @@ def init_dicts(data,params):
     pcode=data.loc[:,'pcode'].tolist()
     sel=data.loc[:,'selected'].tolist()
     slit_pa=data.loc[:,'slitLPA'].tolist()
-
+    objectId=data.loc[:,'objectId'].tolist()
 
 
     ####      <---------  Needs an if since it's an optional parameter?
@@ -131,7 +131,7 @@ def init_dicts(data,params):
     rel_h20 = obs_rh                # relative humidity
     w = waver/10000. ##reference wavelength conv. to micron
 
-    obs={'ra0_fld':ra0_fld,'dec0_fld':dec0_fld,'ha0_fld':ha0_fld,'raRad':raRad,'decRad':decRad,'lst':lst,'pa0_fld':pa0_fld,'length1':length1,'length2':length2,'rlength1':rlength1,'rlength2':rlength2,'slitLPA':slitLPA,'pcode':pcode,'slitWidth':slitWidth,'slitpa':slitpa,'mag':mag,'magband':magband,'sel':sel}
+    obs={'objectId':objectId,'ra0_fld':ra0_fld,'dec0_fld':dec0_fld,'ha0_fld':ha0_fld,'raRad':raRad,'decRad':decRad,'lst':lst,'pa0_fld':pa0_fld,'length1':length1,'length2':length2,'rlength1':rlength1,'rlength2':rlength2,'slitLPA':slitLPA,'pcode':pcode,'slitWidth':slitWidth,'slitpa':slitpa,'mag':mag,'magband':magband,'sel':sel}
     site={'lat':lat,'htm':htm,'tdk':tdk,'pmb':pmb,'rel_h20':rel_h20,'w':w,'wavemn':wavemn,'wavemx':wavemx}
 
     return obs,site
@@ -720,6 +720,7 @@ def genObs(df,fileparams):
     df['yarcsS']=slit['yarcsS']
     df['xarcs']=obs['xarcs']
     df['yarcs']=obs['yarcs']
+    df['objectId']=obs['objectId']
     return df
 
 def genSlits(df,fileparams,auto_sel=True):
@@ -768,6 +769,7 @@ def genSlits(df,fileparams,auto_sel=True):
     df['arcslitY1'],df['arcslitY2'],df['arcslitY3'],df['arcslitY4']=slit['arcslitY1'],slit['arcslitY2'],slit['arcslitY3'],slit['arcslitY4']
 #    df['slitX1'],df['slitX2'],df['slitX3'],df['slitX4']=slit['X1'],slit['X1'],slit['X2'],slit['X2']
 #    df['slitY1'],df['slitY2'],df['slitY3'],df['slitY4']=slit['Y1'],slit['Y2'],slit['Y2'],slit['Y1']
+    df['objectId']=obs['objectId']
     return df
 
 def genMaskOut(df,fileparams):
@@ -817,6 +819,7 @@ def genMaskOut(df,fileparams):
         df['length2S']=slit['length2S']
         df['rlength1']=slit['rlength1'] #not needed?
         df['rlength2']=slit['rlength2'] #not needed?
+        df['objectId']=obs['objectId']
 
     tel={}
     tel['newcenterRADeg']=slit['newcenterRADeg']
