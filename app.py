@@ -206,13 +206,16 @@ def saveMaskDesignFile():  # should only save current rather than re-running eve
 ##Update Params Button, Load Targets Button
 @app.route('/sendTargets2Server',methods=["GET","POST"])
 def sendTargets2Server():
+    print('sendTargets2Server()')
     global prms
     prms=request.form.to_dict(flat=False)
     params=prms
+    print(prms)
     centerRADeg,centerDEC,positionAngle=15*utils.sexg2Float(params['InputRAfd'][0]),utils.sexg2Float(params['InputDECfd'][0]),float(params['MaskPAfd'][0])
     fh=[]
     session['params']=params
     prms=params
+    print(request.files['targetList'])
     uploaded_file = request.files['targetList']
     if uploaded_file.filename != '':
         input=uploaded_file.stream
