@@ -866,8 +866,8 @@ def genMaskOut(df,fileparams):
     tel={k:([v] if type(v)!=list else v) for (k,v) in tel.items()}
 
     slitsdf=pd.DataFrame(slit)
-    slitsdf=slitsdf[(slitsdf['sel']==1) & (slitsdf['inMask']==1)]
-    slitsdf.reset_index(drop=True,inplace=True)
+#    slitsdf=slitsdf[(slitsdf['sel']==1) & (slitsdf['inMask']==1)]
+#    slitsdf.reset_index(drop=True,inplace=True)
 
     paramdf=pd.DataFrame(params)
     sitedf=pd.DataFrame(site)

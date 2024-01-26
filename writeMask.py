@@ -146,9 +146,13 @@ class MaskDesignOutputFitsFile:
         zeros = [0] * nTargets
         objClass = [objClassTable[min(3, p + 2)] for p in selected.pcode]
         MajAxPA = np.degrees(selected.slitLPA)
-        for i in range(len(MajAxPA)):
-            if selected.pcode[i]==-2:
-                MajAxPA[i]=self.params.pa0[0]
+
+        for i,row in enumerate(selected.iterrows()):
+            idx=selected.index[i]
+            if selected.pcode[idx]==-2:
+                MajAxPA[idx]=self.params.pa0[0]
+
+
 
         cols.append(pf.Column(name="ObjectId", format="I6", null="-9999", unit="None", array=selected.index))
         cols.append(pf.Column(name="OBJECT", format="A68", null="INDEF", unit="None", array=selected.index))                             ##object eventually
