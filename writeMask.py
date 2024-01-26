@@ -408,26 +408,73 @@ class MaskDesignOutputFitsFile:
         params=self.params
         tel=self.tel
         tlist=self.targetList
-        selected = tlist[tlist.sel == 1]
+
+        import pickle as pkl
+        with open('tlist.pkl','wb') as f:
+            pkl.dump(tlist,f)
+
+        selected = tlist[(tlist.sel == 1) & (tlist.pcode!=-1)]
         objClassTable = ("Alignment_Star", "Guide_Star", "Ignored", "Program_Target")
         cols = []
         nTargets = selected.shape[0]
         zeros = [0] * nTargets
         objClass = [objClassTable[min(3, p + 2)] for p in selected.pcode]
         MajAxPA = np.degrees(selected.slitLPA)
-        for i in range(len(MajAxPA)):
-            if selected.pcode[i]==-2:
-                MajAxPA[i]=params.pa0[0]
+        for i,row in enumerate(selected.iterrows()):
+            idx=selected.index[i]
+            if selected.pcode[idx]==-2:
+                MajAxPA[idx]=params.pa0[0]
+
+
+        # Done quickly and can be cleaned up.
+
+        guides = tlist[(tlist.sel == 1) & (tlist.pcode==-1)]
+        gsobjClassTable = ("Alignment_Star", "Guide_Star", "Ignored", "Program_Target")
+        gscols = []
+        gsnTargets = guides.shape[0]
+        gszeros = [0] * gsnTargets
+        gsobjClass = [gsobjClassTable[min(3, p + 2)] for p in guides.pcode]
+        gsMajAxPA = np.degrees(guides.slitLPA)
+
+
+        nonselected = tlist[tlist.sel == 0]
+        nsobjClassTable = ("Alignment_Star", "Guide_Star", "Ignored", "Program_Target")
+        nscols = []
+        nsnTargets = nonselected.shape[0]
+        nszeros = [0] * nsnTargets
+        nsobjClass = [nsobjClassTable[min(3, p + 2)] for p in nonselected.pcode]
+        nsMajAxPA = np.degrees(nonselected.slitLPA)
+        for i,row in enumerate(nonselected.iterrows()):
+            idx=nonselected.index[i]
+            if nonselected.pcode[idx]==-2:
+                nsMajAxPA[idx]=params.pa0[0]
+
 
         with open(fileName,"w") as f:
             f.write("# Mask name, center:\n")
-            f.write("#"+str(params.maskid[0])+"             "+str(toSexagecimal(tel.newcenterRADeg[0]/15.))+"    "+str(toSexagecimal(tel.newcenterDECDeg[0]))+"  2000.0 PA="+str(params.pa0[0])+" ##\n")
+            f.write("#"+str(params.maskid[0])+"             "+str(toSexagecimal(tel.newcenterRADeg[0]/15.,secFmt="{:08.5f}"))+"    "+str(toSexagecimal(tel.newcenterDECDeg[0],secFmt="{:08.5f}"))+"  2000.0 PA="+str(params.pa0[0])+" ##\n")
             f.write("#\n")
             f.write("#  Guider center:\n")
             f.write("#\n")
             f.write("# Selected Objects:\n")
-            for i in range(len(selected)):
-                f.write(str(selected.objectId[i])+"       "+str(toSexagecimal(np.degrees(float(selected.raRad[i].astype(float)))/15.))+" "+str(toSexagecimal(np.degrees(float(selected.decRad[i].astype(float)))))+" 2000.0 "+str(selected.mag[i].astype(str))+" "+str(selected.magband[i])+" "+str(selected.pcode[i].astype(str))+ " 0 "+str(selected.sel[i].astype(str))+" "+str(MajAxPA[i])+" "+str(selected.length1[i].astype(str))+" "+str(selected.length2[i].astype(str))+" "+str(selected.slitWidth[i].astype(str))+"\n")
+#            for i in range(len(selected)):
+            for i,row in enumerate(selected.iterrows()):
+                idx=selected.index[i]
+                f.write(str(selected.objectId[idx])+"       "+str(toSexagecimal(np.degrees(float(selected.raRad[idx].astype(float)))/15.,secFmt="{:08.5f}"))+" "+str(toSexagecimal(np.degrees(float(selected.decRad[idx].astype(float))),secFmt="{:08.5f}"))+" 2000.0 "+str(selected.mag[idx].astype(str))+" "+str(selected.magband[idx])+" "+str(selected.pcode[idx].astype(str))+ " 0 "+str(selected.sel[idx].astype(str))+" "+str(MajAxPA[idx])+" "+str(selected.length1[idx].astype(str))+" "+str(selected.length2[idx].astype(str))+" "+str(selected.slitWidth[idx].astype(str))+"\n")
+
+
+            f.write("\n# Selected Guide Stars:\n")
+#            for i in range(len(guides)):
+            for i,row in enumerate(guides.iterrows()):
+                idx=guides.index[i]
+                f.write(str(guides.objectId[idx])+"       "+str(toSexagecimal(np.degrees(float(guides.raRad[idx].astype(float)))/15.,secFmt="{:08.5f}"))+" "+str(toSexagecimal(np.degrees(float(guides.decRad[idx].astype(float))),secFmt="{:08.5f}"))+" 2000.0 "+str(guides.mag[idx].astype(str))+" "+str(guides.magband[idx])+" "+str(guides.pcode[idx].astype(str))+ " 0 "+str(guides.sel[idx].astype(str))+" "+str(gsMajAxPA[idx])+" "+str(guides.length1[idx].astype(str))+" "+str(guides.length2[idx].astype(str))+" "+str(guides.slitWidth[idx].astype(str))+"\n")
+
+
+            f.write("\n# Non-Selected Objects:\n")
+#            for i in range(len(nonselected)):
+            for i,row in enumerate(nonselected.iterrows()):
+                idx=nonselected.index[i]
+                f.write(str(nonselected.objectId[idx])+"       "+str(toSexagecimal(np.degrees(float(nonselected.raRad[idx].astype(float)))/15.,secFmt="{:08.5f}"))+" "+str(toSexagecimal(np.degrees(float(nonselected.decRad[idx].astype(float))),secFmt="{:08.5f}"))+" 2000.0 "+str(nonselected.mag[idx].astype(str))+" "+str(nonselected.magband[idx])+" "+str(nonselected.pcode[idx].astype(str))+ " 0 "+str(nonselected.sel[idx].astype(str))+" "+str(nsMajAxPA[idx])+" "+str(nonselected.length1[idx].astype(str))+" "+str(nonselected.length2[idx].astype(str))+" "+str(nonselected.slitWidth[idx].astype(str))+"\n")
 
 
 
