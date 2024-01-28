@@ -456,7 +456,7 @@ class MaskDesignOutputFitsFile:
 
         with open(fileName,"w") as f:
             f.write("# Mask name, center:\n")
-            f.write("#"+str(params.maskid[0])+"             "+str(toSexagecimal(tel.newcenterRADeg[0]/15.,secFmt="{:08.5f}"))+"    "+str(toSexagecimal(tel.newcenterDECDeg[0],secFmt="{:08.5f}"))+"  2000.0 PA="+str(params.pa0[0])+" ##\n")
+            f.write(""+str(params.maskid[0])+"             "+str(toSexagecimal(tel.newcenterRADeg[0]/15.,secFmt="{:08.5f}"))+"    "+str(toSexagecimal(tel.newcenterDECDeg[0],secFmt="{:08.5f}"))+"  2000.0 PA= "+str(params.pa0[0])+" ##\n")
             f.write("#\n")
             f.write("#  Guider center:\n")
             f.write("#\n")
