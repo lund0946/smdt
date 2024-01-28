@@ -155,7 +155,7 @@ class MaskDesignOutputFitsFile:
 
 
         cols.append(pf.Column(name="ObjectId", format="I6", null="-9999", unit="None", array=selected.index))
-        cols.append(pf.Column(name="OBJECT", format="A68", null="INDEF", unit="None", array=selected.index))                             ##object eventually
+        cols.append(pf.Column(name="OBJECT", format="A68", null="INDEF", unit="None", array=selected.objectId))                            
         cols.append(pf.Column(name="RA_OBJ", format="F12.8", null="-9999.000000", unit="deg", array=np.degrees(selected.raRad)))
         cols.append(pf.Column(name="DEC_OBJ", format="F12.8", null="-9999.000000", unit="deg", array=np.degrees(selected.decRad)))
         cols.append(pf.Column(name="RADESYS", format="A8", null="INDEF", unit="None",array=[""]))
@@ -225,7 +225,7 @@ class MaskDesignOutputFitsFile:
         cols.append(pf.Column(name="EQUINPNT", format="F13.6", null="-9999.00", unit="a", array=[2000.0],))
         cols.append(pf.Column(name="PA_PNT", format="F12.7", null="-9999.00", unit="deg", array=[params.pa0],))
         cols.append(pf.Column(name="DATE_PNT", format="A19", null="INDEF", unit="None", array=[tel.dateobs],))
-        cols.append(pf.Column(name="LST_PNT", format="F8.3", null="-9999.00", unit="deg", array=[params.ha0*15]))                   # May be HourAngle in deg??
+        cols.append(pf.Column(name="LST_PNT", format="F8.3", null="-9999.00", unit="deg", array=[tel.lst]))                   # May be HourAngle in deg??
         print(cols)
 
         print(pf.TableHDU.from_columns(cols, name="MaskDesign"))

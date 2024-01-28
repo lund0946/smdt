@@ -475,6 +475,46 @@ function SlitmaskDesignTool() {
         };
 
 
+        self.selectToggle = function (evt) {
+                // Updates an existing or adds a new target.
+                function callback(data) {
+                        let i = idx;
+                        if (data && data.length > 0)
+                                i = data[0]
+                        self.reloadTargets(idx, i);
+                        self.updateLoadedTargets(data);
+                        self.canvasShow.selectedTargetIdx = i;
+                        self.canvasShow.reDrawTable();
+                        self.redraw();
+
+                }
+                // Sends new target info to server
+                let idx = self.canvasShow.selectedTargetIdx;
+                let prior = Number(E('targetPrior').value);
+                let sel = Number(E('targetSelect').value);
+                let selected;
+                if ( sel > 0) selected = 0;
+                else selected = 1;
+                
+                let slitLPA = Number(E('targetSlitPA').value);
+                let slitWidth = Number(E('targetSlitWidth').value);
+                let length1 = Number(E('targetLength1').value);
+                let length2 = Number(E('targetLength2').value);
+                let tname = E("targetName").value;
+                let targetRA = E("targetRA").value;
+                let targetDEC = E("targetDEC").value;
+                let targetMagn = E("targetMagn").value;
+                let targetBand = E('targetBand').value;
+
+                let params = {
+                        'idx': idx, 'raSexa': targetRA, 'decSexa': targetDEC, 'eqx': 2000,
+                        'mag': targetMagn, 'pBand': targetBand,
+                        'prior': prior, 'selected': selected, 'slitLPA': slitLPA, 'slitWidth': slitWidth,
+                        'len1': length1, 'len2': length2, 'targetName': tname
+                };
+                let ajax = new AjaxClass();
+                ajax.postRequest('updateSelection', { 'values': JSON.stringify(params) }, callback);
+        };
 
 	self.updateTarget = function (evt) {
 		// Updates an existing or adds a new target.
@@ -652,6 +692,7 @@ function SlitmaskDesignTool() {
 
 	E('updateTarget').onclick = self.updateTarget;
 	E('deleteTarget').onclick = self.deleteTarget;
+        E('selectToggle').onclick = self.selectToggle;
 	E('saveMDF').onclick = self.saveMDF;
 
 	hideDiv("savePopup");

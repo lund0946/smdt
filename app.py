@@ -115,6 +115,19 @@ def updateTarget():
 #    return json.dumps({'idx':idx})
 
 
+@app.route('/updateSelection',methods=["GET","POST"])
+def updateSelection():
+    global df
+    global prms
+    targets=df
+    values=json.loads(request.data.decode().split('=')[1].split('}&')[0]+'}')
+    df,idx=targs.updateTarget(targets,values)
+    outp=targs.toJsonWithInfo(prms,df)
+    tgs = json.loads(outp)
+
+    outp=merged_dict = {**tgs, **{'idx':idx}}
+    return outp
+
 @app.route('/deleteTarget',methods=["GET","POST"])
 def deleteTarget():
     global df
