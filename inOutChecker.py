@@ -72,7 +72,7 @@ class InOutChecker:
             try:
                 edges[y].sort()
             except Exception as err:
-                logger.error("Exception in sort ", y, err)
+                logger.error(f"Exception in sort {y}: {err}")
                 pass
         return ymin, ymax, edges
 
@@ -93,6 +93,6 @@ class InOutChecker:
                 if x0 < x < x1:
                     return True
         except Exception as err:
-            logger.error("Check point exception", err)
+            logger.error(f"Check point exception {err}")
             pass
         return False

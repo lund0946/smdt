@@ -12,10 +12,13 @@ import targs
 import calcmask
 import plot
 import logging
+from logging import FileHandler
 
 logger = logging.getLogger('smdt')
 logger.setLevel(logging.DEBUG)
 logger.addHandler(default_handler)
+fh = FileHandler('smdt.log')
+logger.addHandler(fh)
 
 
 def launchBrowser(host, portnr, path):
@@ -68,8 +71,8 @@ def readparams():
                                stripquote(sep[2]), stripquote(sep[3]))
                 else:
                     continue
-            except Exception as e:
-                logger.error('Failed to load parameters', e)
+            except Exception as err:
+                logger.error('Failed to load parameters: {err}')
     return dict
 
 
@@ -130,8 +133,8 @@ def getTargetsAndInfo():
         newdf = calcmask.genObs(df, params)
         newdf = targs.markInside(newdf)
         outp = targs.toJsonWithInfo(params, newdf)
-    except Exception as e:
-        logger.error('Exception', e)
+    except Exception as err:
+        logger.error(f'Exception {err}')
         outp = ''
     return outp
 
@@ -213,7 +216,7 @@ def getConfigParams():
     global prms
     paramData = readparams()
     prms = paramData
-    logger.debug('params:', paramData)
+    logger.debug(f'params: {paramData}')
     session['params'] = paramData
     prms = paramData
     return json.dumps({"params": paramData})

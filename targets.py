@@ -442,7 +442,7 @@ class TargetList:
             return
         tgs = self.targets
         self.targets = tgs.drop(tgs.index[idx])
-        SMDTLogger.info("Delete target idx")
+        SMDTLogger.info(f"Delete target idx {idx}")
 
     def markInside(self):
         """
@@ -467,9 +467,9 @@ class TargetList:
 
         raDeg, decDeg, refr = atRefr.getRefr([centerRADeg], [centerDECDeg], centerRADeg, haDeg)
         refa,refb,ra,rb,pMMHg, temperature, centerWavelength,zd,el=(atRefr.getRefTest([centerRADeg], [centerDECDeg], centerRADeg, haDeg))
-        logger.debug('el:',el)
-        logger.debug(refa-ra,refb-rb)
-        logger.debug('getrefr:',refr*3600.,np.degrees(zd)*3600.)
+        logger.debug(f'el: {el}')
+        logger.debug(f'{refa-ra} {refb-rb}')
+        logger.debug(f'getrefr: {refr*3600} {np.degrees(zd)*3600.}')
         return raDeg, decDeg
 
     def calcUnrefrCoords(self, centerRADeg, centerDECDeg, haDeg=100.52916667*np.pi/180):
@@ -634,7 +634,7 @@ class TargetList:
         logger.debug(self.__dict__.keys())
         logger.debug(self.config.properties['params'])
         logger.debug(self.targets)
-        logger.debug('PA:',self.positionAngle)
+        logger.debug(f'PA: {self.positionAngle}')
 
 
         telRaRad, telDecRad = self._fld2telax(raDeg, decDeg, posAngleDeg)
@@ -842,9 +842,9 @@ class TargetList:
 
     def writeTo(self, fileName):
         def outputPA(fh):
-            logger.debug("# Mark name, center:", file=fh)
-            logger.debug("#", file=fh)
-            logger.debug(
+            print(f"# Mark name, center: {fh}", file=fh)
+            print("#", file=fh)
+            print(
                 "{:20s} {} {} 2000.0 PA={:.3f}".format(
                     self.maskName,
                     utils.toSexagecimal(self.centerRADeg / 15, secFmt="{:06.3f}"),
@@ -853,12 +853,12 @@ class TargetList:
                 ),
                 file=fh,
             )
-            logger.debug("#", file=fh)
-            logger.debug("#", file=fh)
-            logger.debug("# Columns", file=fh)
-            logger.debug("# Obj_Id, RA, DEC, EQX, Magn, pBand, pCode, sampleNr, selected, slitLPA, length1, length2, slitWidth", file=fh)
-            logger.debug("#", file=fh)
-            logger.debug("#", file=fh)
+            print("#", file=fh)
+            print("#", file=fh)
+            print("# Columns", file=fh)
+            print("# Obj_Id, RA, DEC, EQX, Magn, pBand, pCode, sampleNr, selected, slitLPA, length1, length2, slitWidth", file=fh)
+            print("#", file=fh)
+            print("#", file=fh)
             # end of outputPA
 
         def outputTargets(fh):

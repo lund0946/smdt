@@ -297,7 +297,7 @@ class MaskDesignOutputFitsFile:
 
 
         logger.debug(params.guiname)
-        logger.debug(params.maskid,type(params.guiname))
+        logger.debug(f"maskid: {params.maskid} guiname type: {type(params.guiname)}")
 
         cols.append(pf.Column(name="BluId", format="I11", null="-9999", unit="None", array=[1]))
         cols.append(pf.Column(name="DesId", format="I11", null="-9999", unit="None", array=[1]))
@@ -431,7 +431,7 @@ class MaskDesignOutputFitsFile:
 
 def _outputAsList(fh, targets):
     for i, row in targets.iterrows():
-        logger.debug(
+        print(
             "{:18s}{} {} {:.0f}{:>6.2f} {} {:5d} {} {} {}".format(
                 row.objectId,
                 toSexagecimal(row.raHour),

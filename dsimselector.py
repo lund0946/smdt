@@ -30,10 +30,10 @@ def selector(df,xmin,xmax,min_slit,slit_gap):
     xlow = xmin
     xskip = 0.
     nselect = 0                     # triggers init in sel_rank
-    logger.debug('sel conditions',len(sel.xarcs),npre,nopt,minsep,slit_gap)
+    logger.debug(f'sel conditions {sel.xarcs}, {npre}, {nopt}, {minsep}, {slit_gap}')
     if (len(opt) > 0):            #was sel originally, but didnt make sense
         for i in range(npre+1):
-            logger.debug(i,npre,range(npre))
+            logger.debug(f'{i},{npre},{range(npre)}')
             if (i < npre):
                 ndx=sel.index[i]
                 xupp = sel.X1[ndx]
@@ -42,7 +42,7 @@ def selector(df,xmin,xmax,min_slit,slit_gap):
                 xupp = xmax
                 
             if (xupp > xlow):
-                logger.debug('running sel rank over range ',xlow, xupp,len(opt))
+                logger.debug(f'running sel rank over range {xlow, xupp, len(opt)}')
                 opt=sel_rank (opt, xlow, xupp, minsep, slit_gap)
             xlow = xupp + xskip
 
@@ -57,11 +57,11 @@ def selector(df,xmin,xmax,min_slit,slit_gap):
 
 
 def sel_rank(opt, xlow, xupp, minsep, slit_gap):
-    logger.debug('Starting sel_rank (xlow,xupp):',xlow,xupp)
+    logger.debug(f'Starting sel_rank xlow: {xlow}, xupp: {xupp})')
         
 # Can we fit a minimum slit in here?
     if (xupp - xlow < minsep):               # probably too restrictive, can't fit anything in this gap, exit
-        logger.debug('too restrictive,returning')
+        logger.debug('too restrictive. returning')
         return opt
 
 # Start at half a slit length; stop inside half slit length  
@@ -77,14 +77,14 @@ def sel_rank(opt, xlow, xupp, minsep, slit_gap):
         x = opt.xarcs[ndx]
         if (x < xnext):                          # xarc is too close for a slit, continue
             i=i+1
-            logger.debug('too close, continue')
+            logger.debug('too close. continue')
             continue
         if (opt.X1[ndx] < xlast):                  # X1 (slit edge) is less than xlast, continue
             i=i+1
-            logger.debug('edge overlap, continue')
+            logger.debug('edge overlap. continue')
             continue
         if (x > xstop):                          #xarc > last target or upper limit to stop; break  
-            logger.debug('exceeded xstop, break')
+            logger.debug('exceeded xstop. break')
             break
                 
         isel = i                                 #selected index (best)
@@ -130,7 +130,7 @@ def sel_rank(opt, xlow, xupp, minsep, slit_gap):
         i = isel                        # Reset search start point
         i=i+1
         #set selection if 
-        logger.debug('Saving selection ',ndx,isel)
+        logger.debug(f'Saving selection {ndx}, {isel}')
         opt.sel[ndx]=1           # New column to differentiate between originally selected and sel_rank selected ones for re-running at different angles?
 
     return opt

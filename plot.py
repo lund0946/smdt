@@ -1,5 +1,3 @@
-
-
 from astropy.io import fits
 import maskLayouts
 import drawUtils
@@ -37,10 +35,6 @@ def makeplot(plotname):
         else:
             #can't identify slit type?
             col.append('crimson')    #color red if something else
-    
-
-
-    import matplotlib.pyplot as plt
 
     fig, sps = plt.subplots(1, figsize=(16, 5))
     plt.subplot(111)

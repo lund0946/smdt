@@ -256,7 +256,7 @@ def updateTarget(targets, jvalues):
     else:
         # Add a new entry
         idx = len(targets.index)
-        logger.debug('idx= ',idx)
+        logger.debug(f'idx= {idx}')
 
         newItem = {
             "objectId": targetName,
@@ -287,11 +287,10 @@ def deleteTarget(targets, idx):
     Remove a row idx from the data frame
     """
     tgs = targets
-    logger.debug('Index to delete',idx)
+    logger.debug(f'Index to delete {idx}')
     if idx < 0:
         return
     targets = tgs.drop(tgs.index[idx])
-#    SMDTLogger.info("Delete target idx")
     return targets
 
 def markInside(targets):

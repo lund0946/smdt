@@ -24,7 +24,7 @@ class DssWCSHeader:
         self.defineKwds(width, height)
 
     def xy2rd(self, xin, yin):
-        logger.warning("xy2rd, not implemented")
+        logger.warning("xy2rd not implemented")
 
     def rd2xy(self, ra, dec):
         """
