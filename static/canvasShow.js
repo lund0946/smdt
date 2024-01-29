@@ -556,8 +556,27 @@ function CanvasShow(containerName, zoomContainer) {
         }
     };
 
+
+    self.calcPAng = function () {
+        var dec = radians(self.currDecDeg);
+        var ha = radians(Number(E("HourAnglefd").value)*-15.);
+        var phi = radians(19.8);
+        const cp = Math.cos(phi);
+        const sqsz = cp * Math.sin(ha);
+        const cqsz = Math.sin(phi) * Math.cos(dec) - cp * Math.sin(dec) * Math.cos(ha);
+
+        if (sqsz === 0 && cqsz === 0) {
+            cqsz = 1;
+        }
+
+        const pa = radians(degrees(Math.atan2(sqsz, cqsz))-90);
+        return pa;
+    };
+
+
     self.drawCompass = function (ctx) {
         var color = "#ffff00";
+        var pangColor = "#ff0000";
         var rotAngleDeg = self.compassNorthDeg; // calculated in calcualteAngles()
 
         var aRad = radians(rotAngleDeg);
@@ -572,6 +591,23 @@ function CanvasShow(containerName, zoomContainer) {
         var northText = rotateSaCa(sa, ca, 0, -len - 10);
         var east = rotateSaCa(sa, ca, -len, 0);
         var eastText = rotateSaCa(sa, ca, -len - 10, 0);
+
+        var pangRad = self.calcPAng();
+        var capa = Math.cos(pangRad);
+        var sapa = Math.sin(pangRad);
+        var pang = rotateSaCa(sapa, capa, 0, -len);
+        var pangText = rotateSaCa(sapa, capa, 0, -len - 10);
+
+        with (ctx) {
+            //setTransform(1, 0, 0, 1, 0, 0);
+            strokeStyle = pangColor;
+            lineWidth = 1;
+
+            //beginPath();
+            drawArrow(ctx, x0, y0, x0 + pang[0], y0 + pang[1], 8);
+            //stroke();
+            strokeText("Par Ang", x0 + pangText[0], y0 + pangText[1]);
+        }
 
         with (ctx) {
             //setTransform(1, 0, 0, 1, 0, 0);
