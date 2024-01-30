@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 import io
 import math
-
+import datetime
 
 from astropy import units as u
 from astropy.coordinates import Angle
@@ -859,7 +859,7 @@ def genMaskOut(df,fileparams):
         'telescope':'Keck II'
  }
 
-    params['descreate']='2022-12-01T01:00:00'
+    params['descreate']=datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
 
     site={k:([v] if type(v)!=list else v) for (k,v) in site.items()}
     params={k:([v] if type(v)!=list else v) for (k,v) in params.items()}     ####   <-----fix this for correct outputs
