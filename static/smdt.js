@@ -15,14 +15,37 @@ function SlitmaskDesignTool() {
 		return document.getElementById(n);
 	}
 
-	function guid() {
-		function s4() {
-			return Math.floor((1 + Math.random()) * 0x10000).toString(16)
-				.substring(1);
+	self.buildParamTable = function (params) {
+		// params
+		let buf = Array();
+		let row, i;
+		let value, unit, label, descText;
+		let txt;
+		buf.push('<table id="paramTable">');
+		for (i in params) {
+			row = params[i];
+			value = row[0];
+			unit = row[1];
+			label = row[2];
+			descText = row[3];
+			txt = `<tr><td> ${label} :<td><input id="${i}fd" name="${i}fd" value="${value}"><td>${descText}`;
+			/* 
+			txt = '<tr><td>' +
+				label + ':<td><input id="' + i + 'fd" value="' + value + '">' +
+				'<td>' + descText;
+			*/
+			buf.push(txt);
 		}
-		return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4()
-			+ s4() + s4();
-	}
+		buf.push('</table>');
+		E('paramTableDiv').innerHTML = buf.join('');
+	};
+
+	self.loadConfigParams = function () {
+		function callback(data) {
+			self.buildParamTable(data.params);
+		}
+		ajaxCall('getConfigParams', {}, callback);
+	};
 
 	self.setStatus = function (msg) {
 		self.statusDiv.innerHTML = msg;
@@ -80,31 +103,8 @@ function SlitmaskDesignTool() {
 
 		ajaxCall("getMaskLayout", { 'instrument': 'deimos' }, callback);
 	};
-
-	self.buildParamTable = function (params) {
-		// params
-		let buf = Array();
-		let row, i;
-		let value, unit, label, descText;
-		let txt;
-		buf.push('<table id="paramTable">');
-		for (i in params) {
-			row = params[i];
-			value = row[0];
-			unit = row[1];
-			label = row[2];
-			descText = row[3];
-			txt = `<tr><td> ${label} :<td><input id="${i}fd" name="${i}fd" value="${value}"><td>${descText}`;
-			/* 
-			txt = '<tr><td>' +
-				label + ':<td><input id="' + i + 'fd" value="' + value + '">' +
-				'<td>' + descText;
-			*/
-			buf.push(txt);
-		}
-		buf.push('</table>');
-		E('paramTableDiv').innerHTML = buf.join('');
-	};
+	// init config params
+	self.loadConfigParams();
 
 	self.updateLoadedTargets = function (data) {
 		// Called when targets are loaded from server
@@ -157,12 +157,6 @@ function SlitmaskDesignTool() {
 		ajaxCall("getTargetsAndInfo", {}, callback);
 	};
 
-	self.loadConfigParams = function () {
-		function callback(data) {
-			self.buildParamTable(data.params);
-		}
-		ajaxCall('getConfigParams', {}, callback);
-	};
 
 	self.loadAll = function () {
 		self.loadBackgroundImage();
@@ -661,7 +655,6 @@ function SlitmaskDesignTool() {
 	window.onbeforeunload = self.checkQuit
 
 	self.statusDiv = E('statusDiv');
-	self.loadConfigParams();
 	self.canvasShow = new CanvasShow('canvasDiv', 'zoomCanvasDiv');
 	self.canvasShow.setShowPriorities(E('minPriority').value, E('maxPriority').value);
 	self.loadMaskLayout();
