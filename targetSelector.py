@@ -157,8 +157,7 @@ class TargetSelector:
                 xsegms[-1] = (lastSeg[0], x1)
             lastx = x1
             self.targets.at[aIdx, "selected"] = 1
-        logger.debug('alignment box segments\n')
-        logger.debug(xsegms)
+        logger.debug('alignment box segments: {xsegms}')
         return xsegms
 
     def segments2Gaps(self, xsegms, minx, maxx, minSep):
@@ -365,13 +364,11 @@ class TargetSelector:
         inTargets = self.targets[self.targets.inMask == 1]
         inTargets = inTargets[inTargets.pcode > 0]
 
-        logger.debug('performSelection')
-        logger.debug(self.targets)
+        logger.debug(f'performSelection: {self.targets}')
         self.xgaps = self._selectTargets(xgaps, inTargets, self.minSlitLength, self.minSep)
         self.xgaps1 = self.xgaps.copy()
         self.allPairs1 = []
-        logger.debug('after _selectTargets')
-        logger.debug(self.targets)
+        logger.debug(f'after _selectTargets: {self.targets}')
         if extendSlits:
             inTargets = self.targets[self.targets.selected == 1]
             xsegms = self.insertPairs (inTargets, self.minX, self.maxX)

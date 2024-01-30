@@ -204,7 +204,7 @@ def updateColumn(targets,col,value):
         targets['length2']=float(value)
     else:
         targets[col]=float(value)
-    logger.debug(targets[col])
+    logger.debug(f'updateColumn {targets[col]}')
     return targets
 
 

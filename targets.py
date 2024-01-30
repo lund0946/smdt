@@ -5,7 +5,6 @@ Created on Mar 20, 2018
 """
 
 from targetSelector import TargetSelector
-from smdtLogger import SMDTLogger
 from smdtLibs.inOutChecker import InOutChecker
 from maskLayouts import MaskLayouts
 from smdtLibs import utils, dss2Header, DARCalculator
@@ -153,7 +152,7 @@ class TargetList:
             try:
                 return self.readRaw(fh)
             except:
-                SMDTLogger.info(f"Failed to open {fname}")
+                logger.error(f"Failed to open {fname}")
                 return None
 
     def readRaw(self, fh):
@@ -245,7 +244,7 @@ class TargetList:
                 slitWidth = toFloat(template[11])
                 inMask = int(template[12])
             except Exception as e:
-                SMDTLogger.info("line {}, error {}, {}".format(nr, e, line))
+                logger.error("line {}, error {}, {}".format(nr, e, line))
                 pass
             raRad = math.radians(raHour * 15)
             decRad = math.radians(decDeg)
@@ -275,7 +274,7 @@ class TargetList:
 
         if self.centerRADeg is None or self.centerRADeg is None:
             msg = "Center RA and DEC undefined. Using averge of input RA and DEC."
-            SMDTLogger.info(msg)
+            logger.info(msg)
             self.centerRADeg = df.raHour.mean() * 15
             self.centerDEC = df.decDeg.mean()
             self.positionAngle = 0
@@ -329,7 +328,7 @@ class TargetList:
             data1[colName] = data[i]
 
         data2 = {"info": self.getROIInfo(), "targets": data1, "xgaps": self.xgaps}
-        logger.debug(data2)
+        logger.debug(f'targets and ROI {data2}')
         return json.dumps(data2, cls=MyJsonEncoder)
 
     def setColum(self, colName, value):
@@ -399,7 +398,7 @@ class TargetList:
             tgs.at[idx, "raRad"] = raRad
             tgs.at[idx, "decRad"] = decRad
 
-            SMDTLogger.info(
+            logger.info(
                 f"Updated target {idx}, ra {raSexa}, dec {decSexa}, pcode={pcode}, selected={selected}, slitLPA={slitLPA:.2f}, slitWidth={slitWidth:.2f}, len1={len1}, len2={len2}"
             )
         else:
@@ -427,7 +426,7 @@ class TargetList:
 
             self.targets = tgs.append(newItem, ignore_index=True)
 
-            SMDTLogger.info(
+            logger.info(
                 f"New target {targetName}, ra {raSexa}, dec {decSexa}, pcode={pcode}, selected={selected}, slitLPA={slitLPA:.2f}, slitWidth={slitWidth:.2f}, len1={len1}, len2={len2}, idx={idx}"
             )
 
@@ -442,7 +441,7 @@ class TargetList:
             return
         tgs = self.targets
         self.targets = tgs.drop(tgs.index[idx])
-        SMDTLogger.info(f"Delete target idx {idx}")
+        logger.info(f"Delete target idx {idx}")
 
     def markInside(self):
         """
@@ -631,9 +630,9 @@ class TargetList:
         Returns xarcs, yarcs in focal plane coordinates in arcs.
         """
 
-        logger.debug(self.__dict__.keys())
-        logger.debug(self.config.properties['params'])
-        logger.debug(self.targets)
+        logger.debug(f"TargetList keys: {self.__dict__.keys()}")
+        logger.debug(f"config params: {self.config.properties['params']}")
+        logger.debug(f"target list targets: {self.targets}")
         logger.debug(f'PA: {self.positionAngle}')
 
 

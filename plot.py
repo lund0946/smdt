@@ -17,7 +17,7 @@ def makeplot(plotname):
     slitdata=f[7].data
     typedata=f[4].data
     for i in range(len(slitdata)):
-        logger.debug(slitdata[i])
+        logger.debug(f'slitdata: {slitdata[i]}')
         sx1.append(slitdata[i][3])
         sy1.append(slitdata[i][4])
         sx2.append(slitdata[i][5])

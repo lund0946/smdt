@@ -168,7 +168,7 @@ class MaskDesignOutputFitsFile:
         cols.append(pf.Column(name="ObjClass", format="A20", null="INDEF", unit="None", array=objClass))
         cols.append(pf.Column(name="CatFilePK", format="I6", null="-9999", unit="None", array=[1] * nTargets))
 
-        logger.debug(cols)
+        logger.debug(f"cols: {cols}")
 
         logger.debug(pf.TableHDU.from_columns(cols, name="ObjectCat"))
 
@@ -178,12 +178,11 @@ class MaskDesignOutputFitsFile:
         """
         Generates the catalog file table. Maybe not used downstream.
         """
-        targets = self.targetList                                                                                                        ### Not used
         cols = []
         cols.append(pf.Column(name="CatFilePK", format="I6", null="-9999", unit="None", array=[1]))
         cols.append(pf.Column(name="CatFileName", format="A255", null="INDEF", unit="None", array=["INDEF"],))
 
-        logger.debug(cols)
+        logger.debug(f"cols: {cols}")
         logger.debug(pf.TableHDU.from_columns(cols, name="CatFiles"))
         
         return pf.TableHDU.from_columns(cols, name="CatFiles")
@@ -194,15 +193,11 @@ class MaskDesignOutputFitsFile:
         """
         tlist = self.targetList
         params = self.params
-        site = self.site
         tel=self.tel
         cols = []
-        createDate = params.descreate
         selected = tlist[tlist.sel == 1]
         nSlits = selected.shape[0]
         nObjs = nSlits + selected[selected.pcode == -2].shape[0]
-        pId = -1
-
         
         cols.append(pf.Column(name="DesId", format="I11", null="-9999", unit="None", array=[1]))
         cols.append(pf.Column(name="DesName", format="A68", null="INDEF", unit="None", array=[params.maskid],))
@@ -221,8 +216,7 @@ class MaskDesignOutputFitsFile:
         cols.append(pf.Column(name="PA_PNT", format="F12.7", null="-9999.00", unit="deg", array=[params.pa0],))
         cols.append(pf.Column(name="DATE_PNT", format="A19", null="INDEF", unit="None", array=[tel.dateobs],))
         cols.append(pf.Column(name="LST_PNT", format="F8.3", null="-9999.00", unit="deg", array=[params.ha0*15]))                   # May be HourAngle in deg??
-        logger.debug(cols)
-
+        logger.debug(f"cols: {cols}")
         logger.debug(pf.TableHDU.from_columns(cols, name="MaskDesign"))
 
         return pf.TableHDU.from_columns(cols, name="MaskDesign")
@@ -325,7 +319,6 @@ class MaskDesignOutputFitsFile:
         Generates the list of slits coordinates
         """
         tlist = self.targetList
-        params = self.params
         cols = []
         selected = tlist[tlist.sel == 1]
         nSlits = selected.shape[0]
@@ -407,11 +400,6 @@ class MaskDesignOutputFitsFile:
         tel=self.tel
         tlist=self.targetList
         selected = tlist[tlist.sel == 1]
-        objClassTable = ("Alignment_Star", "Guide_Star", "Ignored", "Program_Target")
-        cols = []
-        nTargets = selected.shape[0]
-        zeros = [0] * nTargets
-        objClass = [objClassTable[min(3, p + 2)] for p in selected.pcode]
         MajAxPA = np.degrees(selected.slitLPA)
         for i in range(len(MajAxPA)):
             if selected.pcode[i]==-2:
