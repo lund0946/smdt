@@ -198,7 +198,7 @@ def saveMaskDesignFile():  # should only save current rather than re-running eve
 
 
 # Update Params Button, Load Targets Button
-@check_session(params=['params', 'file'])
+# @check_session(params=['params', 'file'])
 @app.route('/sendTargets2Server', methods=["GET", "POST"])
 def sendTargets2Server():
     prms = request.form.to_dict(flat=False)
@@ -206,8 +206,7 @@ def sendTargets2Server():
     session['params'] = prms 
     uploaded_file = request.files['targetList']
     if uploaded_file.filename != '':
-        input = uploaded_file.stream
-        for line in input:
+        for line in uploaded_file.stream:
             fh.append(line.strip().decode('UTF-8'))
 
         session['file'] = fh
@@ -215,7 +214,14 @@ def sendTargets2Server():
         # Only backup selected targets on file load.
         df['loadselected'] = df.selected
         session['df'] = df
-    return ''
+
+        #generate slits
+        newdf = calcmask.genObs(session['df'], session['params'])
+        df = targs.markInside(newdf)
+        newdf = calcmask.genSlits(df, session['params'], auto_sel=True)
+        session['df'] = newdf
+        outp = targs.toJsonWithInfo(session['params'], newdf)
+    return outp
 
 # Update Params Button
 @app.route('/updateParams4Server', methods=["GET", "POST"])

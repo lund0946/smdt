@@ -73,21 +73,20 @@ function AjaxClass() {
         xt.send("");
     };
 
-    self.postRequest = function (script, params, callback) {
-        var xt = self.xmlHttp;
+    self.postRequest = function (script, params, callback, type='json') {
+        const xt = self.xmlHttp;
         if (!xt)
             return;
-
-        var d = new Date();
+        const d = new Date();
         params["rnd"] = d.getTime();
-        var content = array2Query(params);
+        const content = type.includes('json') ? array2Query(params) : params
         xt.onreadystatechange = function () {
             if (xt.readyState == 4)
                 callback(toValue(xt));
         };
         xt.open("POST", script, true); // true for asyncrhonuous
         xt.timeout = self.maxTime;
-        xt.setRequestHeader("Content-type", "application/json");
+        type.includes('json') && xt.setRequestHeader("Content-type", "application/json");
         xt.send(content);
     };
 

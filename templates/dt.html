@@ -1,158 +1,174 @@
 {% extends "layout.html" %}
 
 {% block body %}
-    <form name='form2' id='form2' method='post' enctype='multipart/form-data' action='sendTargets2Server'
-        target='targetListFrame'>
-        <table id='contentTable'>
-            <tr>
-                <td>
-                <td id='contentCell'>
-                    <table id='targetListName'>
-                        <tr>
-                            <td>Target List:
-                            <td><input type='file' id='targetList' name='targetList' value="mask_ex1.txt"
-                                    title="Input file of targets">
-                            <td><input type='button' id='loadTargets' name='loadTargets' title='Load catalog target file' value='Load targets'>
-                            <td><input type='button' id='showHideParams' title='Show/Hide Parameters' value='Show Parameters'>
-                        </tr>
-                    </table>
-                    <div id='paramTableDiv' style='visibility: hidden; display: none'></div>
-                    <table id='paramButtonTable'>
-                        <tr>
-                            <td colspan='8'><input type='button' id='setSlitsPA' title='Apply slitpa to all slits' value='Set slits PA'> &nbsp;
-                                <input type='button' id='setMaskPA' title='Apply maskPA to mask' value='Set mask PA'> &nbsp;
-                                <input type='button' id='updateParams' title='Save current parameters' value='Update Params' formaction='updateParams4Server'> &nbsp;
-                                <input type='button' id='setSlitsLength' title='Apply minimum slitlength for all slits' value='Set slits length'> &nbsp; <input
-                                    type='button' id='setSlitsWidth' title='Apply slitwidth to all slits' value='Set slit width'>
-                    </table>
-
-                    <table id='contentPanel'>
-                        <tr>
-                            <td>
-                        <tr>
-                            <td>
-                                <table id='buttonPanel'>
-                                    <tr>
-                                        <td>
-                                            <table class='panButtonTable'>
-                                                <tr>
-                                                    <td>Pan Sky: <input type='radio' name='mouseAction' id='panSky' checked>
-                                                    <td>Rotate Sky: <input type='radio' name='mouseAction'
-                                                            id='rotateSky'>
-                                                    <td>Enable selection: <input type='checkbox' 
-                                                            id='enableSelection' checked='checked'>
-                                                    <td><input type='button' id='resetDisplay' title='Returns to default zoom' value='Reset Zoom'>
-                                                        &nbsp; <input type='button' id='resetOffsets' title='Returns to last ra/dec and rotation'
-                                                            value='Reset Field Center'>
-
-                                                <tr>
-                                                    <td>Pan Display: <input type='radio' name='mouseAction' id='panAll'>
-                                                    <td>Rotate display: <input type='radio' name='mouseAction' id='rotateAll'>
-                                            </table>
-                                    <tr>
-                                        <td>
-                                            <table class='panButtonTable'>
-                                                <tr>
-                                                    <td>Show all targets: <input type='radio' name='showSel'
-                                                            id='showAll' checked>
-                                                    <td> selected: <input type='radio' name='showSel' id='showSelected'>
-                                                    <td> Show align boxes: <input type='checkbox' id='showAlignBox'>
-                                                    <td> Show guide boxes: <input type='checkbox' id='showGuideBox'>
-                                                <tr>
-                                                    <td>Show by priority:<input type='radio' name='showSel'
-                                                            id='showByPriority'>
-                                                    <td>Min. Priority: <input id='minPriority' value='0' size=6>
-                                                    <td>Max. Priority: <input id='maxPriority' value='9999', size=6>
-                                                <tr>
-                                                    <td colspan='6'><input type='button' id='recalculateMask' title='Runs auto-selection'
-                                                            value='Auto-select'>
-							    <input type='button' id='generateSlits' title='Generates slits for selected targets'
-                                                            value='Generate Slits'>
-                                                            <input type='button' id='resetSelection' title='Resets to pre-selected targets'
-                                                            value="Reset selection">
-                                                            <input type='button' id='clearSelection' title='Clears all selected targets'
-                                                            value="Clear selection">                                                        
-                                                            &nbsp;&nbsp;
-                                                            Extend Slits: <input type='checkbox' id='extendSlits' checked>
-                                                <tr>
-                                                            <td><input type='button' id='saveMDF' title='Save Mask Design .fits, .out, and .png files' value='Save Mask Design File'>
-                                                    
-                                            </table>
-                                    <tr>
-                                        <td>
-                                            <table>
-                                                <tr>
-                                                    <td>Show Guider FOV: <input type='checkbox' id='showGuiderFOV'>
-                                                    <td>Show bad columns: <input type='checkbox' id='showBadColumns'>
-
-                                            </table>
-                                    <tr>
-                                        <td>
-                                            <div id='testDiv'></div>
-                                    <tr>
-                                        <td>Center: <span id='statusDiv'>&nbsp;</span>
-                                    </tr>
-                                    <tr>
-                                        <td style='display:contents'>
-                                            <div id='canvasDiv' tabindex='0'>Initializing ...</div>
-                                </table>
-                        <tr>
-                            <td>
-                                <div id='mouseStatus'></div> &#x2795; Selected target; &#x25ef;Target; &#x2b1c;
-                                Alignment
-                                box; <br>
-                                Keys: h: left; &nbsp;l: right; &nbsp;j: move up; &nbsp;k: down Zoom: &nbsp;&gt;: zoom
-                                in; &nbsp;&lt;: zoom out.
-                                <br>
-                                <span id='extraStatusDiv'>&nbsp;</span>
-                    </table>
-        </table>
-    </form>
-    <br>
-    <table id='targetForms' width='100%'>
+<form name='form2' id='form2' method='post' enctype='multipart/form-data' action='sendTargets2Server'
+    target='targetListFrame'>
+    <table id='contentTable'>
         <tr>
             <td>
-                <div id='targetTableDiv'></div>
-            <td>
-                <div id='targetFormDiv'>
-                    <h3>
-                        Selected target: <input id='targetName' value=''>
-                    </h3>
-                    <table id='targetFormTable'>
-                        <tr>
-                            <th>RA [hrs]:
-                            <td><input id='targetRA' readonly>
-                            <th>DEC [deg]:
-                            <td><input id='targetDEC' readonly>
-                            <th>Magnitude:
-                            <td><input id='targetMagn' size='7' readonly>
-                            </td>
-                        <tr>
-                            <th>Priority:
-                            <td><input id='targetPrior' size='7'>
-                            <th>Select:
-                            <td><input id='targetSelect' size='7'>
-                            <th>Band:
-                            <td><input id='targetBand' size='7' readonly>
-                            </td>
-                        <tr>
-                            <th>Slit PA:
-                            <td><input id='targetSlitPA' size='7'>
-                            <th>Slit Width:
-                            <td><input id='targetSlitWidth' size='7'>
-                        <tr>
-                            <th>Length1:
-                            <td><input id='targetLength1' size='7'></input>
-                            <th>length2:
-                            <td><input id='targetLength2' size='7'></input>
-                        <tr>
-                    </table>
-                    <input type='button' id='updateTarget' title='Updates selected target values' value='Update target'>&nbsp;
-                    <input type='button' id='deleteTarget' title='Deletes selected target' value='Delete target'>
-                    <input type='button' id='selectToggle' title='Toggle selection for current target' value='Toggle selection'>
+            <td id='contentCell'>
+                <table id='targetListName'>
+                    <tr>
+                        <td>Target List:
+                        <td><input type='file' name='targetList' id='targetList' value="mask_ex1.txt"
+                                title="Input file of targets">
+                        <td><input type='button' name='loadTargets' id='loadTargets' title='Load catalog target file'
+                                value='Load targets'>
+                        <td><input type='button' name='showHideParams' id='showHideParams' title='Show/Hide Parameters'
+                                value='Show Parameters'>
+                    </tr>
+                </table>
+                <div id='paramTableDiv' style='visibility: hidden; display: none'></div>
+                <table id='paramButtonTable'>
+                    <tr>
+                        <td colspan='8'><input type='button' id='setSlitsPA' title='Apply slitpa to all slits'
+                                value='Set slits PA'> &nbsp;
+                            <input type='button' name='setMaskPA' id='setMaskPA' title='Apply maskPA to mask'
+                                value='Set mask PA'> &nbsp;
+                            <input type='button' name='updateParams' id='updateParams' title='Save current parameters'
+                                value='Update Params' formaction='updateParams4Server'> &nbsp;
+                            <input type='button' name='setSlitsLength' id='setSlitsLength'
+                                title='Apply minimum slitlength for all slits' value='Set slits length'> &nbsp; <input
+                                type='button' name='setSlitsWidth' id='setSlitsWidth'
+                                title='Apply slitwidth to all slits' value='Set slit width'>
+                </table>
 
-                    
-                </div>
+                <table id='contentPanel'>
+                    <tr>
+                        <td>
+                    <tr>
+                        <td>
+                            <table id='buttonPanel'>
+                                <tr>
+                                    <td>
+                                        <table class='panButtonTable'>
+                                            <tr>
+                                                <td>Pan Sky: <input type='radio' name='mouseAction' id='panSky' checked>
+                                                <td>Rotate Sky: <input type='radio' name='mouseAction' id='rotateSky'>
+                                                <td>Enable selection: <input type='checkbox' id='enableSelection'
+                                                        checked='checked'>
+                                                <td><input type='button' id='resetDisplay'
+                                                        title='Returns to default zoom' value='Reset Zoom'>
+                                                    &nbsp; <input type='button' id='resetOffsets'
+                                                        title='Returns to last ra/dec and rotation'
+                                                        value='Reset Field Center'>
+
+                                            <tr>
+                                                <td>Pan Display: <input type='radio' name='mouseAction' id='panAll'>
+                                                <td>Rotate display: <input type='radio' name='mouseAction'
+                                                        id='rotateAll'>
+                                        </table>
+                                <tr>
+                                    <td>
+                                        <table class='panButtonTable'>
+                                            <tr>
+                                                <td>Show all targets: <input type='radio' name='showSel' id='showAll'
+                                                        checked>
+                                                <td> selected: <input type='radio' name='showSel' id='showSelected'>
+                                                <td> Show align boxes: <input type='checkbox' id='showAlignBox'>
+                                                <td> Show guide boxes: <input type='checkbox' id='showGuideBox'>
+                                            <tr>
+                                                <td>Show by priority:<input type='radio' name='showSel'
+                                                        id='showByPriority'>
+                                                <td>Min. Priority: <input id='minPriority' value='0' size=6>
+                                                <td>Max. Priority: <input id='maxPriority' value='9999' , size=6>
+                                            <tr>
+                                                <td colspan='6'><input type='button' id='recalculateMask'
+                                                        title='Runs auto-selection' value='Auto-select'>
+                                                    <input type='button' name='generateSlits' id='generateSlits'
+                                                        title='Generates slits for selected targets'
+                                                        value='Generate Slits'>
+                                                    <input type='button' name='resetSelection' id='resetSelection'
+                                                        title='Resets to pre-selected targets' value="Reset selection">
+                                                    <input type='button' name='clearSelection' id='clearSelection'
+                                                        title='Clears all selected targets' value="Clear selection">
+                                                    &nbsp;&nbsp;
+                                                    Extend Slits: <input type='checkbox' name='extendSlits'
+                                                        id='extendSlits' checked>
+                                            <tr>
+                                                <td><input type='button' name='saveMDF' id='saveMDF'
+                                                        title='Save Mask Design .fits, .out, and .png files'
+                                                        value='Save Mask Design File'>
+
+                                        </table>
+                                <tr>
+                                    <td>
+                                        <table>
+                                            <tr>
+                                                <td>Show Guider FOV: <input type='checkbox' name='showGuiderFOV'
+                                                        id='showGuiderFOV'>
+                                                <td>Show bad columns: <input type='checkbox' name='showBadColumns'
+                                                        id='showBadColumns'>
+
+                                        </table>
+                                <tr>
+                                    <td>
+                                        <div id='testDiv'></div>
+                                <tr>
+                                    <td>Center: <span id='statusDiv'>&nbsp;</span>
+                                </tr>
+                                <tr>
+                                    <td style='display:contents'>
+                                        <div id='canvasDiv' tabindex='0'>Initializing ...</div>
+                            </table>
+                    <tr>
+                        <td>
+                            <div id='mouseStatus'></div> &#x2795; Selected target; &#x25ef;Target; &#x2b1c;
+                            Alignment
+                            box; <br>
+                            Keys: h: left; &nbsp;l: right; &nbsp;j: move up; &nbsp;k: down Zoom: &nbsp;&gt;: zoom
+                            in; &nbsp;&lt;: zoom out.
+                            <br>
+                            <span id='extraStatusDiv'>&nbsp;</span>
+                </table>
     </table>
-{% endblock %}
+</form>
+<br>
+<table id='targetForms' width='100%'>
+    <tr>
+        <td>
+            <div id='targetTableDiv'></div>
+        <td>
+            <div id='targetFormDiv'>
+                <h3>
+                    Selected target: <input id='targetName' value=''>
+                </h3>
+                <table id='targetFormTable'>
+                    <tr>
+                        <th>RA [hrs]:
+                        <td><input id='targetRA' readonly>
+                        <th>DEC [deg]:
+                        <td><input id='targetDEC' readonly>
+                        <th>Magnitude:
+                        <td><input id='targetMagn' size='7' readonly>
+                        </td>
+                    <tr>
+                        <th>Priority:
+                        <td><input id='targetPrior' size='7'>
+                        <th>Select:
+                        <td><input id='targetSelect' size='7'>
+                        <th>Band:
+                        <td><input id='targetBand' size='7' readonly>
+                        </td>
+                    <tr>
+                        <th>Slit PA:
+                        <td><input id='targetSlitPA' size='7'>
+                        <th>Slit Width:
+                        <td><input id='targetSlitWidth' size='7'>
+                    <tr>
+                        <th>Length1:
+                        <td><input id='targetLength1' size='7'></input>
+                        <th>length2:
+                        <td><input id='targetLength2' size='7'></input>
+                    <tr>
+                </table>
+                <input type='button' id='updateTarget' title='Updates selected target values'
+                    value='Update target'>&nbsp;
+                <input type='button' id='deleteTarget' title='Deletes selected target' value='Delete target'>
+                <input type='button' id='selectToggle' title='Toggle selection for current target'
+                    value='Toggle selection'>
 
+
+            </div>
+</table>
+{% endblock %}

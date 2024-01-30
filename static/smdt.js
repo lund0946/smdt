@@ -4,6 +4,7 @@ Invoked by body.onload.
 This module interfaces with the server,
 while the canvasShow object renders the targets and the mask.
 */
+
 function SlitmaskDesignTool() {
 	var self = this;
 
@@ -27,25 +28,34 @@ function SlitmaskDesignTool() {
 		self.statusDiv.innerHTML = msg;
 	}
 
+
+	self.generate_slitmask_callback = function (data) {
+		self.canvasShow.slitsReady = false;
+		if (!data) return;
+		if (!data.targets) return;
+		self.canvasShow.slitsReady = true;
+		self.updateLoadedTargets(data);
+		};
+
 	self.sendTargets2Server = function () {
 		// The browser loads the targets and sends them to the server.
-		// The server responds with "OK". 
-		// The targets are sent to the frame 'targetListFrame'.
-		// That then triggers the onload event and loadAll() is invoked.
+		// The server responds with targetList.
+		// Slitmask is then generated.
 
-		let filename = E('targetList');
+		const filename = E('targetList');
 		if (!filename.value) {
 			self.setStatus('Please select target list file to load');
 			return;
 		}
 		self.setStatus("Loading ...");
 
-		let form2 = E('form2');
-		form2.submit();
+		const form2 = E('form2');
+		const formData = new FormData(form2);
+		const ajax = new AjaxClass()
+		ajax.postRequest('sendTargets2Server', formData, self.generate_slitmask_callback, 'mixed');
 	};
 
         self.sendParamUpdate = function () {
-
                 self.setStatus("Updating ...");
                 //let form2 = E('form2');
                 //form2.submit();
@@ -429,15 +439,7 @@ function SlitmaskDesignTool() {
         };
 
         self.generateSlits = function (evt) {
-                function callback(data) {
-                        self.canvasShow.slitsReady = false;
-                        if (!data) return;
-                        if (!data.targets) return;
-
-                        self.canvasShow.slitsReady = true;
-                        self.updateLoadedTargets(data);
-                }
-                self.generateSlitsHelper(callback);
+			self.generateSlitsHelper(self.generate_slitmask_callback);
         };
 
 
@@ -659,15 +661,15 @@ function SlitmaskDesignTool() {
 	window.onbeforeunload = self.checkQuit
 
 	self.statusDiv = E('statusDiv');
+	self.loadConfigParams();
 	self.canvasShow = new CanvasShow('canvasDiv', 'zoomCanvasDiv');
 	self.canvasShow.setShowPriorities(E('minPriority').value, E('maxPriority').value);
-	self.loadConfigParams();
 	self.loadMaskLayout();
 	self.loadBackgroundImage();
 
 	E('showHideParams').onclick = self.showHideParams;
 	E('targetListFrame').onload = self.loadAll;
-	E('loadTargets').onclick = self.sendTargets2Server;
+	E('loadTargets').onclick = self.sendTargets2Server
 	E('resetDisplay').onclick = self.resetDisplay1;
 	E('resetOffsets').onclick = self.resetOffsets1;
 	E('minPriority').onchange = self.setMinPcode;

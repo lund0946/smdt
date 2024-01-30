@@ -207,6 +207,11 @@ h2 #headline {
     font-size: 110%;
 }
 
+#statusDiv{
+    border:#ff0000 solid 5px;
+    font-weight: bold;
+}
+
 #paramTable {
     font-size: 85%;
     margin: 5px 5px 2px 5px;
