@@ -1,5 +1,9 @@
 import pandas as pd
 import numpy as np
+import io
+import math
+import datetime
+
 from astropy import units as u
 from astropy.coordinates import Angle
 import sl
@@ -724,6 +728,7 @@ def genSlits(df, fileparams, auto_sel=True):
     df['arcslitY1'], df['arcslitY2'], df['arcslitY3'], df['arcslitY4'] = slit['arcslitY1'], slit['arcslitY2'], slit['arcslitY3'], slit['arcslitY4']
 #    df['slitX1'],df['slitX2'],df['slitX3'],df['slitX4']=slit['X1'],slit['X1'],slit['X2'],slit['X2']
 #    df['slitY1'],df['slitY2'],df['slitY3'],df['slitY4']=slit['Y1'],slit['Y2'],slit['Y2'],slit['Y1']
+    df['objectId']=obs['objectId']
     return df
 
 

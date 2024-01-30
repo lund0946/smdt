@@ -57,6 +57,11 @@ def readRaw(fh,params):
         if len(parts) < 3:
             continue
 
+        if 'PA=' in line:
+            #line has dsim output first line
+            continue
+        # print (nr, "len", parts)
+
         template = ["", "", "2000", "99", "I", "0", "-1", "0", slitpa, halfLen, halfLen, slitWidth, "0", "0"]
         minLength = min(len(parts), len(template))
         template[:minLength] = parts[:minLength]

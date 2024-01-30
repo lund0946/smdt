@@ -3,10 +3,12 @@ import maskLayouts
 import drawUtils
 import utils
 import matplotlib
+from matplotlib.lines import Line2D
 import matplotlib.pyplot as plt
 import logging
 logger = logging.getLogger('smdt')
 matplotlib.use('agg')
+import os
 
 def makeplot(plotname):
     sx1,sx2,sx3,sx4=[],[],[],[]
@@ -38,7 +40,7 @@ def makeplot(plotname):
 
     fig, sps = plt.subplots(1, figsize=(16, 5))
     plt.subplot(111)
-    plt.title ("dsim comparison")
+    plt.title (os.path.splitext(os.path.basename(plotname))[0])
 
     ax=plt.gca()
     ZPT_YM=128.803
@@ -48,8 +50,17 @@ def makeplot(plotname):
     drawUtils.drawPatch(ax, layoutMM, fc="None", ec="g")
   
     for i in range(len(sx1)):
-        plt.plot([sx1[i],sx2[i],sx3[i],sx4[i],sx1[i]],[sy1[i],sy2[i],sy3[i],sy4[i],sy1[i]],color=col[i],alpha=0.8)
+        if col[i]=='gold':
+            plt.scatter((sx1[i]+sx2[i]+sx3[i]+sx4[i])/4,(sy1[i]+sy2[i]+sy3[i]+sy4[i])/4,s=30,facecolors='none',edgecolors=col[i],alpha=0.9,label='Guide Star')
+            pass
+        elif col[i]=='violet':
+            plt.plot([sx1[i],sx2[i],sx3[i],sx4[i],sx1[i]],[sy1[i],sy2[i],sy3[i],sy4[i],sy1[i]],color=col[i],alpha=0.8,label='Alignment Box')
+        elif col[i]=='royalblue':
+            plt.plot([sx1[i],sx2[i],sx3[i],sx4[i],sx1[i]],[sy1[i],sy2[i],sy3[i],sy4[i],sy1[i]],color=col[i],alpha=0.8,label='Target slit')
+        else:
+            plt.plot([sx1[i],sx2[i],sx3[i],sx4[i],sx1[i]],[sy1[i],sy2[i],sy3[i],sy4[i],sy1[i]],color=col[i],alpha=0.8,label='Unknown')
 
     plt.gca().invert_xaxis()
     plt.grid()
+    plt.legend([Line2D([], [], color='gold'),Line2D([], [], color='violet'),Line2D([], [], color='royalblue'),Line2D([], [], color='crimson')],['Guide Star','Alignment Box','Target slit','Unknown'],loc="upper left")
     plt.savefig(plotname+'.png')
