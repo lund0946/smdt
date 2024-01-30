@@ -1,3 +1,4 @@
+import pdb
 import pandas as pd
 import numpy as np
 import io
@@ -11,11 +12,9 @@ import utils
 import dsimselector
 import logging
 logger = logging.getLogger('smdt')
-import pdb
 
 
 def init_dicts(data, params):
-    # params {'ProjectNamefd': ['New Mask'], 'OutputFitsfd': ['mask.fits'], 'Telescopefd': ['Keck II'], 'Instrumentfd': ['DEIMOS'], 'ObsDatefd': ['2022-08-31 00:00:00'], 'Authorfd': ['Keck Observatory'], 'Observerfd': ['Observer Name'], 'MaskIdfd': ['123456789'], 'MaskNamefd': ['Mask Name'], 'MinSlitLengthfd': ['5.0'], 'MinSlitSeparationfd': ['0.35'], 'SlitWidthfd': ['1.00'], 'AlignBoxSizefd': ['4.0'], 'BlueWaveLengthfd': ['3200'], 'RedWaveLengthfd': ['3200'], 'ReferenceWaveLengthfd': ['3200'], 'CenterWaveLengthfd': ['3200'], 'ProjSlitLengthfd': ['yes'], 'NoOverlapfd': ['yes'], 'Temperaturefd': ['0.0'], 'Pressurefd': ['615.0'], 'MaskPAfd': ['0.0'], 'SlitPAfd': ['0.0'], 'InputRAfd': ['00:00:00'], 'InputDECfd': ['00:00:00'], 'MaskMarginfd': ['4'], 'HourAnglefd': ['0.001'], 'Extrafd': ['Extra'], 'mouseAction': ['on'], 'showSel': ['on']}
 
     ra = data.loc[:, 'raHour'].tolist()
     dec = data.loc[:, 'decDeg'].tolist()
@@ -24,6 +23,7 @@ def init_dicts(data, params):
     pcode = data.loc[:, 'pcode'].tolist()
     sel = data.loc[:, 'selected'].tolist()
     slit_pa = data.loc[:, 'slitLPA'].tolist()
+    objectId = data.loc[:, 'objectId'].tolist()
 
     # <---------  Needs an if since it's an optional parameter?
     dlength1 = data.loc[:, 'length1'].tolist()
@@ -112,8 +112,8 @@ def init_dicts(data, params):
     rel_h20 = obs_rh                # relative humidity
     w = waver/10000.  # reference wavelength conv. to micron
 
-    obs = {'ra0_fld': ra0_fld, 'dec0_fld': dec0_fld, 'ha0_fld': ha0_fld, 'raRad': raRad, 'decRad': decRad, 'lst': lst, 'pa0_fld': pa0_fld, 'length1': length1, 'length2': length2,
-           'rlength1': rlength1, 'rlength2': rlength2, 'slitLPA': slitLPA, 'pcode': pcode, 'slitWidth': slitWidth, 'slitpa': slitpa, 'mag': mag, 'magband': magband, 'sel': sel}
+    obs = {'objectId': objectId, 'ra0_fld': ra0_fld, 'dec0_fld': dec0_fld, 'ha0_fld': ha0_fld, 'raRad': raRad, 'decRad': decRad, 'lst': lst, 'pa0_fld': pa0_fld, 'length1': length1,
+           'length2': length2, 'rlength1': rlength1, 'rlength2': rlength2, 'slitLPA': slitLPA, 'pcode': pcode, 'slitWidth': slitWidth, 'slitpa': slitpa, 'mag': mag, 'magband': magband, 'sel': sel}
     site = {'lat': lat, 'htm': htm, 'tdk': tdk, 'pmb': pmb,
             'rel_h20': rel_h20, 'w': w, 'wavemn': wavemn, 'wavemx': wavemx}
 
@@ -728,7 +728,7 @@ def genSlits(df, fileparams, auto_sel=True):
     df['arcslitY1'], df['arcslitY2'], df['arcslitY3'], df['arcslitY4'] = slit['arcslitY1'], slit['arcslitY2'], slit['arcslitY3'], slit['arcslitY4']
 #    df['slitX1'],df['slitX2'],df['slitX3'],df['slitX4']=slit['X1'],slit['X1'],slit['X2'],slit['X2']
 #    df['slitY1'],df['slitY2'],df['slitY3'],df['slitY4']=slit['Y1'],slit['Y2'],slit['Y2'],slit['Y1']
-    df['objectId']=obs['objectId']
+    df['objectId'] = obs['objectId']
     return df
 
 
