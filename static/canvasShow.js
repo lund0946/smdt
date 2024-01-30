@@ -470,11 +470,11 @@ function CanvasShow(containerName, zoomContainer) {
                 cv.width = cv.height = 400;
             }
             cont.replaceChild(cv, cont.childNodes[0]);
-            var ctx = cv.getContext("2d");
-            ctx.scale(1, 1);
-            toggleSmoothing(ctx, false);
-            self.destCtx = ctx;
-            self.filter = new Filter(ctx, cv.width, cv.height);
+            self.ctx = cv.getContext("2d");
+            self.ctx.scale(1, 1);
+            toggleSmoothing(self.ctx, false);
+            self.destCtx = self.ctx;
+            self.filter = new Filter(self.ctx, cv.width, cv.height);
             self._Ctx = self.filter.tmpCtx;
             // Creates a hidden image element to store the source image.
             self.bgImg = new Image();
@@ -1481,6 +1481,9 @@ function CanvasShow(containerName, zoomContainer) {
     };
 
     self.mouseMove = function (evt) {
+
+        self._Canvas.style.cursor = "crosshair";
+
         function whichButton(evt) {
             var bbb = evt.buttons || evt.which || evt.button;
             if (bbb === 1) return 1;
