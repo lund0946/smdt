@@ -811,6 +811,8 @@ def genMaskOut(df,fileparams):
         df['yarcs']=obs['yarcs']
 #        df['xarcs']=slit['xarcs']
 #        df['yarcs']=slit['yarcs']
+        df['ra_fldR']=obs['ra_fldR']
+        df['dec_fldR']=obs['dec_fldR']
         df['selected']=slit['sel']
 #        df['length2']=slit['length2S']
         df['length1']=obs['length1']
@@ -826,6 +828,8 @@ def genMaskOut(df,fileparams):
     tel['newcenterDECDeg']=slit['newcenterDECDeg']
     tel['dateobs']=fileparams['ObsDatefd']
     tel['lst']=slit['lst']
+    tel['ra_telR']=slit['ra_telR']
+    tel['dec_telR']=slit['dec_telR']
 
     params={
         'objfile':'',      #Pass separately?

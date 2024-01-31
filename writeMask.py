@@ -219,13 +219,13 @@ class MaskDesignOutputFitsFile:
         cols.append(pf.Column(name="ProjName", format="A68", null="INDEF", unit="None", array=[params.project],))
         cols.append(pf.Column(name="INSTRUME", format="A68", null="INDEF", unit="None", array=[params.instrument],))
         cols.append(pf.Column(name="MaskType", format="A68", null="INDEF", unit="None", array=["???"]))
-        cols.append(pf.Column(name="RA_PNT", format="F12.8", null="-9999.00", unit="deg", array=[tel.newcenterRADeg],))  
-        cols.append(pf.Column(name="DEC_PNT", format="F12.8", null="-9999.000000", unit="deg", array=[tel.newcenterDECDeg],))      
+        cols.append(pf.Column(name="RA_PNT", format="F12.8", null="-9999.00", unit="deg", array=[np.degrees(tel.ra_telR)],))  
+        cols.append(pf.Column(name="DEC_PNT", format="F12.8", null="-9999.000000", unit="deg", array=[np.degrees(tel.dec_telR)],))      
         cols.append(pf.Column(name="RADEPNT", format="A8", null="INDEF", unit="None", array=[""]))
         cols.append(pf.Column(name="EQUINPNT", format="F13.6", null="-9999.00", unit="a", array=[2000.0],))
         cols.append(pf.Column(name="PA_PNT", format="F12.7", null="-9999.00", unit="deg", array=[params.pa0],))
         cols.append(pf.Column(name="DATE_PNT", format="A19", null="INDEF", unit="None", array=[tel.dateobs],))
-        cols.append(pf.Column(name="LST_PNT", format="F8.3", null="-9999.00", unit="deg", array=[tel.lst]))                   # May be HourAngle in deg??
+        cols.append(pf.Column(name="LST_PNT", format="F8.3", null="-9999.00", unit="deg", array=[params.ha0*15]))                   # Really HourAngle in deg
         print(cols)
 
         print(pf.TableHDU.from_columns(cols, name="MaskDesign"))
@@ -256,7 +256,7 @@ class MaskDesignOutputFitsFile:
 
             slitNames = [("%03d" % x) for x in range(nSlits)]
             slitTypes = [slitTypeTable[min(3, p + 2)] for p in selected.pcode]
-            slitLengths = [(l1 + l2) for l1, l2 in zip(selected.length1, selected.length2)]
+            slitLengths = [(l1 + l2) for l1, l2 in zip(selected.rlength1, selected.rlength2)]
 
             cols.append(pf.Column(name="dSlitId", format="I11", null="-9999", unit="None", array=selected.slitIndex))
             cols.append(pf.Column(name="DesId", format="I11", null="-9999", unit="None", array=[1] * nSlits))
@@ -282,8 +282,8 @@ class MaskDesignOutputFitsFile:
             cols.append(pf.Column(name="DesId", format="I11", null="-9999", unit="None", array=[1] * nSlits,))
             cols.append(pf.Column(name="ObjectId", format="I11", null="-9999", unit="None", array=selected.index)) 
             cols.append(pf.Column(name="dSlitId", format="I11", null="-9999", unit="None", array=selected.slitIndex)) 
-            cols.append(pf.Column(name="TopDist", format="F11.3", null="-9999.000", unit="arcsec", array=selected.length1))
-            cols.append(pf.Column(name="BotDist", format="F11.3", null="-9999.000", unit="arcsec", array=selected.length2))
+            cols.append(pf.Column(name="TopDist", format="F11.3", null="-9999.000", unit="arcsec", array=selected.rlength1))
+            cols.append(pf.Column(name="BotDist", format="F11.3", null="-9999.000", unit="arcsec", array=selected.rlength2))
 
         return pf.TableHDU.from_columns(cols, name="SlitObjMap")
 
