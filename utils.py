@@ -10,21 +10,19 @@ import datetime
 import webbrowser
 import traceback
 import logging
+import pdb
+import re
+import json
 logger = logging.getLogger('smdt')
-
+import jsonschema
+from jsonschema import validate
 #MM2AS = math.degrees(3600 / 150327) 
 MM2AS = math.degrees(3600 / 150280)  # 
 AS2MM = 1.0 / MM2AS  # 
 
 
-def tryEx(f):
-    def ff(*args, **kargs):
-        try:
-            return f(*args, **kargs)
-        except:
-            logger.error(traceback.print_exc())
-
-    return ff
+with open('params_schema.json') as f:
+    schema = json.load(f)
 
 
 def as2Radian(arcsec):
@@ -152,3 +150,24 @@ def getBackupName(name):
     if bname != name:
         return bname
     return None
+
+def stripquote(string):
+    if string.count('"') == 2:
+        string = re.findall(r'"([^"]*)"', string)
+    return string[0]
+
+def validate_params(params):
+    try:
+        pdb.set_trace()
+        validate(instance=params, schema=schema)
+        width = params['SlitWidth'] 
+        paWithinRange = np.abs(params['maskPA']) < np.arccos(0.63/width) * np.pi / 180
+        assert paWithinRange, f'PA {params["maskPA"]} is out of range for slit width {width}'
+    except jsonschema.exceptions.ValidationError as err:
+        logger.error(f'Failed to validate parameters: {err}')
+        return False, err 
+    except AssertionError as err:
+        logger.error(f'Failed to validate parameters: {err}')
+        return False, err 
+     
+    return True, params

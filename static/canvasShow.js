@@ -504,6 +504,8 @@ function CanvasShow(containerName, zoomContainer) {
         self.maskMinMax = [minx, miny, maxx, maxy];
     };
 
+    self.initialize();
+
     self.fitMask = function (atx, aty) {
         // Fit display centered at world coord atx,aty
         var mmm = self.maskMinMax;
@@ -1741,7 +1743,6 @@ function CanvasShow(containerName, zoomContainer) {
         self.reallyDrawTxImage();
     };
 
-    self.initialize();
 
     E("showGuiderFOV").onchange = self.reallyDrawTxImage;
     E("showBadColumns").onchange = self.reallyDrawTxImage;

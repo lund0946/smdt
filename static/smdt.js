@@ -15,25 +15,19 @@ function SlitmaskDesignTool() {
 		return document.getElementById(n);
 	}
 
-	self.buildParamTable = function (params) {
+	self.buildParamTable = function (schema) {
 		// params
 		let buf = Array();
-		let row, i;
-		let value, unit, label, descText;
 		let txt;
 		buf.push('<table id="paramTable">');
-		for (i in params) {
-			row = params[i];
-			value = row[0];
-			unit = row[1];
-			label = row[2];
-			descText = row[3];
-			txt = `<tr><td> ${label} :<td><input id="${i}fd" name="${i}fd" value="${value}"><td>${descText}`;
-			/* 
-			txt = '<tr><td>' +
-				label + ':<td><input id="' + i + 'fd" value="' + value + '">' +
-				'<td>' + descText;
-			*/
+		let sortedProps = {}
+		for (let key of schema.required){
+            sortedProps[key] = schema.properties[key]
+		}
+		for (let [key, props] of Object.entries(sortedProps)) {
+			const type = props.type.includes('number') ? 'number': 'text';
+			console.log('key', 'default', props.default, 'type', type)
+			txt = `<tr><td> ${props.label} :<td><input ftype=${type} id="${key}fd" name="${key}" value="${props.default}"><td>${props.description}`;
 			buf.push(txt);
 		}
 		buf.push('</table>');
@@ -41,10 +35,10 @@ function SlitmaskDesignTool() {
 	};
 
 	self.loadConfigParams = function () {
-		function callback(data) {
-			self.buildParamTable(data.params);
+		function callback(schema) {
+			self.buildParamTable(schema);
 		}
-		ajaxCall('getConfigParams', {}, callback);
+		ajaxCall('getSchema', {}, callback);
 	};
 
 	self.setStatus = function (msg) {
@@ -70,22 +64,39 @@ function SlitmaskDesignTool() {
 			self.setStatus('Please select target list file to load');
 			return;
 		}
-		self.setStatus("Loading ...");
 
 		const form2 = E('form2');
 		const formData = new FormData(form2);
 		const ajax = new AjaxClass()
+		self.setStatus("Loading ...");
 		ajax.postRequest('sendTargets2Server', formData, self.generate_slitmask_callback, 'mixed');
 	};
 
-        self.sendParamUpdate = function () {
-                self.setStatus("Updating ...");
-                //let form2 = E('form2');
-                //form2.submit();
-                document.form2.action = "updateParams4Server";
-                form2.submit()
-                //return false;
-        };
+	self.sendParamUpdate = function () {
+		self.setStatus("Updating ...");
+		const form2 = E('form2');
+		let formData = new FormData(form2);
+		const ajax = new AjaxClass()
+		self.setStatus("Loading ...");
+		console.log('form2', form2.elements)
+		let formJson= {};
+		// formData.forEach(function(value, key){
+		// 	formJson[key] = value;
+		// });
+		Array.from(form2.elements).forEach((input) => {
+			if (input.getAttribute('ftype')) {
+				console.log('setting to number', input.name, Number(input.value))
+				if (input.getAttribute('ftype') == 'number') {
+					formJson[input.name] = Number(input.value);
+				}
+				else{
+					formJson[input.name] = input.value;
+				}
+			}
+		  });
+		  console.log('formJson', formJson)
+		ajax.postRequest('updateParams4Server', formJson, self.generate_slitmask_callback, 'purejson');
+	};
 
 	self.loadBackgroundImage = function () {
 		// This is the DSS image if requested
@@ -207,7 +218,6 @@ function SlitmaskDesignTool() {
         self.updateParams = function (evt) {
                 // Updates params.
                 // Sends params to server
-
                 let projname = String(E('ProjectNamefd').value);
                 let outfits = String(E('OutputFitsfd').value);
                 let tel = String(E('Telescopefd').value);
@@ -234,26 +244,8 @@ function SlitmaskDesignTool() {
                 let maskmargin = Number(E('MaskMarginfd').value)
                 let hourangle = Number(E('HourAnglefd').value)
                 self.canvasShow.setMaskPA(maskpa);
-/*
-                let params = {
-                        'mdf': outfits, 'ra0': inputra, 'dec0': inputdec, 'equinox': 2000,
-                        'pa0': maskpa, 'ha0': hourangle,
-                        'min_slit': minslitlen, 'sep_slit': minslitsep, 'slit_width': slitwidth, 'box_sz': boxsz,
-                        'blue': bluewave, 'red': redwave, 'lambda_cen': cenwave, 'proj_len': projlen,
-                        'no_overlap': nooverlap, 'temp': temp, 'pressure': 615, 'maskid': maskid,
-                        'guiname': maskname, 'dateobs': obsdate, 'author': auth,
-                        'observer': observer, 'project': projname, 'instrument': inst, 'telescope':'tel'
-
-                };
-*/
                 let form2 = E('form2');
                 form2.submit();
-
-/*
-                let ajax = new AjaxClass();
-                ajax.postRequest('updateParams', { 'values': JSON.stringify(params) }, callback);
-                ajaxPost('updateParams',params, function () { });
-*/
                 self.canvasShow.setMaskPA(maskpa);
 
         };
@@ -433,6 +425,7 @@ function SlitmaskDesignTool() {
         };
 
         self.generateSlits = function (evt) {
+		    self.setStatus("Loading ...");
 			self.generateSlitsHelper(self.generate_slitmask_callback);
         };
 

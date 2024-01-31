@@ -79,7 +79,8 @@ function AjaxClass() {
             return;
         const d = new Date();
         params["rnd"] = d.getTime();
-        const content = type.includes('json') ? array2Query(params) : params
+        let content = type.includes('json') ? array2Query(params) : params
+        content = type.includes('purejson') ? JSON.stringify(params) : content
         xt.onreadystatechange = function () {
             if (xt.readyState == 4)
                 callback(toValue(xt));

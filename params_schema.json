@@ -1,0 +1,240 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "DIEMOS SlitMask Params",
+    "description": "This document defines the schema for the DIEMOS SlitMask Params",
+    "type": "object",
+    "properties": {
+        "ProjectName": {
+            "type": "string",
+            "description": "Project name",
+            "label": "Project name",
+            "default": "New Mask"
+        },
+        "OutputFits": {
+            "type": "string",
+            "description": "Mask design file (FITS)",
+            "label": "Output file",
+            "pattern": "^[^\\s]*.fits$",
+            "default": "mask.fits"
+        },
+        "Telescope": {
+            "type": "string",
+            "enum": [
+                "Keck I",
+                "Keck II"
+            ],
+            "description": "Keck I or Keck II",
+            "label": "Telescope",
+            "default": "Keck II"
+        },
+        "Instrument": {
+            "type": "string",
+            "enum": [
+                "DEIMOS",
+                "LRIS"
+            ],
+            "description": "DEIMOS or LRIS",
+            "label": "Instrument",
+            "default": "DEIMOS"
+        },
+        "ObsDate": {
+            "type": "string",
+            "label": "Obs. Date",
+            "description": "Observation date and time",
+            "default": "2022-08-31 00:00:00",
+            "pattern": "(\\d{4})-(\\d{2})-(\\d{2}) (\\d{2}):(\\d{2}):(\\d{2})"
+        },
+        "Author": {
+            "type": "string",
+            "description": "Designer of mask",
+            "label": "Author",
+            "default": "Keck Observatory"
+        },
+        "Observer": {
+            "type": "string",
+            "description": "Observer name",
+            "label": "Observer",
+            "default": "Observer Name"
+        },
+        "MaskId": {
+            "type": "string",
+            "default": "12345",
+            "description": "Mask identification number",
+            "label": "Mask Id",
+            "maxLength": 6
+        },
+        "MaskName": {
+            "type": "string",
+            "default": "Mask Name",
+            "description": "Short name of the mask",
+            "label": "Mask Name"
+        },
+        "MinSlitLength": {
+            "type": "number",
+            "default": 1,
+            "description": "Minimum slit length (arcsec)",
+            "label": "Min. slit length",
+            "exclusiveMinimum": 0,
+            "units": "arcsec"
+        },
+        "MinSlitSeparation": {
+            "type": "number",
+            "default": 0,
+            "description": "Min slit separatation (arcsec)",
+            "label": "Min. slit separatation",
+            "exclusiveMinimum": 0,
+            "units": "arcsec"
+        },
+        "SlitWidth": {
+            "type": "number",
+            "default": 1,
+            "description": "Slit width (arcsec)",
+            "label": "Slit width",
+            "exclusiveMinimum": 0.63,
+            "units": "arcsec"
+        },
+        "AlignBoxSize": {
+            "type": "number",
+            "default": 4,
+            "description": "Alignment box size (arcsec)",
+            "label": "Align box size",
+            "exclusiveMinimum": 0,
+            "units": "arcsec"
+        },
+        "BlueWaveLength": {
+            "type": "number",
+            "default": 4000,
+            "description": "Shortest wavelength (&#x212B;)",
+            "label": "Blue wavelength",
+            "minimum": 3200,
+            "maximum": 9999,
+            "units": "&#x212B;"
+        },
+        "RedWaveLength": {
+            "type": "number",
+            "default": 9000,
+            "description": "Longest wavelength (&#x212B;)",
+            "label": "Red wavelength",
+            "minimum": 3200,
+            "maximum": 9999,
+            "units": "&#x212B;"
+        },
+        "CenterWaveLength": {
+            "type": "number",
+            "default": 7000,
+            "description": "Center wavelength (&#x212B;)",
+            "label": "Center wavelength",
+            "units": "&#x212B;"
+        },
+        "ProjSlitLength": {
+            "type": "string",
+            "default": "yes",
+            "enum": [
+                "yes",
+                "no"
+            ],
+            "description": "Project slit length to preserver spatial direction [yes/no]",
+            "label": "Project slit length"
+        },
+        "NoOverlap": {
+            "type": "string",
+            "default": "yes",
+            "enum": [
+                "yes",
+                "no"
+            ],
+            "description": "Adjust slit lengths to avoid overlap? [yes/no]",
+            "label": "Avoid overlap"
+        },
+        "Temperature": {
+            "type": "number",
+            "default": 0,
+            "description": "Temperature (degC)",
+            "label": "Temperature",
+            "units": "degC"
+        },
+        "Pressure": {
+            "type": "number",
+            "default": 6,
+            "description": "Atmospheric Pressure (hPa)",
+            "label": "Pressure",
+            "units": "hPa"
+        },
+        "MaskPA": {
+            "type": "number",
+            "default": 0,
+            "description": "Position angle of field (deg)",
+            "label": "Mask PA",
+            "units": "deg"
+        },
+        "SlitPA": {
+            "type": "number",
+            "default": 0,
+            "description": "Default slit angle (deg)",
+            "label": "Slit PA",
+            "units": "deg"
+        },
+        "InputRA": {
+            "type": "string",
+            "default": "00:00:00",
+            "description": "Input Right Ascension (hr)",
+            "label": "Input RA",
+            "pattern": "(\\d{2}):(\\d{2}):(\\d{})",
+            "units": "hr"
+        },
+        "InputDEC": {
+            "type": "string",
+            "default": "00:00:00",
+            "description": "Input Declination (deg)",
+            "label": "Input DEC",
+            "pattern": "(\\d{2}):(\\d{2}):(\\d{})",
+            "units": "deg"
+        },
+        "MaskMargin": {
+            "type": "number",
+            "default": 4,
+            "description": "Mask margin (arcsec)",
+            "label": "Mask margin",
+            "minimum": 4,
+            "units": "arcsec"
+        },
+        "HourAngle": {
+            "type": "number",
+            "default": 0,
+            "description": "Hour angle (hour)",
+            "label": "Hour angle",
+            "exclusiveMinimum": -12,
+            "exclusiveMaximum": 12,
+            "units": "hour"
+        }
+    },
+    "required": [
+        "ProjectName",
+        "OutputFits",
+        "Telescope",
+        "Instrument",
+        "ObsDate",
+        "Author",
+        "Observer",
+        "MaskId",
+        "MaskName",
+        "MinSlitLength",
+        "MinSlitSeparation",
+        "SlitWidth",
+        "AlignBoxSize",
+        "BlueWaveLength",
+        "RedWaveLength",
+        "CenterWaveLength",
+        "ProjSlitLength",
+        "NoOverlap",
+        "Temperature",
+        "Pressure",
+        "MaskPA",
+        "SlitPA",
+        "InputRA",
+        "InputDEC",
+        "MaskMargin",
+        "HourAngle"
+    ],
+    "additionalProperties": true
+}

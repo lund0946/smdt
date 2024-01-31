@@ -1,10 +1,9 @@
 from datetime import timedelta
-from flask import Flask, render_template, request, session, g
+from flask import Flask, render_template, request, session, jsonify
+from threading import Timer
 from flask.logging import default_handler
 from flask_session import Session
-from werkzeug.datastructures import CombinedMultiDict, ImmutableMultiDict
 import webbrowser
-from threading import Timer
 import maskLayouts as ml
 import json
 import re
@@ -15,22 +14,11 @@ import logging
 from logging import FileHandler, StreamHandler
 import pdb
 
-VALID_PARAMS = ['MaskIdfd',
-                'MinSlitLengthfd',
-                'MinSlitSeparationfd',
-                'SlitWidthfd',
-                'AlignBoxSizefd',
-                'BlueWaveLengthfd', 
-                'RedWaveLengthfd', 
-                'CenterWaveLengthfd', 
-                'Temperaturefd', 
-                'Pressurefd', 
-                'MaskPAfd', 
-                'SlitPAfd', 
-                'MaskMarginfd', 
-                'HourAnglefd']
+from utils import schema, validate_params
+
 logger = logging.getLogger('smdt')
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+formatter = logging.Formatter(
+    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger.setLevel(logging.DEBUG)
 logger.addHandler(default_handler)
 st = StreamHandler()
@@ -40,37 +28,10 @@ fh = FileHandler('smdt.log')
 fh.setFormatter(formatter)
 logger.addHandler(fh)
 
+
 def launchBrowser(host, portnr, path):
     webbrowser.open(f"http://{host}:{portnr}/{path}", new=1)
 
-
-def stripquote(string):
-    if string.count('"') == 2:
-        string = re.findall(r'"([^"]*)"', string)
-    return string
-
-
-def form_or_json():
-    if request.method == 'POST':
-        if request.files:
-            return CombinedMultiDict((request.files, request.form))
-        elif request.form:
-            return request.form
-        elif request.get_json():
-            return ImmutableMultiDict(request.get_json())
-
-
-def fixType(params):
-
-    for prm in params:
-        if prm == 'MaskIdfd':
-            params[prm] = [int(params[prm][0])]
-        elif prm in VALID_PARAMS:
-            params[prm] = [float(params[prm][0])]
-        else:
-            continue
-
-    return params
 
 def check_session(params=('df', 'params')):
     def decorator(fun):
@@ -84,25 +45,12 @@ def check_session(params=('df', 'params')):
 
 
 app = Flask(__name__)
-app.config.from_pyfile('config.live.ini')
+app.config.from_pyfile('config.ini')
 Session(app)
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=app.config['PERMANENT_SESSION_LIFETIME'])
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(
+    hours=app.config['PERMANENT_SESSION_LIFETIME'])
 
-def readparams():
-    dict = {}
-    with open('params.cfg') as f:
-        for line in f:
-            try:
-                if len(line.split(',')) == 4:
-                    sep = line.strip().split(',')
-                    (k, v) = sep[0].split(' = ')
-                    dict[k] = (stripquote(v), stripquote(sep[1]),
-                               stripquote(sep[2]), stripquote(sep[3]))
-                else:
-                    continue
-            except Exception as err:
-                logger.error('Failed to load parameters: {err}')
-    return dict
+
 
 
 @check_session
@@ -187,9 +135,8 @@ def recalculateMask():
 @app.route('/saveMaskDesignFile', methods=["GET", "POST"])
 def saveMaskDesignFile():  # should only save current rather than re-running everything!
     df = targs.markInside(session['df'])
-    params = session['params'] 
+    params = session['params']
 
-    pdb.set_trace()
     newdf = calcmask.genMaskOut(df, params)
     plot.makeplot(params['OutputFitsfd'][0])
     session['df'] = newdf
@@ -201,9 +148,9 @@ def saveMaskDesignFile():  # should only save current rather than re-running eve
 # @check_session(params=['params', 'file'])
 @app.route('/sendTargets2Server', methods=["GET", "POST"])
 def sendTargets2Server():
-    prms = request.form.to_dict(flat=False)
+    prms = request.form.to_dict()
     fh = []
-    session['params'] = prms 
+    session['params'] = prms
     uploaded_file = request.files['targetList']
     if uploaded_file.filename != '':
         for line in uploaded_file.stream:
@@ -215,7 +162,7 @@ def sendTargets2Server():
         df['loadselected'] = df.selected
         session['df'] = df
 
-        #generate slits
+        # generate slits
         newdf = calcmask.genObs(session['df'], session['params'])
         df = targs.markInside(newdf)
         newdf = calcmask.genSlits(df, session['params'], auto_sel=True)
@@ -223,21 +170,22 @@ def sendTargets2Server():
         outp = targs.toJsonWithInfo(session['params'], newdf)
     return outp
 
-# Update Params Button
+
 @app.route('/updateParams4Server', methods=["GET", "POST"])
 def updateParams4Server():
-    prms = request.form.to_dict(flat=False)
+    prms = request.json
+    ok, prms = validate_params(prms)
+    if not ok:
+        return prms.message
     session['params'] = prms
-    return ''
+    return 'OK' 
 
 
 # Loads original params
-@app.route('/getConfigParams')
+@app.route('/getSchema')
 def getConfigParams():
-    paramData = readparams()
-    logger.debug(f'params: {paramData}')
-    session['params'] = paramData
-    return json.dumps({"params": paramData})
+    logger.debug(f'Param Schema: {schema}')
+    return jsonify(schema)
 
 
 @app.route('/getMaskLayout')
