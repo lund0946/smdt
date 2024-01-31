@@ -1142,8 +1142,8 @@ function CanvasShow(containerName, zoomContainer) {
         E("targetSelect").value = targets.selected[targetIdx];
         E("targetSlitPA").value = targets.slitLPA[targetIdx];
         E("targetSlitWidth").value = targets.slitWidth[targetIdx];
-        E("targetLength1").value = targets.length1[targetIdx].toFixed(2);
-        E("targetLength2").value = targets.length2[targetIdx].toFixed(2);
+        E("targetLength1").value = targets.rlength1[targetIdx].toFixed(2);
+        E("targetLength2").value = targets.rlength2[targetIdx].toFixed(2);
         E("targetMagn").value = targets.mag[targetIdx];
         E("targetBand").value = targets.pBand[targetIdx];
     };
