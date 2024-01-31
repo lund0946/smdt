@@ -15,7 +15,7 @@ import re
 import json
 logger = logging.getLogger('smdt')
 import jsonschema
-from jsonschema import validate
+from jsonschema import validate, Draft202012Validator
 #MM2AS = math.degrees(3600 / 150327) 
 MM2AS = math.degrees(3600 / 150280)  # 
 AS2MM = 1.0 / MM2AS  # 
@@ -158,16 +158,16 @@ def stripquote(string):
 
 def validate_params(params):
     try:
-        pdb.set_trace()
         validate(instance=params, schema=schema)
         width = params['SlitWidth'] 
         paWithinRange = np.abs(params['maskPA']) < np.arccos(0.63/width) * np.pi / 180
         assert paWithinRange, f'PA {params["maskPA"]} is out of range for slit width {width}'
     except jsonschema.exceptions.ValidationError as err:
         logger.error(f'Failed to validate parameters: {err}')
-        return False, err 
+        errors = Draft202012Validator(schema).iter_errors(params)
+        return False, [ x for x in errors ]
     except AssertionError as err:
         logger.error(f'Failed to validate parameters: {err}')
-        return False, err 
+        return False, [err]
      
     return True, params

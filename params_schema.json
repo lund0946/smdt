@@ -41,8 +41,8 @@
             "type": "string",
             "label": "Obs. Date",
             "description": "Observation date and time",
-            "default": "2022-08-31 00:00:00",
-            "pattern": "(\\d{4})-(\\d{2})-(\\d{2}) (\\d{2}):(\\d{2}):(\\d{2})"
+            "default": "2022-08-31",
+            "pattern": "(\\d{4})-(\\d{2})-(\\d{2})"
         },
         "Author": {
             "type": "string",
@@ -179,7 +179,7 @@
             "default": "00:00:00",
             "description": "Input Right Ascension (hr)",
             "label": "Input RA",
-            "pattern": "(\\d{2}):(\\d{2}):(\\d{})",
+            "pattern": "(\\d{2}):(\\d{2}):([.\\d+]?)",
             "units": "hr"
         },
         "InputDEC": {
@@ -187,7 +187,7 @@
             "default": "00:00:00",
             "description": "Input Declination (deg)",
             "label": "Input DEC",
-            "pattern": "(\\d{2}):(\\d{2}):(\\d{})",
+            "pattern": "(\\d{2}):(\\d{2}):([.\\d+]?)",
             "units": "deg"
         },
         "MaskMargin": {

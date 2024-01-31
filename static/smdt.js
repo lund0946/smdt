@@ -75,14 +75,8 @@ function SlitmaskDesignTool() {
 	self.sendParamUpdate = function () {
 		self.setStatus("Updating ...");
 		const form2 = E('form2');
-		let formData = new FormData(form2);
-		const ajax = new AjaxClass()
 		self.setStatus("Loading ...");
-		console.log('form2', form2.elements)
 		let formJson= {};
-		// formData.forEach(function(value, key){
-		// 	formJson[key] = value;
-		// });
 		Array.from(form2.elements).forEach((input) => {
 			if (input.getAttribute('ftype')) {
 				console.log('setting to number', input.name, Number(input.value))
@@ -90,12 +84,20 @@ function SlitmaskDesignTool() {
 					formJson[input.name] = Number(input.value);
 				}
 				else{
-					formJson[input.name] = input.value;
+					formJson[input.name] = input.value.trim();
 				}
 			}
 		  });
 		  console.log('formJson', formJson)
-		ajax.postRequest('updateParams4Server', formJson, self.generate_slitmask_callback, 'purejson');
+
+		const param_update_callback = function(data) {
+			if (!data.includes('OK')) {
+				alert(data)
+			}
+		}
+
+		const ajax = new AjaxClass()
+		ajax.postRequest('updateParams4Server', formJson, param_update_callback, 'purejson');
 	};
 
 	self.loadBackgroundImage = function () {

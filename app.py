@@ -176,9 +176,9 @@ def updateParams4Server():
     prms = request.json
     ok, prms = validate_params(prms)
     if not ok:
-        return prms.message
+        return [str(x) for x in prms ]
     session['params'] = prms
-    return 'OK' 
+    return 'OK'
 
 
 # Loads original params
