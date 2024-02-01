@@ -413,9 +413,6 @@ class MaskDesignOutputFitsFile:
         tel=self.tel
         tlist=self.targetList
 
-        import pickle as pkl
-        with open('tlist.pkl','wb') as f:
-            pkl.dump(tlist,f)
 
         selected = tlist[(tlist.sel == 1) & (tlist.pcode!=-1)]
         objClassTable = ("Alignment_Star", "Guide_Star", "Ignored", "Program_Target")
