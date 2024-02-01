@@ -79,7 +79,7 @@
         },
         "MinSlitSeparation": {
             "type": "number",
-            "default": 0,
+            "default": 0.35,
             "description": "Min slit separatation (arcsec)",
             "label": "Min. slit separatation",
             "exclusiveMinimum": 0,

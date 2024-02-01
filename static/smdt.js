@@ -152,8 +152,6 @@ function SlitmaskDesignTool() {
 		cs.setShowPriorities(E('minPriority').value, E('maxPriority').value);
 		cs.setTargets(self.targets);
 		cs.setGaps(data.xgaps);
-		// E('inputRAfd').value = toSexagecimal(cs.centerRaDeg / 15);
-		// E('inputDECfd').value = toSexagecimal(cs.centerDecDeg);
 
 		cs.resetDisplay();
 		cs.resetOffsets();
@@ -220,36 +218,11 @@ function SlitmaskDesignTool() {
         self.updateParams = function (evt) {
                 // Updates params.
                 // Sends params to server
-                let projname = String(E('ProjectNamefd').value);
-                let outfits = String(E('OutputFitsfd').value);
-                let tel = String(E('Telescopefd').value);
-                let inst = String(E('Instrumentfd').value);
-                let obsdate =  String(E('ObsDatefd').value)
-                let auth =  String(E('Authorfd').value)
-                let observer =  String(E('Observerfd').value)
-                let maskid = String(E('MaskIdfd').value)
-                let maskname = String(E('MaskNamefd').value)
-                let minslitlen = Number(E('MinSlitLengthfd').value)
-                let minslitsep = Number(E('MinSlitSeparationfd').value)
-                let slitwidth = Number(E('SlitWidthfd').value)
-                let boxsz = Number(E('AlignBoxSizefd').value)
-                let bluewave = Number(E('BlueWaveLengthfd').value)
-                let redwave = Number(E('RedWaveLengthfd').value)
-                let cenwave = Number(E('CenterWaveLengthfd').value)
-                let projlen =  Number(E('ProjSlitLengthfd').value)
-                let nooverlap = Number(E('NoOverlapfd').value)
-                let temp =  Number(E('Temperaturefd').value)
                 let maskpa =  Number(E('MaskPAfd').value)
-                let slitpa = Number(E('SlitPAfd').value)
-                let inputra = String(E('InputRAfd').value)
-                let inputdec = String(E('InputDECfd').value)
-                let maskmargin = Number(E('MaskMarginfd').value)
-                let hourangle = Number(E('HourAnglefd').value)
                 self.canvasShow.setMaskPA(maskpa);
                 let form2 = E('form2');
                 form2.submit();
                 self.canvasShow.setMaskPA(maskpa);
-
         };
 
 
@@ -437,7 +410,7 @@ function SlitmaskDesignTool() {
                 function callback(data) {
                         let i = idx;
                         if (data && data.length > 0)
-                                i = data[0]
+                                i = data
                         self.reloadTargets(idx, i);
                         self.canvasShow.selectedTargetIdx = i;
                 }
@@ -471,7 +444,7 @@ function SlitmaskDesignTool() {
                 function callback(data) {
                         let i = idx;
                         if (data && data.length > 0)
-                                i = data[0]
+                                i = data
                         self.reloadTargets(idx, i);
                         self.updateLoadedTargets(data);
                         self.canvasShow.selectedTargetIdx = i;
@@ -512,7 +485,7 @@ function SlitmaskDesignTool() {
 		function callback(data) {
 			let i = idx;
 			if (data && data.length > 0)
-				i = data[0]
+				i = data
 			self.reloadTargets(idx, i);
                         self.updateLoadedTargets(data);
 			self.canvasShow.selectedTargetIdx = i;

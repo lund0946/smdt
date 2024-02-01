@@ -51,13 +51,14 @@ def init_dicts(data, params):
         decDeg.append(dec[i].degree)
 
     # Check sexagesimal conversion
-    centerRADeg = utils.sexg2Float(params['InputRAfd'][0])*15
-    centerDECDeg = utils.sexg2Float(params['InputDECfd'][0])
+    pdb.set_trace()
+    centerRADeg = utils.sexg2Float(params['InputRA'])*15
+    centerDECDeg = utils.sexg2Float(params['InputDEC'])
 
-    haDeg = float(params['HourAnglefd'][0])
-    positionAngle = float(params['MaskPAfd'][0])
-    len1 = float(params['MinSlitLengthfd'][0])/2
-    len2 = float(params['MinSlitLengthfd'][0])/2
+    haDeg = float(params['HourAngle'])
+    positionAngle = float(params['MaskPA'])
+    len1 = float(params['MinSlitLength'])/2
+    len2 = float(params['MinSlitLength'])/2
 
     ra0_fld = np.radians(centerRADeg)
     dec0_fld = np.radians(centerDECDeg)
@@ -77,7 +78,7 @@ def init_dicts(data, params):
         slitLPA.append(slitpa[i])
         if pcode[i] != -2:
             # Set manually later???  #### <<<<------------
-            slitWidth.append(float(params['SlitWidthfd'][0]))
+            slitWidth.append(float(params['SlitWidth']))
 # length1.append(len1)  ### slitlength manual
 # length2.append(len2)
             length1.append(dlength1[i])
@@ -86,23 +87,23 @@ def init_dicts(data, params):
             rlength2.append(dlength2[i])
             slitLPA.append(slitpa[i])
         else:
-            slitWidth.append(float(params['AlignBoxSizefd'][0]))
+            slitWidth.append(float(params['AlignBoxSize']))
             # slitlength manual
-            length1.append(float(params['AlignBoxSizefd'][0])*0.5)
-            length2.append(float(params['AlignBoxSizefd'][0])*0.5)
+            length1.append(float(params['AlignBoxSize'])*0.5)
+            length2.append(float(params['AlignBoxSize'])*0.5)
             # slitlength manual
-            rlength1.append(float(params['AlignBoxSizefd'][0])*0.5)
-            rlength2.append(float(params['AlignBoxSizefd'][0])*0.5)
+            rlength1.append(float(params['AlignBoxSize'])*0.5)
+            rlength2.append(float(params['AlignBoxSize'])*0.5)
             slitLPA.append(0)
 
     obs_lat = 19.8
     obs_alt = 4150.
     mm_arcs = 0.7253
-    waver = float(params['CenterWaveLengthfd'][0])
-    wavemn = float(params['BlueWaveLengthfd'][0])
-    wavemx = float(params['RedWaveLengthfd'][0])
-    pres = float(params['Pressurefd'][0])
-    temp = float(params['Temperaturefd'][0])
+    waver = float(params['CenterWaveLength'])
+    wavemn = float(params['BlueWaveLength'])
+    wavemx = float(params['RedWaveLength'])
+    pres = float(params['Pressure'])
+    temp = float(params['Temperature'])
     obs_rh = 0.4  # <--------- Add to webpage params!
 
     lat = np.radians(obs_lat)        # radians
@@ -335,7 +336,7 @@ def gen_slits(obs, adj_len=False, auto_sel=True):
 # XXX cuidado!  I am not sure that the tan-projection of the rel PA is the
 # same as the rel PA -- MUST CHECK!
 
-#            _SLWID.append(obs['slitWidth'][0]) #Not needed?
+#            _SLWID.append(obs['slitWidth']) #Not needed?
 
 # This is where we also assign slit index to object
             _SLNDX.append(ndx)
@@ -687,11 +688,11 @@ def genSlits(df, fileparams, auto_sel=True):
     global slit
     global site
 
-    if fileparams['NoOverlapfd'][0] == 'yes':
+    if fileparams['NoOverlap'] == 'yes':
         adj_len = True
     else:
         adj_len = False
-    if fileparams['ProjSlitLengthfd'][0] == 'yes':
+    if fileparams['ProjSlitLength'] == 'yes':
         proj_len = True
     else:
         proj_len = False
@@ -738,11 +739,11 @@ def genMaskOut(df, fileparams):
     global site
 
     if 'slitX1' not in df.columns:  # rethink this?!
-        if fileparams['NoOverlapfd'][0] == 'yes':
+        if fileparams['NoOverlap'] == 'yes':
             adj_len = True
         else:
             adj_len = False
-        if fileparams['ProjSlitLengthfd'][0] == 'yes':
+        if fileparams['ProjSlitLength'] == 'yes':
             proj_len = True
         else:
             proj_len = False
@@ -785,37 +786,37 @@ def genMaskOut(df, fileparams):
     tel = {}
     tel['newcenterRADeg'] = slit['newcenterRADeg']
     tel['newcenterDECDeg'] = slit['newcenterDECDeg']
-    tel['dateobs'] = fileparams['ObsDatefd']
+    tel['dateobs'] = fileparams['ObsDate']
     tel['lst'] = slit['lst']
 
     params = {
         'objfile': '',  # Pass separately?
-        'output': fileparams['OutputFitsfd'][0]+'.out',
-        'mdf': fileparams['OutputFitsfd'][0],
+        'output': fileparams['OutputFits']+'.out',
+        'mdf': fileparams['OutputFits'],
         'plotfile': '',
-        'ra0': (15*utils.sexg2Float(fileparams['InputRAfd'][0])),
-        'dec0': (utils.sexg2Float(fileparams['InputDECfd'][0])),
-        'pa0': float(fileparams['MaskPAfd'][0]),
+        'ra0': (15*utils.sexg2Float(fileparams['InputRA'])),
+        'dec0': (utils.sexg2Float(fileparams['InputDEC'])),
+        'pa0': float(fileparams['MaskPA']),
         'equinox': 2000.0,
-        'ha0': float(fileparams['HourAnglefd'][0]),
-        'min_slit': float(fileparams['MinSlitLengthfd'][0]),
-        'sep_slit': float(fileparams['MinSlitSeparationfd'][0]),
-        'slit_width': float(fileparams['SlitWidthfd'][0]),
-        'box_sz': float(fileparams['AlignBoxSizefd'][0]),
-        'blue': float(fileparams['BlueWaveLengthfd'][0]),
-        'red': float(fileparams['RedWaveLengthfd'][0]),
+        'ha0': float(fileparams['HourAngle']),
+        'min_slit': float(fileparams['MinSlitLength']),
+        'sep_slit': float(fileparams['MinSlitSeparation']),
+        'slit_width': float(fileparams['SlitWidth']),
+        'box_sz': float(fileparams['AlignBoxSize']),
+        'blue': float(fileparams['BlueWaveLength']),
+        'red': float(fileparams['RedWaveLength']),
         'proj_len': False,
         'no_overlap': False,
         #    'std_format':True,     #Remove this option
-        'lambda_cen': float(fileparams['CenterWaveLengthfd'][0]),
-        'temp': float(fileparams['Temperaturefd'][0]),
-        'pressure': float(fileparams['Pressurefd'][0]),
-        'maskid': fileparams['MaskIdfd'][0],
-        'guiname': fileparams['MaskNamefd'][0],
-        'dateobs': fileparams['ObsDatefd'][0],
-        'author': fileparams['Authorfd'][0],
-        'observer': fileparams['Observerfd'][0],
-        'project': fileparams['ProjectNamefd'][0],
+        'lambda_cen': float(fileparams['CenterWaveLength']),
+        'temp': float(fileparams['Temperature']),
+        'pressure': float(fileparams['Pressure']),
+        'maskid': fileparams['MaskId'],
+        'guiname': fileparams['MaskName'],
+        'dateobs': fileparams['ObsDate'],
+        'author': fileparams['Author'],
+        'observer': fileparams['Observer'],
+        'project': fileparams['ProjectName'],
         'instrument': 'DEIMOS',
         'telescope': 'Keck II'
     }
@@ -837,7 +838,7 @@ def genMaskOut(df, fileparams):
 
     from writeMask import MaskDesignOutputFitsFile
     mdf = MaskDesignOutputFitsFile(slitsdf, sitedf, paramdf, teldf)
-    mdf.writeTo(params['mdf'][0])
-    mdf.writeOut(params['mdf'][0]+'.out')
+    mdf.writeTo(params['mdf'])
+    mdf.writeOut(params['mdf']+'.out')
 
     return df

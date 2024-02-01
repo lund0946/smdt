@@ -113,6 +113,7 @@ def getTargetsAndInfo():
 @check_session
 @app.route('/generateSlits', methods=["GET", "POST"])
 def generateSlits():
+    pdb.set_trace()
     df = targs.markInside(session['df'])
     newdf = calcmask.genSlits(df, session['params'], auto_sel=True)
     session['df'] = newdf
@@ -138,7 +139,7 @@ def saveMaskDesignFile():  # should only save current rather than re-running eve
     params = session['params']
 
     newdf = calcmask.genMaskOut(df, params)
-    plot.makeplot(params['OutputFitsfd'][0])
+    plot.makeplot(params['OutputFits'][0])
     session['df'] = newdf
     outp = targs.toJsonWithInfo(params, newdf)
     return outp
@@ -149,6 +150,7 @@ def saveMaskDesignFile():  # should only save current rather than re-running eve
 @app.route('/sendTargets2Server', methods=["GET", "POST"])
 def sendTargets2Server():
     prms = request.form.to_dict()
+    prms = {k.rstrip('fd'): v for k, v in prms.items()}
     fh = []
     session['params'] = prms
     uploaded_file = request.files['targetList']
@@ -163,6 +165,7 @@ def sendTargets2Server():
         session['df'] = df
 
         # generate slits
+        pdb.set_trace()
         newdf = calcmask.genObs(session['df'], session['params'])
         df = targs.markInside(newdf)
         newdf = calcmask.genSlits(df, session['params'], auto_sel=True)

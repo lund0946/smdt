@@ -9,7 +9,8 @@ from maskLayouts import MaskLayouts
 import logging
 logger = logging.getLogger('smdt')
 
-def readRaw(fh,params):
+
+def readRaw(fh, params):
     def toFloat(x):
         try:
             return float(x)
@@ -37,10 +38,10 @@ def readRaw(fh,params):
         "decRad",
     )
     cnt = 0
-    slitLength = float(params["MinSlitLengthfd"][0])  #### correct paramn name?
+    slitLength = float(params["MinSlitLength"])  # correct paramn name?
     halfLen = slitLength / 2.
-    slitWidth = params["SlitWidthfd"][0]              ####
-    slitpa = params["SlitPAfd"][0]                    ####
+    slitWidth = params["SlitWidth"]
+    slitpa = params["SlitPA"]
 
     for nr, line in enumerate(fh):
         if not line:
@@ -58,11 +59,12 @@ def readRaw(fh,params):
             continue
 
         if 'PA=' in line:
-            #line has dsim output first line
+            # line has dsim output first line
             continue
         # print (nr, "len", parts)
 
-        template = ["", "", "2000", "99", "I", "0", "-1", "0", slitpa, halfLen, halfLen, slitWidth, "0", "0"]
+        template = ["", "", "2000", "99", "I", "0", "-1", "0",
+                    slitpa, halfLen, halfLen, slitWidth, "0", "0"]
         minLength = min(len(parts), len(template))
         template[:minLength] = parts[:minLength]
 
@@ -71,13 +73,13 @@ def readRaw(fh,params):
 
         try:
             try:
-                raHour=float(template[0])
+                raHour = float(template[0])
             except:
                 raHour = utils.sexg2Float(template[0])
             if raHour < 0 or raHour > 24:
                 raise Exception("Bad RA value " + raHour)
             try:
-                decDeg=float(template[1])
+                decDeg = float(template[1])
             except:
                 decDeg = utils.sexg2Float(template[1])
             if decDeg < -90 or decDeg > 90:
@@ -87,7 +89,7 @@ def readRaw(fh,params):
             if eqx > 3000:
                 eqx = float(template[2][:4])
                 tmp = template[2][4:]
-                template[3 : minLength + 1] = parts[2:minLength]
+                template[3: minLength + 1] = parts[2:minLength]
                 template[3] = tmp
 
             mag = toFloat(template[3])
@@ -135,7 +137,7 @@ def readRaw(fh,params):
     return df
 
 
-def toJsonWithInfo(params,tgs,xgaps=[]):
+def toJsonWithInfo(params, tgs, xgaps=[]):
     """
     Returns the targets and ROI info in JSON format
     """
@@ -147,14 +149,14 @@ def toJsonWithInfo(params,tgs,xgaps=[]):
     return json.dumps(data2)
 
 
-
 def getROIInfo(params):
     """
     Returns a dict with keywords that look like fits headers
     Used to show the footprint of the DSS image
     """
 
-    centerRADeg,centerDEC,positionAngle=15*utils.sexg2Float(params['InputRAfd'][0]),utils.sexg2Float(params['InputDECfd'][0]),params['MaskPAfd'][0]
+    centerRADeg, centerDEC, positionAngle = 15*utils.sexg2Float(
+        params['InputRA']), utils.sexg2Float(params['InputDEC']), params['MaskPA']
 
     hdr = dss2Header.DssWCSHeader(centerRADeg, centerDEC, 60, 60)
     north, east = hdr.skyPA()
@@ -175,12 +177,14 @@ def getROIInfo(params):
     out["positionAngle"] = positionAngle
     return out
 
+
 def setColum(targets, colName, value):
     """
     Updates the dataframe by column name
     """
     targets[colName] = value
     return targets
+
 
 def findTarget(targets, targetName):
     """
@@ -193,25 +197,19 @@ def findTarget(targets, targetName):
     return -1
 
 
-def updateColumn(targets,col,value):
+def updateColumn(targets, col, value):
     """
     Used by GUI to change values to an entire column of a target.
     """
 
-#    options=['SlitPAfd','MaskPAfd','length1','length2','slitWidth']
-#    if col=='slitLPA':value=float(jvalues["slitLPA"])
-#    if col=='length1':value=float(jvalues["length1"])
-#    if col=='length2':value=float(jvalues["length2"])
-#    if col=='slitWidth':value=float(jvalues["slitWidth"])
 
-    if col=='length1' or col=='length2':
-        targets['length1']=float(value)
-        targets['length2']=float(value)
+    if col == 'length1' or col == 'length2':
+        targets['length1'] = float(value)
+        targets['length2'] = float(value)
     else:
-        targets[col]=float(value)
+        targets[col] = float(value)
     logger.debug(f'updateColumn {targets[col]}')
     return targets
-
 
 
 def updateTarget(targets, jvalues):
@@ -221,7 +219,7 @@ def updateTarget(targets, jvalues):
 
     logger.debug('Running updateTarget')
 
-    values=jvalues
+    values = jvalues
     tgs = targets
 
     pcode = int(values["prior"])
@@ -240,7 +238,7 @@ def updateTarget(targets, jvalues):
     raRad = math.radians(raHour * 15)
     decRad = math.radians(decDeg)
 
-    idx = findTarget(tgs,targetName)
+    idx = findTarget(tgs, targetName)
 
     if idx >= 0:
         # Existing entry
@@ -256,7 +254,7 @@ def updateTarget(targets, jvalues):
         tgs.at[idx, "raRad"] = raRad
         tgs.at[idx, "decRad"] = decRad
 
-     #Missing targets=tgs????????
+     # Missing targets=tgs????????
 
     else:
         # Add a new entry
@@ -285,7 +283,8 @@ def updateTarget(targets, jvalues):
 
         targets = tgs.append(newItem, ignore_index=True)
 
-    return targets,idx
+    return targets, idx
+
 
 def deleteTarget(targets, idx):
     """
@@ -298,11 +297,12 @@ def deleteTarget(targets, idx):
     targets = tgs.drop(tgs.index[idx])
     return targets
 
+
 def markInside(targets):
     """
     Sets the inMask flag to 1 (inside) or 0 (outside)
     """
-    layout=MaskLayouts['deimos']
+    layout = MaskLayouts['deimos']
     inOutChecker = InOutChecker(layout)
     tgs = targets
     inMask = []
@@ -311,6 +311,3 @@ def markInside(targets):
         inMask.append(isIn)
     targets["inMask"] = inMask
     return targets
-
-
-

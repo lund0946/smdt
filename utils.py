@@ -160,8 +160,8 @@ def validate_params(params):
     try:
         validate(instance=params, schema=schema)
         width = params['SlitWidth'] 
-        paWithinRange = np.abs(params['maskPA']) < np.arccos(0.63/width) * np.pi / 180
-        assert paWithinRange, f'PA {params["maskPA"]} is out of range for slit width {width}'
+        paWithinRange = np.abs(params['MaskPA']) < np.arccos(0.63/width) * np.pi / 180
+        assert paWithinRange, f'PA {params["MaskPA"]} is out of range for slit width {width}'
     except jsonschema.exceptions.ValidationError as err:
         logger.error(f'Failed to validate parameters: {err}')
         errors = Draft202012Validator(schema).iter_errors(params)
