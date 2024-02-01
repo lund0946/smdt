@@ -51,7 +51,6 @@ def init_dicts(data, params):
         decDeg.append(dec[i].degree)
 
     # Check sexagesimal conversion
-    pdb.set_trace()
     centerRADeg = utils.sexg2Float(params['InputRA'])*15
     centerDECDeg = utils.sexg2Float(params['InputDEC'])
 

@@ -113,7 +113,6 @@ def getTargetsAndInfo():
 @check_session
 @app.route('/generateSlits', methods=["GET", "POST"])
 def generateSlits():
-    pdb.set_trace()
     df = targs.markInside(session['df'])
     newdf = calcmask.genSlits(df, session['params'], auto_sel=True)
     session['df'] = newdf
@@ -165,7 +164,6 @@ def sendTargets2Server():
         session['df'] = df
 
         # generate slits
-        pdb.set_trace()
         newdf = calcmask.genObs(session['df'], session['params'])
         df = targs.markInside(newdf)
         newdf = calcmask.genSlits(df, session['params'], auto_sel=True)
