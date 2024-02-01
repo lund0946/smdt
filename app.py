@@ -173,7 +173,7 @@ def generateSlits():
     global prms
     params=prms
     df=targs.markInside(df)
-    newdf=calcmask.genSlits(df,params,auto_sel=True)
+    newdf=calcmask.genSlits(df,params,auto_sel=False)
     mask = ml.MaskLayouts["deimos"]
     minX, maxX = np.min(mask, axis=0)[0], np.max(mask, axis=0)[0]
     df=newdf
