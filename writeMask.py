@@ -108,13 +108,13 @@ SlitObjMap,C,BotDist,SlitObjMap,BotDist
 
 
 class MaskDesignOutputFitsFile:
-    def __init__(self, targetList,site,params,tel):
+    def __init__(self, targetList, site, params, tel):
         """
         This class represents the Mask Design Fits File.
         It is used to save the FITS file as output of the design process
 
         targetList: input target list.
-    
+
         The FITS file contains 8 tables, see _getHDUList().
 
         - Table objectcat: star catalog
@@ -130,47 +130,64 @@ class MaskDesignOutputFitsFile:
         self.targetList = targetList
         self.site = site
         self.params = params
-        self.tel = tel  ### <<<------ should be telescope only info like ra0_fld pa0_fld, etc, and not the targetlist stuff
+        self.tel = tel  # <<<------ should be telescope only info like ra0_fld pa0_fld, etc, and not the targetlist stuff
 
     def genObjCatTable(self):
         """
         Generates the object catalog table
         """
 
-        tlist=self.targetList
+        tlist = self.targetList
         selected = tlist[tlist.sel == 1]
-        objClassTable = ("Alignment_Star", "Guide_Star", "Ignored", "Program_Target")
+        objClassTable = ("Alignment_Star", "Guide_Star",
+                         "Ignored", "Program_Target")
         cols = []
         nTargets = selected.shape[0]
         zeros = [0] * nTargets
         objClass = [objClassTable[min(3, p + 2)] for p in selected.pcode]
         MajAxPA = np.degrees(selected.slitLPA)
 
-        for i,row in enumerate(selected.iterrows()):
-            idx=selected.index[i]
-            if selected.pcode[idx]==-2:
-                MajAxPA[idx]=self.params.pa0[0]
+        for i, row in enumerate(selected.iterrows()):
+            idx = selected.index[i]
+            if selected.pcode[idx] == -2:
+                MajAxPA[idx] = self.params.pa0[0]
 
-
-
-        cols.append(pf.Column(name="ObjectId", format="I6", null="-9999", unit="None", array=selected.index))
-        cols.append(pf.Column(name="OBJECT", format="A68", null="INDEF", unit="None", array=selected.objectId))                            
-        cols.append(pf.Column(name="RA_OBJ", format="F12.8", null="-9999.000000", unit="deg", array=np.degrees(selected.raRad)))
-        cols.append(pf.Column(name="DEC_OBJ", format="F12.8", null="-9999.000000", unit="deg", array=np.degrees(selected.decRad)))
-        cols.append(pf.Column(name="RADESYS", format="A8", null="INDEF", unit="None",array=[""]))
-        cols.append(pf.Column(name="EQUINOX", format="F8.3", null="-9999.00", unit="a", array=[2000] * nTargets))
-        cols.append(pf.Column(name="MJD-OBS", format="F11.3", null="-9999.000", unit="d", array=zeros))
-        cols.append(pf.Column(name="mag", format="F7.3", null="-9999.0", unit="None", array=selected.mag))                                       ##
-        cols.append(pf.Column(name="pBand", format="A6", null="INDEF", unit="None", array=selected.magband))                                         ##
-        cols.append(pf.Column(name="RadVel", format="F10.3", null="-9999.000", unit="None", array=zeros))
-        cols.append(pf.Column(name="MajAxis", format="F9.2", null="-9999.00", unit="arcsec", array=zeros))
-        cols.append(pf.Column(name="MajAxPA", format="F8.2", null="-9999.00", unit="deg", array=MajAxPA)) #array=np.degrees(selected.slitLPA)
-        cols.append(pf.Column(name="MinAxis", format="F9.2", null="-9999.00", unit="arcsec", array=zeros))
-        cols.append(pf.Column(name="PM_RA", format="F9.4", null="-9999.000", unit="arcsec/a", array=zeros))
-        cols.append(pf.Column(name="PM_Dec", format="F9.4", null="-9999.000", unit="arcsec/a", array=zeros))
-        cols.append(pf.Column(name="Parallax", format="F7.4", null="-9999.0", unit="arcsec", array=zeros))
-        cols.append(pf.Column(name="ObjClass", format="A20", null="INDEF", unit="None", array=objClass))
-        cols.append(pf.Column(name="CatFilePK", format="I6", null="-9999", unit="None", array=[1] * nTargets))
+        cols.append(pf.Column(name="ObjectId", format="I6",
+                    null="-9999", unit="None", array=selected.index))
+        cols.append(pf.Column(name="OBJECT", format="A68",
+                    null="INDEF", unit="None", array=selected.objectId))
+        cols.append(pf.Column(name="RA_OBJ", format="F12.8",
+                    null="-9999.000000", unit="deg", array=np.degrees(selected.raRad)))
+        cols.append(pf.Column(name="DEC_OBJ", format="F12.8",
+                    null="-9999.000000", unit="deg", array=np.degrees(selected.decRad)))
+        cols.append(pf.Column(name="RADESYS", format="A8",
+                    null="INDEF", unit="None", array=[""]))
+        cols.append(pf.Column(name="EQUINOX", format="F8.3",
+                    null="-9999.00", unit="a", array=[2000] * nTargets))
+        cols.append(pf.Column(name="MJD-OBS", format="F11.3",
+                    null="-9999.000", unit="d", array=zeros))
+        cols.append(pf.Column(name="mag", format="F7.3",
+                    null="-9999.0", unit="None", array=selected.mag))
+        cols.append(pf.Column(name="pBand", format="A6",
+                    null="INDEF", unit="None", array=selected.magband))
+        cols.append(pf.Column(name="RadVel", format="F10.3",
+                    null="-9999.000", unit="None", array=zeros))
+        cols.append(pf.Column(name="MajAxis", format="F9.2",
+                    null="-9999.00", unit="arcsec", array=zeros))
+        cols.append(pf.Column(name="MajAxPA", format="F8.2", null="-9999.00",
+                    unit="deg", array=MajAxPA))  # array=np.degrees(selected.slitLPA)
+        cols.append(pf.Column(name="MinAxis", format="F9.2",
+                    null="-9999.00", unit="arcsec", array=zeros))
+        cols.append(pf.Column(name="PM_RA", format="F9.4",
+                    null="-9999.000", unit="arcsec/a", array=zeros))
+        cols.append(pf.Column(name="PM_Dec", format="F9.4",
+                    null="-9999.000", unit="arcsec/a", array=zeros))
+        cols.append(pf.Column(name="Parallax", format="F7.4",
+                    null="-9999.0", unit="arcsec", array=zeros))
+        cols.append(pf.Column(name="ObjClass", format="A20",
+                    null="INDEF", unit="None", array=objClass))
+        cols.append(pf.Column(name="CatFilePK", format="I6",
+                    null="-9999", unit="None", array=[1] * nTargets))
 
         logger.debug(f"cols: {cols}")
 
@@ -183,12 +200,14 @@ class MaskDesignOutputFitsFile:
         Generates the catalog file table. Maybe not used downstream.
         """
         cols = []
-        cols.append(pf.Column(name="CatFilePK", format="I6", null="-9999", unit="None", array=[1]))
-        cols.append(pf.Column(name="CatFileName", format="A255", null="INDEF", unit="None", array=["INDEF"],))
+        cols.append(pf.Column(name="CatFilePK", format="I6",
+                    null="-9999", unit="None", array=[1]))
+        cols.append(pf.Column(name="CatFileName", format="A255",
+                    null="INDEF", unit="None", array=["INDEF"],))
 
         logger.debug(f"cols: {cols}")
         logger.debug(pf.TableHDU.from_columns(cols, name="CatFiles"))
-        
+
         return pf.TableHDU.from_columns(cols, name="CatFiles")
 
     def genMaskDesign(self):
@@ -197,29 +216,46 @@ class MaskDesignOutputFitsFile:
         """
         tlist = self.targetList
         params = self.params
-        tel=self.tel
+        tel = self.tel
         cols = []
         selected = tlist[tlist.sel == 1]
         nSlits = selected.shape[0]
         nObjs = nSlits + selected[selected.pcode == -2].shape[0]
-        
-        cols.append(pf.Column(name="DesId", format="I11", null="-9999", unit="None", array=[1]))
-        cols.append(pf.Column(name="DesName", format="A68", null="INDEF", unit="None", array=[params.maskid],))
-        cols.append(pf.Column(name="DesAuth", format="A68", null="INDEF", unit="None", array=[params.author],))
-        cols.append(pf.Column(name="DesCreat", format="A68", null="INDEF", unit="None", array=[SMDT_Name],))
-        cols.append(pf.Column(name="DesDate", format="A19", null="INDEF", unit="None", array=[params.descreate],))
-        cols.append(pf.Column(name="DesNslit", format="I11", null="-9999", unit="None", array=[nSlits]))
-        cols.append(pf.Column(name="DesNobj", format="I11", null="-9999", unit="None", array=[nObjs]))                          ### dbl check
-        cols.append(pf.Column(name="ProjName", format="A68", null="INDEF", unit="None", array=[params.project],))
-        cols.append(pf.Column(name="INSTRUME", format="A68", null="INDEF", unit="None", array=[params.instrument],))
-        cols.append(pf.Column(name="MaskType", format="A68", null="INDEF", unit="None", array=["???"]))
-        cols.append(pf.Column(name="RA_PNT", format="F12.8", null="-9999.00", unit="deg", array=[tel.newcenterRADeg],))  
-        cols.append(pf.Column(name="DEC_PNT", format="F12.8", null="-9999.000000", unit="deg", array=[tel.newcenterDECDeg],))      
-        cols.append(pf.Column(name="RADEPNT", format="A8", null="INDEF", unit="None", array=[""]))
-        cols.append(pf.Column(name="EQUINPNT", format="F13.6", null="-9999.00", unit="a", array=[2000.0],))
-        cols.append(pf.Column(name="PA_PNT", format="F12.7", null="-9999.00", unit="deg", array=[params.pa0],))
-        cols.append(pf.Column(name="DATE_PNT", format="A19", null="INDEF", unit="None", array=[tel.dateobs],))
-        cols.append(pf.Column(name="LST_PNT", format="F8.3", null="-9999.00", unit="deg", array=[tel.lst]))                   # May be HourAngle in deg??
+
+        cols.append(pf.Column(name="DesId", format="I11",
+                    null="-9999", unit="None", array=[1]))
+        cols.append(pf.Column(name="DesName", format="A68",
+                    null="INDEF", unit="None", array=[params.maskid],))
+        cols.append(pf.Column(name="DesAuth", format="A68",
+                    null="INDEF", unit="None", array=[params.author],))
+        cols.append(pf.Column(name="DesCreat", format="A68",
+                    null="INDEF", unit="None", array=[SMDT_Name],))
+        cols.append(pf.Column(name="DesDate", format="A19",
+                    null="INDEF", unit="None", array=[params.descreate],))
+        cols.append(pf.Column(name="DesNslit", format="I11",
+                    null="-9999", unit="None", array=[nSlits]))
+        cols.append(pf.Column(name="DesNobj", format="I11",
+                    null="-9999", unit="None", array=[nObjs]))  # dbl check
+        cols.append(pf.Column(name="ProjName", format="A68",
+                    null="INDEF", unit="None", array=[params.project],))
+        cols.append(pf.Column(name="INSTRUME", format="A68",
+                    null="INDEF", unit="None", array=[params.instrument],))
+        cols.append(pf.Column(name="MaskType", format="A68",
+                    null="INDEF", unit="None", array=["???"]))
+        cols.append(pf.Column(name="RA_PNT", format="F12.8",
+                    null="-9999.00", unit="deg", array=[tel.newcenterRADeg],))
+        cols.append(pf.Column(name="DEC_PNT", format="F12.8",
+                    null="-9999.000000", unit="deg", array=[tel.newcenterDECDeg],))
+        cols.append(pf.Column(name="RADEPNT", format="A8",
+                    null="INDEF", unit="None", array=[""]))
+        cols.append(pf.Column(name="EQUINPNT", format="F13.6",
+                    null="-9999.00", unit="a", array=[2000.0],))
+        cols.append(pf.Column(name="PA_PNT", format="F12.7",
+                    null="-9999.00", unit="deg", array=[params.pa0],))
+        cols.append(pf.Column(name="DATE_PNT", format="A19",
+                    null="INDEF", unit="None", array=[tel.dateobs],))
+        cols.append(pf.Column(name="LST_PNT", format="F8.3", null="-9999.00",
+                    unit="deg", array=[tel.lst]))                   # May be HourAngle in deg??
         logger.debug(f"cols: {cols}")
         logger.debug(pf.TableHDU.from_columns(cols, name="MaskDesign"))
 
@@ -238,8 +274,8 @@ class MaskDesignOutputFitsFile:
         """
 
         tlist = self.targetList
-        params=self.params
-        tel=self.tel
+        params = self.params
+        tel = self.tel
         cols = []
         selected = tlist[tlist.sel == 1]
 
@@ -249,18 +285,29 @@ class MaskDesignOutputFitsFile:
 
             slitNames = [("%03d" % x) for x in range(nSlits)]
             slitTypes = [slitTypeTable[min(3, p + 2)] for p in selected.pcode]
-            slitLengths = [(l1 + l2) for l1, l2 in zip(selected.length1, selected.length2)]
+            slitLengths = [(l1 + l2)
+                           for l1, l2 in zip(selected.length1, selected.length2)]
 
-            cols.append(pf.Column(name="dSlitId", format="I11", null="-9999", unit="None", array=selected.slitIndex))
-            cols.append(pf.Column(name="DesId", format="I11", null="-9999", unit="None", array=[1] * nSlits))
-            cols.append(pf.Column(name="SlitName", format="A20", null="None", unit="None", array=slitNames))                                ######dbl check
-            cols.append(pf.Column(name="slitRA", format="F12.8", null="-9999.000000", unit="deg", array=np.degrees(selected.raRadU)))
-            cols.append(pf.Column(name="slitDec", format="F12.8", null="-9999.000000", unit="deg", array=np.degrees(selected.decRadU)))
-            cols.append(pf.Column(name="slitTyp", format="A1", null="I", unit="None", array=slitTypes))
-            cols.append(pf.Column(name="slitLen", format="F11.3", null="-9999.000", unit="arcsec", array=slitLengths))                      ####### maybe be double currently??
-            cols.append(pf.Column(name="slitLPA", format="F8.3", null="-9999.00", unit="deg", array=np.degrees(selected.slitLPA)))   ### fix to degrees
-            cols.append(pf.Column(name="slitWid", format="F11.3", null="-9999.000", unit="arcsec", array=selected.slitWidth))
-            cols.append(pf.Column(name="slitWPA", format="F8.3", null="-9999.00", unit="deg", array=[params.pa0[0]+90] * nSlits))  ##????
+            cols.append(pf.Column(name="dSlitId", format="I11",
+                        null="-9999", unit="None", array=selected.slitIndex))
+            cols.append(pf.Column(name="DesId", format="I11",
+                        null="-9999", unit="None", array=[1] * nSlits))
+            cols.append(pf.Column(name="SlitName", format="A20",
+                        null="None", unit="None", array=slitNames))  # dbl check
+            cols.append(pf.Column(name="slitRA", format="F12.8",
+                        null="-9999.000000", unit="deg", array=np.degrees(selected.raRadU)))
+            cols.append(pf.Column(name="slitDec", format="F12.8",
+                        null="-9999.000000", unit="deg", array=np.degrees(selected.decRadU)))
+            cols.append(pf.Column(name="slitTyp", format="A1",
+                        null="I", unit="None", array=slitTypes))
+            cols.append(pf.Column(name="slitLen", format="F11.3", null="-9999.000",
+                        unit="arcsec", array=slitLengths))  # maybe be double currently??
+            cols.append(pf.Column(name="slitLPA", format="F8.3", null="-9999.00",
+                        unit="deg", array=np.degrees(selected.slitLPA)))  # fix to degrees
+            cols.append(pf.Column(name="slitWid", format="F11.3",
+                        null="-9999.000", unit="arcsec", array=selected.slitWidth))
+            cols.append(pf.Column(name="slitWPA", format="F8.3", null="-9999.00",
+                        unit="deg", array=[params.pa0[0]+90] * nSlits))  # ????
         return pf.TableHDU.from_columns(cols, name="DesiSlits")
 
     def genSlitObMap(self):
@@ -272,11 +319,16 @@ class MaskDesignOutputFitsFile:
         selected = tlist[tlist.sel == 1]
         nSlits = selected.shape[0]
         if nSlits > 0:
-            cols.append(pf.Column(name="DesId", format="I11", null="-9999", unit="None", array=[1] * nSlits,))
-            cols.append(pf.Column(name="ObjectId", format="I11", null="-9999", unit="None", array=selected.index)) 
-            cols.append(pf.Column(name="dSlitId", format="I11", null="-9999", unit="None", array=selected.slitIndex)) 
-            cols.append(pf.Column(name="TopDist", format="F11.3", null="-9999.000", unit="arcsec", array=selected.length1))
-            cols.append(pf.Column(name="BotDist", format="F11.3", null="-9999.000", unit="arcsec", array=selected.length2))
+            cols.append(pf.Column(name="DesId", format="I11",
+                        null="-9999", unit="None", array=[1] * nSlits,))
+            cols.append(pf.Column(name="ObjectId", format="I11",
+                        null="-9999", unit="None", array=selected.index))
+            cols.append(pf.Column(name="dSlitId", format="I11",
+                        null="-9999", unit="None", array=selected.slitIndex))
+            cols.append(pf.Column(name="TopDist", format="F11.3",
+                        null="-9999.000", unit="arcsec", array=selected.length1))
+            cols.append(pf.Column(name="BotDist", format="F11.3",
+                        null="-9999.000", unit="arcsec", array=selected.length2))
 
         return pf.TableHDU.from_columns(cols, name="SlitObjMap")
 
@@ -286,36 +338,54 @@ class MaskDesignOutputFitsFile:
         """
         tlist = self.targetList
         params = self.params
-        tel= self.tel
+        tel = self.tel
         cols = []
 #        ts = datetime.datetime.strptime(params.ObsDate[0], "%Y-%m-%d %H:%M:%S")         ###  need to fix
 #        obsDate = ts.strftime("%Y-%m-%d")
 #        obsTime = sexg2Float(ts.strftime("%H:%M:%S")) * 15  # to degree
         refWave = float(params.lambda_cen[0]) / 10  # to nanometer
 
-
         logger.debug(params.guiname)
-        logger.debug(f"maskid: {params.maskid} guiname type: {type(params.guiname)}")
+        logger.debug(
+            f"maskid: {params.maskid} guiname type: {type(params.guiname)}")
 
-        cols.append(pf.Column(name="BluId", format="I11", null="-9999", unit="None", array=[1]))
-        cols.append(pf.Column(name="DesId", format="I11", null="-9999", unit="None", array=[1]))
-        cols.append(pf.Column(name="BluName", format="A68", null="INDEF", unit="None", array=[params.maskid]))
-        cols.append(pf.Column(name="guiname", format="A8", null="INDEF", unit="None", array=[str(params.guiname[0])]))    ##?????  has to be string but the previous line doesn't???
-        cols.append(pf.Column(name="BluObsvr", format="A68", null="INDEF", unit="None", array=[params.observer]))
-        cols.append(pf.Column(name="BluCreat", format="A68", null="INDEF", unit="None", array=[SMDT_Name]))
-        cols.append(pf.Column(name="BluDate", format="A19", null="INDEF", unit="None", array=[params.descreate]))
-        cols.append(pf.Column(name="LST_Use", format="F8.3", null="-9999.00", unit="deg", array=[np.degrees(tel.lst)/15.]))            # LST
-        cols.append(pf.Column(name="Date_Use", format="A19", null="INDEF", unit="None", array=[params.dateobs]))
-        cols.append(pf.Column(name="TELESCOP", format="A68", null="INDEF", unit="None", array=[params.telescope]))
-        cols.append(pf.Column(name="RefrAlg", format="A68", null="INDEF", unit="None", array=["SLALIB"]))
+        cols.append(pf.Column(name="BluId", format="I11",
+                    null="-9999", unit="None", array=[1]))
+        cols.append(pf.Column(name="DesId", format="I11",
+                    null="-9999", unit="None", array=[1]))
+        cols.append(pf.Column(name="BluName", format="A68",
+                    null="INDEF", unit="None", array=[params.maskid]))
+        cols.append(pf.Column(name="guiname", format="A8", null="INDEF", unit="None", array=[
+                    str(params.guiname[0])]))  # ?????  has to be string but the previous line doesn't???
+        cols.append(pf.Column(name="BluObsvr", format="A68",
+                    null="INDEF", unit="None", array=[params.observer]))
+        cols.append(pf.Column(name="BluCreat", format="A68",
+                    null="INDEF", unit="None", array=[SMDT_Name]))
+        cols.append(pf.Column(name="BluDate", format="A19",
+                    null="INDEF", unit="None", array=[params.descreate]))
+        cols.append(pf.Column(name="LST_Use", format="F8.3", null="-9999.00",
+                    unit="deg", array=[np.degrees(tel.lst)/15.]))            # LST
+        cols.append(pf.Column(name="Date_Use", format="A19",
+                    null="INDEF", unit="None", array=[params.dateobs]))
+        cols.append(pf.Column(name="TELESCOP", format="A68",
+                    null="INDEF", unit="None", array=[params.telescope]))
+        cols.append(pf.Column(name="RefrAlg", format="A68",
+                    null="INDEF", unit="None", array=["SLALIB"]))
 
-        cols.append(pf.Column(name="AtmTempC", format="F5.1", null="-9999", unit="degC", array=[params.temp]))
+        cols.append(pf.Column(name="AtmTempC", format="F5.1",
+                    null="-9999", unit="degC", array=[params.temp]))
 
-        cols.append(pf.Column(name="AtmPres", format="F6.1", null="-999.0", unit="hPa", array=[params.pressure]))
-        cols.append(pf.Column(name="AtmHumid", format="F5.3", null="-9999", unit="None", array=[0.4]))
-        cols.append(pf.Column(name="AtmTTLap", format="F7.5", null="-9999.0", unit="K/m", array=[0.0065]))
-        cols.append(pf.Column(name="RefWave", format="F7.2", null="-999.0", unit="nm", array=[params.lambda_cen / 10.0]))  # A to nm.
-        cols.append(pf.Column(name="DistMeth", format="A68", null="INDEF", unit="None", array=["INDEF"]))
+        cols.append(pf.Column(name="AtmPres", format="F6.1",
+                    null="-999.0", unit="hPa", array=[params.pressure]))
+        cols.append(pf.Column(name="AtmHumid", format="F5.3",
+                    null="-9999", unit="None", array=[0.4]))
+        cols.append(pf.Column(name="AtmTTLap", format="F7.5",
+                    null="-9999.0", unit="K/m", array=[0.0065]))
+        # A to nm.
+        cols.append(pf.Column(name="RefWave", format="F7.2",
+                    null="-999.0", unit="nm", array=[params.lambda_cen / 10.0]))
+        cols.append(pf.Column(name="DistMeth", format="A68",
+                    null="INDEF", unit="None", array=["INDEF"]))
         return pf.TableHDU.from_columns(cols, name="MaskBlu")
 
     def genBluSlits(self):
@@ -327,17 +397,28 @@ class MaskDesignOutputFitsFile:
         selected = tlist[tlist.sel == 1]
         nSlits = selected.shape[0]
         if nSlits > 0:
-            cols.append(pf.Column(name="bSlitId", format="I11", null="-9999", unit="None", array=range(nSlits)))
-            cols.append(pf.Column(name="BluId", format="I11", null="-9999", unit="None", array=[1] * nSlits))
-            cols.append(pf.Column(name="dSlitId", format="I11", null="-9999", unit="None", array=range(nSlits)))
-            cols.append(pf.Column(name="slitX1", format="F9.3", null="0.000", unit="mm", array=selected.slitX1))
-            cols.append(pf.Column(name="slitY1", format="F9.3", null="0.000", unit="mm", array=selected.slitY1))
-            cols.append(pf.Column(name="slitX2", format="F9.3", null="0.000", unit="mm", array=selected.slitX2))
-            cols.append(pf.Column(name="slitY2", format="F9.3", null="0.000", unit="mm", array=selected.slitY2))
-            cols.append(pf.Column(name="slitX3", format="F9.3", null="0.000", unit="mm", array=selected.slitX3))
-            cols.append(pf.Column(name="slitY3", format="F9.3", null="0.000", unit="mm", array=selected.slitY3))
-            cols.append(pf.Column(name="slitX4", format="F9.3", null="0.000", unit="mm", array=selected.slitX4))
-            cols.append(pf.Column(name="slitY4", format="F9.3", null="0.000", unit="mm", array=selected.slitY4))
+            cols.append(pf.Column(name="bSlitId", format="I11",
+                        null="-9999", unit="None", array=range(nSlits)))
+            cols.append(pf.Column(name="BluId", format="I11",
+                        null="-9999", unit="None", array=[1] * nSlits))
+            cols.append(pf.Column(name="dSlitId", format="I11",
+                        null="-9999", unit="None", array=range(nSlits)))
+            cols.append(pf.Column(name="slitX1", format="F9.3",
+                        null="0.000", unit="mm", array=selected.slitX1))
+            cols.append(pf.Column(name="slitY1", format="F9.3",
+                        null="0.000", unit="mm", array=selected.slitY1))
+            cols.append(pf.Column(name="slitX2", format="F9.3",
+                        null="0.000", unit="mm", array=selected.slitX2))
+            cols.append(pf.Column(name="slitY2", format="F9.3",
+                        null="0.000", unit="mm", array=selected.slitY2))
+            cols.append(pf.Column(name="slitX3", format="F9.3",
+                        null="0.000", unit="mm", array=selected.slitX3))
+            cols.append(pf.Column(name="slitY3", format="F9.3",
+                        null="0.000", unit="mm", array=selected.slitY3))
+            cols.append(pf.Column(name="slitX4", format="F9.3",
+                        null="0.000", unit="mm", array=selected.slitX4))
+            cols.append(pf.Column(name="slitY4", format="F9.3",
+                        null="0.000", unit="mm", array=selected.slitY4))
 
         return pf.TableHDU.from_columns(cols, name="BluSlits")
 
@@ -348,13 +429,17 @@ class MaskDesignOutputFitsFile:
         df = pd.read_csv(io.StringIO(RDBMapTable))
         df.columns = "MEMBER_NAME", "KwdOrCol", "Element", "RDBtable", "RDBField"
 
-
         cols = []
-        cols.append(pf.Column(name="MEMBER_NAME", format="A32", null="None", unit="None", array=df.MEMBER_NAME,))
-        cols.append(pf.Column(name="KwdOrCol", format="A1", unit="None", array=df.KwdOrCol))
-        cols.append(pf.Column(name="Element", format="A16", null="None", unit="None", array=df.Element))
-        cols.append(pf.Column(name="RDBtable", format="A32", null="None", unit="None", array=df.RDBtable,))
-        cols.append(pf.Column(name="RDBfield", format="A32", null="None", unit="None", array=df.RDBField,))
+        cols.append(pf.Column(name="MEMBER_NAME", format="A32",
+                    null="None", unit="None", array=df.MEMBER_NAME,))
+        cols.append(pf.Column(name="KwdOrCol", format="A1",
+                    unit="None", array=df.KwdOrCol))
+        cols.append(pf.Column(name="Element", format="A16",
+                    null="None", unit="None", array=df.Element))
+        cols.append(pf.Column(name="RDBtable", format="A32",
+                    null="None", unit="None", array=df.RDBtable,))
+        cols.append(pf.Column(name="RDBfield", format="A32",
+                    null="None", unit="None", array=df.RDBField,))
         return pf.TableHDU.from_columns(cols, name="RDBmap")
 
     def _getHDUList(self):
@@ -387,90 +472,92 @@ class MaskDesignOutputFitsFile:
         """
         Writes to file
         """
-        from astropy.config import get_config_dir,create_config_file
+        from astropy.config import get_config_dir, create_config_file
         from astropy.io.fits import conf
 
-        if os.path.isfile(os.path.expanduser('~/.astropy/config/astropy.cfg'))==False:
+        if os.path.isfile(os.path.expanduser('~/.astropy/config/astropy.cfg')) == False:
             create_config_file('astropy')
-        with conf.set_temp('extension_name_case_sensitive',True):
+        with conf.set_temp('extension_name_case_sensitive', True):
             hlist = self._getHDUList()
-            hlist.writeto(fileName,overwrite='True')
+            hlist.writeto(fileName, overwrite='True')
 
     def writeOut(self, fileName):
         """
         Writes output catalog to file
         """
-        params=self.params
-        tel=self.tel
-        tlist=self.targetList
+        params = self.params
+        tel = self.tel
+        tlist = self.targetList
 
         import pickle as pkl
-        with open('tlist.pkl','wb') as f:
-            pkl.dump(tlist,f)
+        with open('tlist.pkl', 'wb') as f:
+            pkl.dump(tlist, f)
 
-        selected = tlist[(tlist.sel == 1) & (tlist.pcode!=-1)]
-        objClassTable = ("Alignment_Star", "Guide_Star", "Ignored", "Program_Target")
+        selected = tlist[(tlist.sel == 1) & (tlist.pcode != -1)]
+        objClassTable = ("Alignment_Star", "Guide_Star",
+                         "Ignored", "Program_Target")
         cols = []
         nTargets = selected.shape[0]
         zeros = [0] * nTargets
         objClass = [objClassTable[min(3, p + 2)] for p in selected.pcode]
         MajAxPA = np.degrees(selected.slitLPA)
-        for i,row in enumerate(selected.iterrows()):
-            idx=selected.index[i]
-            if selected.pcode[idx]==-2:
-                MajAxPA[idx]=params.pa0[0]
-
+        for i, row in enumerate(selected.iterrows()):
+            idx = selected.index[i]
+            if selected.pcode[idx] == -2:
+                MajAxPA[idx] = params.pa0[0]
 
         # Done quickly and can be cleaned up.
 
-        guides = tlist[(tlist.sel == 1) & (tlist.pcode==-1)]
-        gsobjClassTable = ("Alignment_Star", "Guide_Star", "Ignored", "Program_Target")
+        guides = tlist[(tlist.sel == 1) & (tlist.pcode == -1)]
+        gsobjClassTable = ("Alignment_Star", "Guide_Star",
+                           "Ignored", "Program_Target")
         gscols = []
         gsnTargets = guides.shape[0]
         gszeros = [0] * gsnTargets
         gsobjClass = [gsobjClassTable[min(3, p + 2)] for p in guides.pcode]
         gsMajAxPA = np.degrees(guides.slitLPA)
 
-
         nonselected = tlist[tlist.sel == 0]
-        nsobjClassTable = ("Alignment_Star", "Guide_Star", "Ignored", "Program_Target")
+        nsobjClassTable = ("Alignment_Star", "Guide_Star",
+                           "Ignored", "Program_Target")
         nscols = []
         nsnTargets = nonselected.shape[0]
         nszeros = [0] * nsnTargets
-        nsobjClass = [nsobjClassTable[min(3, p + 2)] for p in nonselected.pcode]
+        nsobjClass = [nsobjClassTable[min(3, p + 2)]
+                      for p in nonselected.pcode]
         nsMajAxPA = np.degrees(nonselected.slitLPA)
-        for i,row in enumerate(nonselected.iterrows()):
-            idx=nonselected.index[i]
-            if nonselected.pcode[idx]==-2:
-                nsMajAxPA[idx]=params.pa0[0]
+        for i, row in enumerate(nonselected.iterrows()):
+            idx = nonselected.index[i]
+            if nonselected.pcode[idx] == -2:
+                nsMajAxPA[idx] = params.pa0[0]
 
-
-        with open(fileName,"w") as f:
+        with open(fileName, "w") as f:
             f.write("# Mask name, center:\n")
-            f.write(""+str(params.maskid[0])+"             "+str(toSexagecimal(tel.newcenterRADeg[0]/15.,secFmt="{:08.5f}"))+"    "+str(toSexagecimal(tel.newcenterDECDeg[0],secFmt="{:08.5f}"))+"  2000.0 PA= "+str(params.pa0[0])+" ##\n")
+            f.write(""+str(params.maskid[0])+"             "+str(toSexagecimal(tel.newcenterRADeg[0]/15., secFmt="{:08.5f}"))+"    "+str(
+                toSexagecimal(tel.newcenterDECDeg[0], secFmt="{:08.5f}"))+"  2000.0 PA= "+str(params.pa0[0])+" ##\n")
             f.write("#\n")
             f.write("#  Guider center:\n")
             f.write("#\n")
             f.write("# Selected Objects:\n")
 #            for i in range(len(selected)):
-            for i,row in enumerate(selected.iterrows()):
-                idx=selected.index[i]
-                f.write(str(selected.objectId[idx])+"       "+str(toSexagecimal(np.degrees(float(selected.raRad[idx].astype(float)))/15.,secFmt="{:08.5f}"))+" "+str(toSexagecimal(np.degrees(float(selected.decRad[idx].astype(float))),secFmt="{:08.5f}"))+" 2000.0 "+str(selected.mag[idx].astype(str))+" "+str(selected.magband[idx])+" "+str(selected.pcode[idx].astype(str))+ " 0 "+str(selected.sel[idx].astype(str))+" "+str(MajAxPA[idx])+" "+str(selected.length1[idx].astype(str))+" "+str(selected.length2[idx].astype(str))+" "+str(selected.slitWidth[idx].astype(str))+"\n")
-
+            for i, row in enumerate(selected.iterrows()):
+                idx = selected.index[i]
+                f.write(str(selected.objectId[idx])+"       "+str(toSexagecimal(np.degrees(float(selected.raRad[idx].astype(float)))/15., secFmt="{:08.5f}"))+" "+str(toSexagecimal(np.degrees(float(selected.decRad[idx].astype(float))), secFmt="{:08.5f}"))+" 2000.0 "+str(selected.mag[idx].astype(
+                    str))+" "+str(selected.magband[idx])+" "+str(selected.pcode[idx].astype(str)) + " 0 "+str(selected.sel[idx].astype(str))+" "+str(MajAxPA[idx])+" "+str(selected.length1[idx].astype(str))+" "+str(selected.length2[idx].astype(str))+" "+str(selected.slitWidth[idx].astype(str))+"\n")
 
             f.write("\n# Selected Guide Stars:\n")
 #            for i in range(len(guides)):
-            for i,row in enumerate(guides.iterrows()):
-                idx=guides.index[i]
-                f.write(str(guides.objectId[idx])+"       "+str(toSexagecimal(np.degrees(float(guides.raRad[idx].astype(float)))/15.,secFmt="{:08.5f}"))+" "+str(toSexagecimal(np.degrees(float(guides.decRad[idx].astype(float))),secFmt="{:08.5f}"))+" 2000.0 "+str(guides.mag[idx].astype(str))+" "+str(guides.magband[idx])+" "+str(guides.pcode[idx].astype(str))+ " 0 "+str(guides.sel[idx].astype(str))+" "+str(gsMajAxPA[idx])+" "+str(guides.length1[idx].astype(str))+" "+str(guides.length2[idx].astype(str))+" "+str(guides.slitWidth[idx].astype(str))+"\n")
-
+            for i, row in enumerate(guides.iterrows()):
+                idx = guides.index[i]
+                f.write(str(guides.objectId[idx])+"       "+str(toSexagecimal(np.degrees(float(guides.raRad[idx].astype(float)))/15., secFmt="{:08.5f}"))+" "+str(toSexagecimal(np.degrees(float(guides.decRad[idx].astype(float))), secFmt="{:08.5f}"))+" 2000.0 "+str(guides.mag[idx].astype(
+                    str))+" "+str(guides.magband[idx])+" "+str(guides.pcode[idx].astype(str)) + " 0 "+str(guides.sel[idx].astype(str))+" "+str(gsMajAxPA[idx])+" "+str(guides.length1[idx].astype(str))+" "+str(guides.length2[idx].astype(str))+" "+str(guides.slitWidth[idx].astype(str))+"\n")
 
             f.write("\n# Non-Selected Objects:\n")
 #            for i in range(len(nonselected)):
-            for i,row in enumerate(nonselected.iterrows()):
-                idx=nonselected.index[i]
-                f.write(str(nonselected.objectId[idx])+"       "+str(toSexagecimal(np.degrees(float(nonselected.raRad[idx].astype(float)))/15.,secFmt="{:08.5f}"))+" "+str(toSexagecimal(np.degrees(float(nonselected.decRad[idx].astype(float))),secFmt="{:08.5f}"))+" 2000.0 "+str(nonselected.mag[idx].astype(str))+" "+str(nonselected.magband[idx])+" "+str(nonselected.pcode[idx].astype(str))+ " 0 "+str(nonselected.sel[idx].astype(str))+" "+str(nsMajAxPA[idx])+" "+str(nonselected.length1[idx].astype(str))+" "+str(nonselected.length2[idx].astype(str))+" "+str(nonselected.slitWidth[idx].astype(str))+"\n")
-
+            for i, row in enumerate(nonselected.iterrows()):
+                idx = nonselected.index[i]
+                f.write(str(nonselected.objectId[idx])+"       "+str(toSexagecimal(np.degrees(float(nonselected.raRad[idx].astype(float)))/15., secFmt="{:08.5f}"))+" "+str(toSexagecimal(np.degrees(float(nonselected.decRad[idx].astype(float))), secFmt="{:08.5f}"))+" 2000.0 "+str(nonselected.mag[idx].astype(
+                    str))+" "+str(nonselected.magband[idx])+" "+str(nonselected.pcode[idx].astype(str)) + " 0 "+str(nonselected.sel[idx].astype(str))+" "+str(nsMajAxPA[idx])+" "+str(nonselected.length1[idx].astype(str))+" "+str(nonselected.length2[idx].astype(str))+" "+str(nonselected.slitWidth[idx].astype(str))+"\n")
 
 
 def _outputAsList(fh, targets):
@@ -529,7 +616,7 @@ class MaskDesignInputFitsFile:
     def _genPcode(self, slits):
         table = {"A": -2, "G": -1, "I": 0, "P": 1}
         return [table.get(t, 0) for t in slits.slitTyp]
-        
+
     def mergeSlitTables(self):
         """
         Returns a dataframe that contains all the slit information.
@@ -537,7 +624,7 @@ class MaskDesignInputFitsFile:
         slitobjmap : object position inside slits
         bluslits: X/Y of 4 corners of the slits
         desislits: RA/DEC coordinate and PAs of the slists
-        
+
         All joined together in a single table: allSlits
 
         """
@@ -600,11 +687,11 @@ class MaskDesignInputFitsFile:
         slits = self.allSlists if slits == None else slits
         return slits[["A" == s for s in slits.slitTyp]]
 
-    def pntCen2MaskCenter (self, config):
+    def pntCen2MaskCenter(self, config):
         """
         Calculates the mask center using the PNT center.
         Returns mask center Ra/dec, and paDeg
-        """               
+        """
         pntX, pntY = config.properties["fldcenx"], config.properties["fldceny"]
         pntRa, pntDec, paDeg = self.getPNTCenter()
 
@@ -613,5 +700,3 @@ class MaskDesignInputFitsFile:
 
         y1 = y1 / cosd
         return pntRa + x1 / 3600, pntDec + y1 / 3600, paDeg
-
-
