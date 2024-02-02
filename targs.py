@@ -1,5 +1,3 @@
-import pandas as pd
-
 import utils
 import json
 import math
@@ -126,27 +124,18 @@ def readRaw(fh, params):
             raRad,
             decRad,
         )
-        out.append(target)
+        out.append(dict(zip(cols, target)))
         cnt += 1
-    df = pd.DataFrame(out, columns=cols)
-    # df["inMask"] = np.zeros_like(df.name)
 
-    fieldcenterRADeg = df.raHour.mean() * 15
-    fieldcenterDEC = df.decDeg.mean()
-
-    return df
+    return out 
 
 
-def toJsonWithInfo(params, tgs, xgaps=[]):
+def to_json_with_info(params, targetList, xgaps=[]):
     """
     Returns the targets and ROI info in JSON format
     """
-    data = [list(tgs[i]) for i in tgs]
-    data1 = {}
-    for i, colName in enumerate(tgs.columns):
-        data1[colName] = data[i]
-    data2 = {"info": getROIInfo(params), "targets": data1, "xgaps": xgaps}
-    return json.dumps(data2)
+    data = {"info": getROIInfo(params), "targets": targetList, "xgaps": xgaps}
+    return json.dumps(data)
 
 
 def getROIInfo(params):
@@ -178,49 +167,28 @@ def getROIInfo(params):
     return out
 
 
-def setColum(targets, colName, value):
-    """
-    Updates the dataframe by column name
-    """
-    targets[colName] = value
-    return targets
-
-
-def findTarget(targets, targetName):
-    """
-    Finds entry with the given targName.
-    Returns idx, or -1 if not found
-    """
-    for i, stg in targets.iterrows():
-        if stg.objectId == targetName:
-            return stg.orgIndex
-    return -1
-
-
-def updateColumn(targets, col, value):
+def update_column(targetList, col, value):
     """
     Used by GUI to change values to an entire column of a target.
     """
 
 
     if col == 'length1' or col == 'length2':
-        targets['length1'] = float(value)
-        targets['length2'] = float(value)
+        targetList = [ {**target, 'length1': float(value), 'length2': float(value)} for target in targetList]
     else:
-        targets[col] = float(value)
-    logger.debug(f'updateColumn {targets[col]}')
-    return targets
+        targetList = [ {**target, col: float(value)} for target in targetList]
+    logger.debug(f'update_column {targetList[col]}')
+    return targetList
 
 
-def updateTarget(targets, jvalues):
+def update_target(targetList, jvalues):
     """
     Used by GUI to change values in a target.
     """
 
-    logger.debug('Running updateTarget')
+    logger.debug('Running update_target')
 
     values = jvalues
-    tgs = targets
 
     pcode = int(values["prior"])
     selected = int(values["selected"])
@@ -238,24 +206,21 @@ def updateTarget(targets, jvalues):
     raRad = math.radians(raHour * 15)
     decRad = math.radians(decDeg)
 
-    idx = findTarget(tgs, targetName)
+    idx = next((index for (index, d) in enumerate(targetList) if d["objectId"] == targetName), None)
 
-    if idx >= 0:
+    if idx:
         # Existing entry
-        tgs.at[idx, "pcode"] = pcode
-        tgs.at[idx, "selected"] = selected
-        tgs.at[idx, "slitLPA"] = slitLPA
-        tgs.at[idx, "slitWidth"] = slitWidth
-        tgs.at[idx, "length1"] = len1
-        tgs.at[idx, "length2"] = len2
-        tgs.at[idx, "mag"] = mag
-        tgs.at[idx, "raHour"] = raHour
-        tgs.at[idx, "decDeg"] = decDeg
-        tgs.at[idx, "raRad"] = raRad
-        tgs.at[idx, "decRad"] = decRad
-
-     # Missing targets=tgs????????
-
+        targetList[idx]["pcode"] = pcode
+        targetList[idx]["selected"] = selected
+        targetList[idx]["slitLPA"] = slitLPA
+        targetList[idx]["slitWidth"] = slitWidth
+        targetList[idx]["length1"] = len1
+        targetList[idx]["length2"] = len2
+        targetList[idx]["mag"] = mag
+        targetList[idx]["raHour"] = raHour
+        targetList[idx]["decDeg"] = decDeg
+        targetList[idx]["raRad"] = raRad
+        targetList[idx]["decRad"] = decRad
     else:
         # Add a new entry
         idx = len(targets.index)
@@ -281,33 +246,18 @@ def updateTarget(targets, jvalues):
             "decRad": decRad,
         }
 
-        targets = tgs.append(newItem, ignore_index=True)
+        targets = targetList.append(newItem)
 
     return targets, idx
 
-
-def deleteTarget(targets, idx):
-    """
-    Remove a row idx from the data frame
-    """
-    tgs = targets
-    logger.debug(f'Index to delete {idx}')
-    if idx < 0:
-        return
-    targets = tgs.drop(tgs.index[idx])
-    return targets
-
-
-def markInside(targets):
+def mark_inside(targetList):
     """
     Sets the inMask flag to 1 (inside) or 0 (outside)
     """
     layout = MaskLayouts['deimos']
     inOutChecker = InOutChecker(layout)
-    tgs = targets
-    inMask = []
-    for i, stg in tgs.iterrows():
-        isIn = 1 if inOutChecker.checkPoint(stg.xarcs, stg.yarcs) else 0
-        inMask.append(isIn)
-    targets["inMask"] = inMask
-    return targets
+    outTargets = [] 
+    for target in targetList:
+        isIn = 1 if inOutChecker.checkPoint(target['xarcs'], target['yarcs']) else 0
+        outTargets.append( {**target, 'inMask': isIn})
+    return outTargets 

@@ -12,7 +12,6 @@ import calcmask
 import plot
 import logging
 from logging import FileHandler, StreamHandler
-import pdb
 
 from utils import schema, validate_params
 
@@ -33,7 +32,7 @@ def launchBrowser(host, portnr, path):
     webbrowser.open(f"http://{host}:{portnr}/{path}", new=1)
 
 
-def check_session(params=('df', 'params')):
+def check_session(params=('targetList', 'params')):
     def decorator(fun):
         def wrapper(*args, **kwargs):
             for prm in params:
@@ -56,24 +55,22 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(
 @check_session
 @app.route('/setColumnValue', methods=["GET", "POST"])
 def setColumnValue():
-    targets = session['df']
+    targetList = session['targetList']
     values = json.loads(request.data.decode().split('=')[2].split('&')[0])
     column = request.data.decode().split('=')[1].split('&')[0]
-    session['df'] = targs.updateColumn(targets, column, values)
-    outp = targs.toJsonWithInfo(session['params'], session['df'])
+    session['targetList'] = targs.update_column(targetList, column, values)
+    outp = targs.to_json_with_info(session['params'], session['targetList'])
     return outp
 
 
 @check_session
 @app.route('/updateTarget', methods=["GET", "POST"])
 def updateTarget():
-    targets = session['df']
+    targetList = session['targetList']
     values = json.loads(request.data.decode().split('=')[1].split('}&')[0]+'}')
-    session['df'], idx = targs.updateTarget(targets, values)
-    outp = targs.toJsonWithInfo(session['params'], session['df'])
-    tgs = json.loads(outp)
-
-    outp = {**tgs, **{'idx': idx}}
+    session['targetList'], idx = targs.update_target(targetList, values)
+    outp = targs.to_json_with_info(session['params'], session['targetList'])
+    outp = {**outp, **{'idx': idx}}
     return outp
 
 
@@ -81,18 +78,20 @@ def updateTarget():
 @app.route('/deleteTarget', methods=["GET", "POST"])
 def deleteTarget():
     idx = int(request.args.get('idx', None))
-    session['df'] = targs.deleteTarget(session['df'], idx)
-    outp = targs.toJsonWithInfo(session['params'], session['df'])
+    targetList = session['targetList']
+    targetList.pop(idx)
+    session['targetList'] = targetList
+    outp = targs.to_json_with_info(session['params'], session['targetList'])
     return outp
 
 
 @check_session
 @app.route('/resetSelection', methods=["GET", "POST"])
 def resetSelection():
-    df = session['df']
+    targetList = session['targetList']
     prms = session['params']
-    df.selected = df.loadselected
-    outp = targs.toJsonWithInfo(prms, df)
+    targetList = [ {**target, 'selected': target['localselected']} for target in targetList]
+    outp = targs.to_json_with_info(prms, targetList)
     return outp
 
 
@@ -100,10 +99,10 @@ def resetSelection():
 @app.route('/getTargetsAndInfo')
 def getTargetsAndInfo():
     try:
-        logger.debug('newdf/getTargetsAndInfo')
-        newdf = calcmask.genObs(session['df'], session['params'])
-        newdf = targs.markInside(newdf)
-        outp = targs.toJsonWithInfo(session['params'], newdf)
+        logger.debug('targetList/getTargetsAndInfo')
+        targetList = calcmask.gen_obs(session['targetList'], session['params'])
+        targetList = targs.mark_inside(targetList)
+        outp = targs.to_json_with_info(session['params'], targetList)
     except Exception as err:
         logger.error(f'Exception {err}')
         outp = ''
@@ -113,10 +112,10 @@ def getTargetsAndInfo():
 @check_session
 @app.route('/generateSlits', methods=["GET", "POST"])
 def generateSlits():
-    df = targs.markInside(session['df'])
-    newdf = calcmask.genSlits(df, session['params'], auto_sel=True)
-    session['df'] = newdf
-    outp = targs.toJsonWithInfo(session['params'], newdf)
+    targetList = targs.mark_inside(session['targetList'])
+    targetList = calcmask.genSlits(targetList, session['params'], auto_sel=True)
+    session['targetList'] = targetList 
+    outp = targs.to_json_with_info(session['params'], targetList)
     return outp
 
 
@@ -124,23 +123,23 @@ def generateSlits():
 @check_session
 @app.route('/recalculateMask', methods=["GET", "POST"])
 def recalculateMask():
-    df = targs.markInside(session['df'])
-    newdf = calcmask.genSlits(df, session['params'], auto_sel=True)
-    session['df'] = newdf
-    outp = targs.toJsonWithInfo(session['params'], newdf)
+    targetList = targs.mark_inside(session['targetList'])
+    targetList = calcmask.genSlits(targetList, session['params'], auto_sel=True)
+    session['targetList'] = targetList 
+    outp = targs.to_json_with_info(session['params'], targetList)
     return outp
 
 
 @check_session
 @app.route('/saveMaskDesignFile', methods=["GET", "POST"])
 def saveMaskDesignFile():  # should only save current rather than re-running everything!
-    df = targs.markInside(session['df'])
+    targetList = targs.mark_inside(session['targetList'])
     params = session['params']
 
-    newdf = calcmask.genMaskOut(df, params)
+    targetList = calcmask.genMaskOut(targetList , params)
     plot.makeplot(params['OutputFits'][0])
-    session['df'] = newdf
-    outp = targs.toJsonWithInfo(params, newdf)
+    session['targetList'] = targetList 
+    outp = targs.to_json_with_info(params, targetList)
     return outp
 
 
@@ -158,17 +157,17 @@ def sendTargets2Server():
             fh.append(line.strip().decode('UTF-8'))
 
         session['file'] = fh
-        df = targs.readRaw(session['file'], prms)
+        targetList = targs.readRaw(session['file'], prms)
         # Only backup selected targets on file load.
-        df['loadselected'] = df.selected
-        session['df'] = df
+        targetList = [ {**target, 'localselected': target['selected']} for target in targetList]
+        session['targetList'] = targetList 
 
         # generate slits
-        newdf = calcmask.genObs(session['df'], session['params'])
-        df = targs.markInside(newdf)
-        newdf = calcmask.genSlits(df, session['params'], auto_sel=True)
-        session['df'] = newdf
-        outp = targs.toJsonWithInfo(session['params'], newdf)
+        targetList = calcmask.gen_obs(session['targetList'], session['params'])
+        targetList = targs.mark_inside(targetList)
+        targetList = calcmask.genSlits(targetList , session['params'], auto_sel=True)
+        session['targetList '] = targetList 
+        outp = targs.to_json_with_info(session['params'], targetList)
     return outp
 
 

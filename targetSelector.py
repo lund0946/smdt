@@ -50,12 +50,10 @@ class TargetSelector:
         tgs = self.targets
         tgs["oldIndex"] = range(0, tgs.shape[0])
         tgs.sort_values(by=["pcode", "xarcs"], ascending=(False, True), inplace=True)
-        #self.targets = tgs.reset_index(drop=True)
         self.targets = tgs
 
     def restoreIndex(self):
         self.targets.sort_values(by="oldIndex", ignore_index=True, inplace=True)
-        #self.targets = self.targets.reset_index(drop=True)
 
     def _canFit(self, xgaps, xpos, slitLength, minSep):
         """
