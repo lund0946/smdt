@@ -99,7 +99,7 @@ def init_dicts(targetList, params):
     w = waver/10000.  # reference wavelength conv. to micron
 
     obs = []
-    for idx in range(len(raRad))
+    for idx in range(len(raRad)):
         ob = {'objectId': objectId[idx],
             'ra0_fld': ra0_fld,
             'dec0_fld': dec0_fld,

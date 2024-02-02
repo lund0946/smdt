@@ -24,96 +24,49 @@ function TargetTable(targets) {
 		['Len2', 50, 'length2', 0],
 		['SlitWidth', 60, 'slitWidth', 0],
 		['In', 35, 'inMask', 0],
-	];
+	].map(function (x) {
+		return {label: x[0], width: x[1], key: x[2], dir: x[3]};
+	});
 
 	self.showTable = function () {
 		// columns: name, width, up/down:-1,0,1
 
-		let i;
-		let columns = self.columns;
 		let sum = 0;
 		let bufHeader = [];
 		let buf = []
 
 		// Build the header row
-		for (i in columns) {
-			let col = columns[i];
-			let label = col[0];
-			let width = col[1];
-			let dir = col[3];
+		for (col of self.columns) {
 			let arrow = '';
-			if (dir > 0) arrow = ' &#9650; ';
-			if (dir < 0) arrow = ' &#9660; ';
-			bufHeader.push("<th width='" + width + "px' id='sortIdx" + i + "'>" + label + arrow + "</td>");
-			sum += width;
+			if (col.dir > 0) arrow = ' &#9650; ';
+			if (col.dir < 0) arrow = ' &#9660; ';
+			bufHeader.push("<th width='" + col.width + "px' id='sortIdx" + i + "'>" + col.label + arrow + "</td>");
+			sum += col.width;
 		}
 		self.tableWidth = sum;
-		//sum += 25;
-
-		//buf.push("<table id='targetTable' style='width:"+ sum + "px'>");
 		buf.push("<table id='targetTable'>");
 		buf.push("<thead><tr>");
 		buf.push(bufHeader.join(''));
 		buf.push("</tr></thead>");
 		buf.push("<tbody id='targetTableBody'>");
 
-		//buf.push("<tr>");
-		//buf.push (bufHeader.join(''));
 
-		if (targets) {
-			let orgIndex = targets.orgIndex;
-			let names = targets.objectId;
-			let raHours = targets.raSexa;
-			let decDegs = targets.decSexa;
-			let pcodes = targets.pcode;
-			let selecteds = targets.selected;
-			let inMask = targets.inMask;
-			let slitPAs = targets.slitLPA;
-			let mags = targets.mag;
-			let bands = targets.pBand;
-			let len1s = targets.rlength1;
-			let len2s = targets.rlength2;
-			let slitWidths = targets.slitWidth;
-
+		for (let idx=0; idx < targets.length; ++idx) {
 			// Table body content
-			let idx;
-			let i;
-			let sortedIdx = self.sortIndices;
-			for (idx in names) {
-				i = sortedIdx[idx];
-				let k = 0;
-				let tId = "target" + i;
-				// 
-				// Alternating color is done in CSS with tr:nth-child(even) and tr:nth-child(odd) 			
-				//
-				buf.push("<tr id='" + tId + "'>");
-				buf.push("<td width='" + columns[k][1] + "px'>" + (orgIndex[i] + 1));
-				k += 1;
-				buf.push("<td width='" + columns[k][1] + "px'>" + names[i]);
-				k += 1;
-				buf.push("<td width='" + columns[k][1] + "px'>" + raHours[i]);
-				k += 1;
-				buf.push("<td width='" + columns[k][1] + "px'>" + decDegs[i]);
-				k += 1;
-				buf.push("<td width='" + columns[k][1] + "px'>" + mags[i].toFixed(2));
-				k += 1;
-				buf.push("<td width='" + columns[k][1] + "px'>" + bands[i]);
-				k += 1;
-				buf.push("<td width='" + columns[k][1] + "px'>" + pcodes[i]);
-				k += 1;
-				buf.push("<td width='" + columns[k][1] + "px'>" + selecteds[i]);
-				k += 1;
-				buf.push("<td width='" + columns[k][1] + "px'>" + slitPAs[i]);
-				k += 1;
-				buf.push("<td width='" + columns[k][1] + "px'>" + len1s[i].toFixed(2));
-				k += 1;
-				buf.push("<td width='" + columns[k][1] + "px'>" + len2s[i].toFixed(2));
-				k += 1;
-				buf.push("<td width='" + columns[k][1] + "px'>" + slitWidths[i].toFixed(2));
-				k += 1;
-				buf.push("<td width='" + columns[k][1] + "px'>" + inMask[i]);
-				buf.push("</tr>");
+			const sortedIdx = self.sortedIndices[idx];
+			const tgt = targets[sortedIdx];
+			let tId = "target" + sortedIdx;
+			// 
+			// Alternating color is done in CSS with tr:nth-child(even) and tr:nth-child(odd) 			
+			//
+			buf.push("<tr id='" + tId + "'>");
+			const nums = ['mag', 'rlength1', 'rlength2', 'slitWidth']
+			for (let kdx = 0 ; kdx < self.columns.length; ++kdx) {
+				const col = self.columns[kdx];
+				const val = nums.includes(tgt[col.key]) ? tgt[col.key].toFixed(2) : tgt[col.key];
+				buf.push("<td width='" + col.width + "px'>" + val);
 			}
+			buf.push("</tr>");
 		}
 		buf.push("</tbody></table>");
 
@@ -216,19 +169,19 @@ function TargetTable(targets) {
 		if (!self.targets) return;
 
 		let targets = self.targets;
-		let i;
 		let info = self.columns[Math.max(idx, 0)];
-		let dataCol = targets[info[2]];
+		console.log('info', info, 'columns', self.columns, 'targets', targets)
+		let dataCol = targets[info.key];
 		let indices = new Array(dataCol.length);
-		let upDown = info[3];
+		let upDown = info.dir;
 
 		// Remember original sort order
-		for (i = 0; i < dataCol.length; ++i) {
+		for (let i = 0; i < dataCol.length; ++i) {
 			indices[i] = i;
 		}
 
 		// Reset all sort flags
-		for (i = 0; i < self.columns.length; ++i) {
+		for (let i = 0; i < self.columns.length; ++i) {
 			self.columns[i][3] = 0;
 		}
 
@@ -237,10 +190,10 @@ function TargetTable(targets) {
 			// Check sort order up or down
 			if (upDown >= 0) {
 				indices.sort(sortUp);
-				info[3] = -1;
+				info.dir = -1;
 			} else {
 				indices.sort(sortDown);
-				info[3] = 1;
+				info.dir = 1;
 			}
 		}
 
