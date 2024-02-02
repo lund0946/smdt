@@ -128,7 +128,21 @@ class MaskDesignOutputFitsFile:
         - Table rdbmap: field name mapping to database
 
         """
+
+        targetList['slitIdx']=-1
+        targetList['objectIndex']=-1
+        cnto=0
+        cnts=0
+        for i,row in enumerate(targetList.iterrows()):
+            if targetList.sel[i]==1:
+                targetList.objectIndex[i]=cnto
+                cnto=cnto+1
+                if targetList.pcode[i]!=-1:
+                    targetList.slitIdx[i]=cnts
+                    cnts=cnts+1
+
         self.targetList = targetList
+
         self.site = site
         self.params = params
         self.tel = tel  ### <<<------ should be telescope only info like ra0_fld pa0_fld, etc, and not the targetlist stuff
@@ -146,16 +160,18 @@ class MaskDesignOutputFitsFile:
         zeros = [0] * nTargets
         objClass = [objClassTable[min(3, p + 2)] for p in selected.pcode]
         MajAxPA = np.degrees(selected.slitLPA)
+#        nSlits = selected.shape[0]
 
         for i,row in enumerate(selected.iterrows()):
             idx=selected.index[i]
             if selected.pcode[idx]==-2:
                 MajAxPA[idx]=self.params.pa0[0]
+            if len(selected.magband[idx])>1:
+                selected.magband[idx]=selected.magband[idx][0]
 
 
-
-        cols.append(pf.Column(name="ObjectId", format="I6", null="-9999", unit="None", array=selected.index))
-        cols.append(pf.Column(name="OBJECT", format="A68", null="INDEF", unit="None", array=selected.objectId))                            
+        cols.append(pf.Column(name="ObjectId", format="I6", null="-9999", unit="None", array=selected.objectIndex)) 
+        cols.append(pf.Column(name="OBJECT", format="A68", null="INDEF", unit="None", array=selected.objectId))        
         cols.append(pf.Column(name="RA_OBJ", format="F12.8", null="-9999.000000", unit="deg", array=np.degrees(selected.raRad)))
         cols.append(pf.Column(name="DEC_OBJ", format="F12.8", null="-9999.000000", unit="deg", array=np.degrees(selected.decRad)))
         cols.append(pf.Column(name="RADESYS", format="A8", null="INDEF", unit="None",array=[""]))
@@ -248,17 +264,17 @@ class MaskDesignOutputFitsFile:
         params=self.params
         tel=self.tel
         cols = []
-        selected = tlist[tlist.sel == 1]
+        selected = tlist[(tlist.sel == 1) & (tlist.pcode !=-1)]
 
         nSlits = selected.shape[0]
         if nSlits > 0:
             slitTypeTable = ("A", "G", "I", "P")
 
-            slitNames = [("%03d" % x) for x in range(nSlits)]
+            slitNames = [("%03d" % x) for x in selected.slitIdx]
             slitTypes = [slitTypeTable[min(3, p + 2)] for p in selected.pcode]
             slitLengths = [(l1 + l2) for l1, l2 in zip(selected.rlength1, selected.rlength2)]
 
-            cols.append(pf.Column(name="dSlitId", format="I11", null="-9999", unit="None", array=selected.slitIndex))
+            cols.append(pf.Column(name="dSlitId", format="I11", null="-9999", unit="None", array=selected.slitIdx))  
             cols.append(pf.Column(name="DesId", format="I11", null="-9999", unit="None", array=[1] * nSlits))
             cols.append(pf.Column(name="SlitName", format="A20", null="None", unit="None", array=slitNames))                                ######dbl check
             cols.append(pf.Column(name="slitRA", format="F12.8", null="-9999.000000", unit="deg", array=np.degrees(selected.raRadU)))
@@ -276,12 +292,12 @@ class MaskDesignOutputFitsFile:
         """
         cols = []
         tlist = self.targetList
-        selected = tlist[tlist.sel == 1]
+        selected = tlist[(tlist.sel == 1) & (tlist.pcode !=-1)]
         nSlits = selected.shape[0]
         if nSlits > 0:
             cols.append(pf.Column(name="DesId", format="I11", null="-9999", unit="None", array=[1] * nSlits,))
-            cols.append(pf.Column(name="ObjectId", format="I11", null="-9999", unit="None", array=selected.index)) 
-            cols.append(pf.Column(name="dSlitId", format="I11", null="-9999", unit="None", array=selected.slitIndex)) 
+            cols.append(pf.Column(name="ObjectId", format="I11", null="-9999", unit="None", array=selected.objectIndex)) 
+            cols.append(pf.Column(name="dSlitId", format="I11", null="-9999", unit="None", array=selected.slitIdx)) 
             cols.append(pf.Column(name="TopDist", format="F11.3", null="-9999.000", unit="arcsec", array=selected.rlength1))
             cols.append(pf.Column(name="BotDist", format="F11.3", null="-9999.000", unit="arcsec", array=selected.rlength2))
 
@@ -333,12 +349,12 @@ class MaskDesignOutputFitsFile:
         tlist = self.targetList
         params = self.params
         cols = []
-        selected = tlist[tlist.sel == 1]
+        selected = tlist[(tlist.sel == 1) & (tlist.pcode !=-1)]
         nSlits = selected.shape[0]
         if nSlits > 0:
-            cols.append(pf.Column(name="bSlitId", format="I11", null="-9999", unit="None", array=range(nSlits)))
+            cols.append(pf.Column(name="bSlitId", format="I11", null="-9999", unit="None", array=selected.slitIdx))
             cols.append(pf.Column(name="BluId", format="I11", null="-9999", unit="None", array=[1] * nSlits))
-            cols.append(pf.Column(name="dSlitId", format="I11", null="-9999", unit="None", array=range(nSlits)))
+            cols.append(pf.Column(name="dSlitId", format="I11", null="-9999", unit="None", array=selected.slitIdx))
             cols.append(pf.Column(name="slitX1", format="F9.3", null="0.000", unit="mm", array=selected.slitX1))
             cols.append(pf.Column(name="slitY1", format="F9.3", null="0.000", unit="mm", array=selected.slitY1))
             cols.append(pf.Column(name="slitX2", format="F9.3", null="0.000", unit="mm", array=selected.slitX2))
