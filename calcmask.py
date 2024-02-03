@@ -120,7 +120,7 @@ def init_dicts(targetList, params):
             'magband': magband[idx],
             'sel': sel[idx]
             }
-    obs.append(ob)
+        obs.append(ob)
     site = {'lat': lat, 'htm': htm, 'tdk': tdk, 'pmb': pmb,
             'rel_h20': rel_h20, 'w': w, 'wavemn': wavemn, 'wavemx': wavemx}
 
@@ -674,12 +674,10 @@ def proj_to_mask(xp, yp, ap):
 
 
 def gen_obs(targetList, fileparams):
-
     obs, site = init_dicts(targetList, fileparams)
-    obs= refr_coords(obs, site)
+    obs = refr_coords(obs, site)
     obs = fld2telax(obs, 'ra_fldR', 'dec_fldR', 'ra_telR', 'dec_telR')
     obs = tel_coords(obs, 'raRadR', 'decRadR', 'ra_telR', 'dec_telR')
-
     slit = gen_slits_from_obs(obs, False, False)
     slit = sky_coords(slit)
     targetListOut = []

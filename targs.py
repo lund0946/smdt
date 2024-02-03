@@ -177,7 +177,7 @@ def update_column(targetList, col, value):
         targetList = [ {**target, 'length1': float(value), 'length2': float(value)} for target in targetList]
     else:
         targetList = [ {**target, col: float(value)} for target in targetList]
-    logger.debug(f'update_column {targetList[col]}')
+    logger.debug(f'update_column {col}')
     return targetList
 
 
@@ -245,6 +245,7 @@ def update_target(targetList, jvalues):
             "raRad": raRad,
             "decRad": decRad,
         }
+        
 
         targets = targetList.append(newItem)
 

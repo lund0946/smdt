@@ -26,7 +26,6 @@ function SlitmaskDesignTool() {
 		}
 		for (let [key, props] of Object.entries(sortedProps)) {
 			const type = props.type.includes('number') ? 'number': 'text';
-			console.log('key', 'default', props.default, 'type', type)
 			txt = `<tr><td> ${props.label} :<td><input ftype=${type} id="${key}fd" name="${key}" value="${props.default}"><td>${props.description}`;
 			buf.push(txt);
 		}
@@ -79,7 +78,6 @@ function SlitmaskDesignTool() {
 		let formJson= {};
 		Array.from(form2.elements).forEach((input) => {
 			if (input.getAttribute('ftype')) {
-				console.log('setting to number', input.name, Number(input.value))
 				if (input.getAttribute('ftype') == 'number') {
 					formJson[input.name] = Number(input.value);
 				}
@@ -219,29 +217,23 @@ function SlitmaskDesignTool() {
                 // Updates params.
                 // Sends params to server
                 let maskpa =  Number(E('MaskPAfd').value)
-                self.canvasShow.setMaskPA(maskpa);
                 let form2 = E('form2');
                 form2.submit();
-                self.canvasShow.setMaskPA(maskpa);
         };
 
 
 
 
 
-	self.setMaskPA = function (evt) {
-		let pa = Number(E('MaskPAfd').value);
-		self.canvasShow.setMaskPA(pa);
-	};
 
 	self.setSlitsPA = function (evt) {
 		let pa = Number(E('SlitPAfd').value);
 		let tgs = self.canvasShow.targets;
-		let ntgs = tgs.length1.length;
+		let ntgs = tgs.length;
 		let i;
 		for (i = 0; i < ntgs; ++i) {
-			if (tgs.pcode[i] <= 0) continue;
-			tgs.slitLPA[i] = pa;
+			if (tgs[i].pcode <= 0) continue;
+			tgs[i].slitLPA = pa;
 		}
 		self.canvasShow.reDrawTable();
 		self.redraw();
@@ -257,16 +249,16 @@ function SlitmaskDesignTool() {
 		let ahalf = 0.5 * asize;
 		let halfLen = 0.5 * Number(E('MinSlitLengthfd').value);
 		let tgs = self.canvasShow.targets;
-		let ntgs = tgs.length1.length;
+		let ntgs = tgs.length;
 		let i;
 		for (i = 0; i < ntgs; ++i) {
-			if (tgs.pcode[i] <= 0) {
-				tgs.length1[i] = ahalf;
-				tgs.length2[i] = ahalf;
+			if (tgs[i].pcode <= 0) {
+				tgs[i].length1 = ahalf;
+				tgs[i].length2 = ahalf;
 			}
 			else {
-				tgs.length1[i] = halfLen;
-				tgs.length2[i] = halfLen;
+				tgs[i].length1 = halfLen;
+				tgs[i].length2 = halfLen;
 			}
 		}
 		self.canvasShow.reDrawTable();
@@ -286,11 +278,11 @@ function SlitmaskDesignTool() {
 	self.setSlitsWidth = function (evt) {
 		let width = Number(E('SlitWidthfd').value);
 		let tgs = self.canvasShow.targets;
-		let ntgs = tgs.length1.length;
+		let ntgs = tgs.length;
 		let i;
 		for (i = 0; i < ntgs; ++i) {
-			if (tgs.pcode[i] <= 0) continue;
-			tgs.slitWidth[i] = width;
+			if (tgs[i].pcode <= 0) continue;
+			tgs[i].slitWidth = width;
 		}
 		self.canvasShow.reDrawTable();
 		self.redraw();
@@ -303,11 +295,11 @@ function SlitmaskDesignTool() {
 
 	self.clearSelection = function (evt) {
 		let tgs = self.canvasShow.targets;
-		let ntgs = tgs.length1.length;
+		let ntgs = tgs.length;
 		let i;
 		for (i = 0; i < ntgs; ++i) {
-			if (tgs.pcode[i] <= 0) continue;
-			tgs.selected[i] = 0;
+			if (tgs[i].pcode <= 0) continue;
+			tgs[i].selected = 0;
 		}
 		self.canvasShow.reDrawTable();
 		self.canvasShow.slitsReady = 0;
@@ -643,7 +635,6 @@ function SlitmaskDesignTool() {
 	E('showByPriority').onchange = self.redraw;
 
 	E('setSlitsPA').onclick = self.setSlitsPA;
-	E('setMaskPA').onclick = self.setMaskPA;
 	E('setSlitsLength').onclick = self.setSlitsLength;
 	E('setSlitsWidth').onclick = self.setSlitsWidth;
         E('updateParams').onclick = self.sendParamUpdate;

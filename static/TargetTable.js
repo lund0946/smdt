@@ -28,6 +28,9 @@ function TargetTable(targets) {
 		return {label: x[0], width: x[1], key: x[2], dir: x[3]};
 	});
 
+	self.sortedIndices = new Array(self.targets.length);
+	self.reverseIndices = new Array(self.targets.length);
+
 	self.showTable = function () {
 		// columns: name, width, up/down:-1,0,1
 
@@ -36,7 +39,8 @@ function TargetTable(targets) {
 		let buf = []
 
 		// Build the header row
-		for (col of self.columns) {
+		for (i in self.columns) {
+			const col = self.columns[i]
 			let arrow = '';
 			if (col.dir > 0) arrow = ' &#9650; ';
 			if (col.dir < 0) arrow = ' &#9660; ';
@@ -168,21 +172,19 @@ function TargetTable(targets) {
 
 		if (!self.targets) return;
 
-		let targets = self.targets;
 		let info = self.columns[Math.max(idx, 0)];
-		console.log('info', info, 'columns', self.columns, 'targets', targets)
-		let dataCol = targets[info.key];
-		let indices = new Array(dataCol.length);
+		let dataCol = self.targets.map( (x) => x[info.key]);
+		let indices = new Array(self.columns);
 		let upDown = info.dir;
 
 		// Remember original sort order
-		for (let i = 0; i < dataCol.length; ++i) {
+		for (let i = 0; i < self.targets.length; ++i) {
 			indices[i] = i;
 		}
 
 		// Reset all sort flags
 		for (let i = 0; i < self.columns.length; ++i) {
-			self.columns[i][3] = 0;
+			self.columns[i].dir = 0;
 		}
 
 		// idx < 0 means original order, same as no sort
@@ -201,15 +203,14 @@ function TargetTable(targets) {
 		for (i = 0; i < indices.length; ++i) {
 			self.reverseIndices[indices[i]] = i;
 		}
-		self.sortIndices = indices;
+		console.log('sortedIndicies', self.sortedIndices, 'indices', indices)
+		self.sortedIndices = indices;
 
 		// Call the caller supplied function.
 		self.reDrawTargetTable();
 	};
 
-	self.sortIndices = new Array(self.targets.length);
-	self.reverseIndices = new Array(self.targets.length);
-	self.sortTable(-1);
+	self.sortTable(0);
 
 	return self;
 }
