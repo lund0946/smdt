@@ -724,7 +724,7 @@ def genSlits(targetList, fileparams, auto_sel=True):
                 'slitY1', 'slitY2', 'slitY3', 'slitY4',
                 'arcslitX1', 'arcslitX2', 'arcslitX3', 'arcslitX4',
                 'arcslitX1', 'arcslitX2', 'arcslitX3', 'arcslitX4']
-    obsKeys = ['length1', 'length2', 'xarcs', 'yarcs', 'objectId']
+    obsKeys = ['length1', 'length2', 'xarcs', 'yarcs', 'objectId', 'ra_fldR', 'dec_fldR']
     outTargetList = combine_target_with_slit_and_obs(targetList, slit, obs, slitKeys, obsKeys)
 
     return outTargetList 

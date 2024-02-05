@@ -127,7 +127,21 @@ class MaskDesignOutputFitsFile:
         - Table rdbmap: field name mapping to database
 
         """
+
+        targetList['slitIdx']=-1
+        targetList['objectIndex']=-1
+        cnto=0
+        cnts=0
+        for i,row in enumerate(targetList.iterrows()):
+            if targetList.sel[i]==1:
+                targetList.objectIndex[i]=cnto
+                cnto=cnto+1
+                if targetList.pcode[i]!=-1:
+                    targetList.slitIdx[i]=cnts
+                    cnts=cnts+1
+
         self.targetList = targetList
+
         self.site = site
         self.params = params
         self.tel = tel  # <<<------ should be telescope only info like ra0_fld pa0_fld, etc, and not the targetlist stuff
@@ -146,11 +160,14 @@ class MaskDesignOutputFitsFile:
         zeros = [0] * nTargets
         objClass = [objClassTable[min(3, p + 2)] for p in selected.pcode]
         MajAxPA = np.degrees(selected.slitLPA)
+#        nSlits = selected.shape[0]
 
         for i, row in enumerate(selected.iterrows()):
             idx = selected.index[i]
             if selected.pcode[idx] == -2:
                 MajAxPA[idx] = self.params.pa0[0]
+            if len(selected.magband[idx])>1:
+                selected.magband[idx]=selected.magband[idx][0]
 
         cols.append(pf.Column(name="ObjectId", format="I6",
                     null="-9999", unit="None", array=selected.index))
@@ -277,13 +294,13 @@ class MaskDesignOutputFitsFile:
         params = self.params
         tel = self.tel
         cols = []
-        selected = tlist[tlist.sel == 1]
+        selected = tlist[(tlist.sel == 1) & (tlist.pcode !=-1)]
 
         nSlits = selected.shape[0]
         if nSlits > 0:
             slitTypeTable = ("A", "G", "I", "P")
 
-            slitNames = [("%03d" % x) for x in range(nSlits)]
+            slitNames = [("%03d" % x) for x in selected.slitIdx]
             slitTypes = [slitTypeTable[min(3, p + 2)] for p in selected.pcode]
             slitLengths = [(l1 + l2)
                            for l1, l2 in zip(selected.length1, selected.length2)]
@@ -316,7 +333,7 @@ class MaskDesignOutputFitsFile:
         """
         cols = []
         tlist = self.targetList
-        selected = tlist[tlist.sel == 1]
+        selected = tlist[(tlist.sel == 1) & (tlist.pcode !=-1)]
         nSlits = selected.shape[0]
         if nSlits > 0:
             cols.append(pf.Column(name="DesId", format="I11",
@@ -394,7 +411,7 @@ class MaskDesignOutputFitsFile:
         """
         tlist = self.targetList
         cols = []
-        selected = tlist[tlist.sel == 1]
+        selected = tlist[(tlist.sel == 1) & (tlist.pcode !=-1)]
         nSlits = selected.shape[0]
         if nSlits > 0:
             cols.append(pf.Column(name="bSlitId", format="I11",
@@ -489,9 +506,6 @@ class MaskDesignOutputFitsFile:
         tel = self.tel
         tlist = self.targetList
 
-        import pickle as pkl
-        with open('tlist.pkl', 'wb') as f:
-            pkl.dump(tlist, f)
 
         selected = tlist[(tlist.sel == 1) & (tlist.pcode != -1)]
         objClassTable = ("Alignment_Star", "Guide_Star",

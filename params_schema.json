@@ -48,13 +48,13 @@
             "type": "string",
             "description": "Designer of mask",
             "label": "Author",
-            "default": "Keck Observatory"
+            "default": "Mask Designer <email@keck.hawaii.edu>"
         },
         "Observer": {
             "type": "string",
             "description": "Observer name",
             "label": "Observer",
-            "default": "Observer Name"
+            "default": "Observer Name <email@keck.hawaii.edu>"
         },
         "MaskId": {
             "type": "string",
