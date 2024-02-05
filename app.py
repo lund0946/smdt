@@ -116,15 +116,6 @@ def generateSlits():
     targetList = calcmask.genSlits(targetList, session['params'], auto_sel=True)
     session['targetList'] = targetList 
     outp = targs.to_json_with_info(session['params'], targetList)
-    global df
-    global prms
-    params=prms
-    df=targs.markInside(df)
-    newdf=calcmask.genSlits(df,params,auto_sel=False)
-    mask = ml.MaskLayouts["deimos"]
-    minX, maxX = np.min(mask, axis=0)[0], np.max(mask, axis=0)[0]
-    df=newdf
-    outp=targs.toJsonWithInfo(params,newdf)
     return outp
 
 
