@@ -86,12 +86,12 @@ function SlitmaskDesignTool() {
 				}
 			}
 		  });
-		  console.log('formJson', formJson)
 
 		const param_update_callback = function(data) {
-			if (!data.includes('OK')) {
+			if (!data.status?.includes('OK')) {
 				alert(data)
 			}
+			generate_slitmask_callback(data);
 		}
 
 		const ajax = new AjaxClass()
@@ -553,6 +553,11 @@ function SlitmaskDesignTool() {
 
 	self.saveMDF = function (evt) {
 		function callbackSave(data) {
+			console.log('evt', evt, 'data', data)
+			if (data.status != 'OK') {
+				alert(`Error saving file: ${data.msg}`)
+				return
+			}
 			let fname = data.params.OutputFits;
 			let fstr = `Fits file<br><b>${fname}</b> successfully saved`;
 			self.showDiv("savePopup", `${fstr}`);

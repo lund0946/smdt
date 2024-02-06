@@ -203,7 +203,6 @@ function TargetTable(targets) {
 		for (i = 0; i < indices.length; ++i) {
 			self.reverseIndices[indices[i]] = i;
 		}
-		console.log('sortedIndicies', self.sortedIndices, 'indices', indices)
 		self.sortedIndices = indices;
 
 		// Call the caller supplied function.

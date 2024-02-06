@@ -135,7 +135,7 @@ def to_json_with_info(params, targetList, xgaps=[]):
     Returns the targets and ROI info in JSON format
     """
     data = {"params": params, "info": getROIInfo(params), "targets": targetList, "xgaps": xgaps}
-    return json.dumps(data)
+    return data 
 
 
 def getROIInfo(params):

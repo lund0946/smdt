@@ -5,16 +5,16 @@ from threading import Timer
 from flask.logging import default_handler
 from flask_session import Session
 import webbrowser
+import numpy as np
 import maskLayouts as ml
 import json
-import re
 import targs
 import calcmask
 import plot
 import logging
 from logging import FileHandler, StreamHandler
 
-from utils import schema, validate_params
+from utils import schema, validate_params, toSexagecimal, sexg2Float
 
 logger = logging.getLogger('smdt')
 formatter = logging.Formatter(
@@ -71,7 +71,7 @@ def updateTarget():
     values = json.loads(request.data.decode().split('=')[1].split('}&')[0]+'}')
     session['targetList'], idx = targs.update_target(targetList, values)
     outp = targs.to_json_with_info(session['params'], session['targetList'])
-    outp = {**json.loads(outp), 'idx': idx}
+    outp = {**outp, 'idx': idx}
     return outp
 
 
@@ -106,7 +106,7 @@ def getTargetsAndInfo():
         outp = targs.to_json_with_info(session['params'], targetList)
     except Exception as err:
         logger.error(f'Exception {err}')
-        outp = ''
+        outp = {'status': 'ERR', 'msg': str(err)} 
     return outp
 
 
@@ -134,13 +134,16 @@ def recalculateMask():
 @check_session
 @app.route('/saveMaskDesignFile', methods=["GET", "POST"])
 def saveMaskDesignFile():  # should only save current rather than re-running everything!
-    targetList = targs.mark_inside(session['targetList'])
-    params = session['params']
-
-    targetList = calcmask.gen_mask_out(targetList , params)
-    plot.makeplot(params['OutputFits'])
-    session['targetList'] = targetList 
-    outp = targs.to_json_with_info(params, targetList)
+    try:
+        targetList = targs.mark_inside(session['targetList'])
+        params = session['params']
+        targetList = calcmask.gen_mask_out(targetList , params)
+        plot.makeplot(params['OutputFits'])
+        session['targetList'] = targetList 
+        outp = {'status': 'OK', **targs.to_json_with_info(params, targetList)}
+    except Exception as err:
+        logger.error(f'Exception {err}')
+        outp = {'status': 'ERR', 'msg': str(err)}
     return outp
 
 
@@ -148,27 +151,34 @@ def saveMaskDesignFile():  # should only save current rather than re-running eve
 # @check_session(params=['params', 'file'])
 @app.route('/sendTargets2Server', methods=["GET", "POST"])
 def sendTargets2Server():
+    uploaded_file = request.files['targetList']
+    if not uploaded_file.filename != '':
+        return
     prms = request.form.to_dict()
     prms = {k.replace('fd', ''): v for k, v in prms.items()}
     fh = []
+    for line in uploaded_file.stream:
+        fh.append(line.strip().decode('UTF-8'))
+
+    targetList = targs.readRaw(fh, prms)
+    # Only backup selected targets on file load.
+    targetList = [ {**target, 'localselected': target['selected']} for target in targetList]
+
+    # generate slits
+    targetList = calcmask.gen_obs(targetList, prms)
+    targetList = targs.mark_inside(targetList)
+    targetList = calcmask.genSlits(targetList , prms, auto_sel=True)
     session['params'] = prms
-    uploaded_file = request.files['targetList']
-    if uploaded_file.filename != '':
-        for line in uploaded_file.stream:
-            fh.append(line.strip().decode('UTF-8'))
+    session['targetList'] = targetList 
+    session['file'] = fh
+    raMedian = np.median([target['raHour'] for target in targetList])
+    decMedian = np.median([target['decDeg'] for target in targetList])
+    session['params'] = {**prms, 
+                            'InputRA': toSexagecimal(raMedian), 
+                            'InputDEC': toSexagecimal(decMedian),
+                            }
 
-        session['file'] = fh
-        targetList = targs.readRaw(session['file'], prms)
-        # Only backup selected targets on file load.
-        targetList = [ {**target, 'localselected': target['selected']} for target in targetList]
-        session['targetList'] = targetList 
-
-        # generate slits
-        targetList = calcmask.gen_obs(session['targetList'], session['params'])
-        targetList = targs.mark_inside(targetList)
-        targetList = calcmask.genSlits(targetList , session['params'], auto_sel=True)
-        session['targetList '] = targetList 
-        outp = targs.to_json_with_info(session['params'], targetList)
+    outp = targs.to_json_with_info(session['params'], targetList)
     return outp
 
 
@@ -179,7 +189,9 @@ def updateParams4Server():
     if not ok:
         return [str(x) for x in prms ]
     session['params'] = prms
-    return 'OK'
+    outp = targs.to_json_with_info(session['params'], session['targetList'])
+    outp = {**outp, 'status': 'OK'}
+    return outp
 
 
 # Loads original params
