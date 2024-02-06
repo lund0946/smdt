@@ -67,7 +67,6 @@ def setColumnValue():
 @check_session
 @app.route('/updateTarget', methods=["GET", "POST"])
 def updateTarget():
-    pdb.set_trace()
     targetList = session['targetList']
     values = json.loads(request.data.decode().split('=')[1].split('}&')[0]+'}')
     session['targetList'], idx = targs.update_target(targetList, values)
@@ -102,7 +101,6 @@ def resetSelection():
 def getTargetsAndInfo():
     try:
         logger.debug('targetList/getTargetsAndInfo')
-        pdb.set_trace()
         targetList = calcmask.gen_obs(session['targetList'], session['params'])
         targetList = targs.mark_inside(targetList)
         outp = targs.to_json_with_info(session['params'], targetList)
@@ -139,7 +137,7 @@ def saveMaskDesignFile():  # should only save current rather than re-running eve
     targetList = targs.mark_inside(session['targetList'])
     params = session['params']
 
-    targetList = calcmask.genMaskOut(targetList , params)
+    targetList = calcmask.gen_mask_out(targetList , params)
     plot.makeplot(params['OutputFits'])
     session['targetList'] = targetList 
     outp = targs.to_json_with_info(params, targetList)

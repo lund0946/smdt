@@ -553,30 +553,9 @@ function SlitmaskDesignTool() {
 
 	self.saveMDF = function (evt) {
 		function callbackSave(data) {
-			let fname = data['fitsname'];
-			let lname = data['listname']
-			let path = data['path'];
-			let errstr = data['errstr'];
-			let fbackup = data['fbackup'];
-			let lbackup = data['lbackup'];
-                        errstr = "OK";
-			if (errstr != "OK") {
-				alert(`Failed to save mask design ${mdFile}`);
-				return;
-			}
-			let fbstr = "";
-			if (fbackup != null) {
-				fbstr = `<br>Backup file:  <b>${fbackup}</b>`;
-			}
-			let lbstr = "";
-			if (lbackup != null) {
-				lbstr = `<br>Backup file: <b>${lbackup}</b>`;
-			}
-			let fstr = `Fits file<br><b>${fname}</b> successfully saved to <b>${path}</b> ${fbstr}`;
-			let lstr = `Target list<br><b>${lname}</b> successfully saved to <b>${path}</b> ${lbstr}`;
-
-			self.showDiv("savePopup", `${fstr}<br><br>${lstr}`);
-
+			let fname = data.params.OutputFits;
+			let fstr = `Fits file<br><b>${fname}</b> successfully saved`;
+			self.showDiv("savePopup", `${fstr}`);
 		}
 
 		function callback(data) {

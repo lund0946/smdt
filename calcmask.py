@@ -740,14 +740,14 @@ def combine_target_with_slit_and_obs(targetList, slit, obs, slitKeys, obsKeys):
         outTargetList.append(tgt)
     return outTargetList
 
-def genMaskOut(targetList, fileparams):
+def gen_mask_out(targetList, fileparams):
 
     targetList, slits, site = genSlits(targetList, fileparams, auto_sel=False, returnSlitSite=True)
     df = pd.DataFrame(targetList)
 
 
     tel = df[['newcenterRADeg', 'newcenterDECDeg', 'lst' ]] 
-    tel['dateobs'] = fileparams['ObsDate']
+    tel.loc[:, 'dateobs'] = fileparams['ObsDate']
     #tel = {k: ([v] if type(v) != list else v) for (k, v) in tel.items()}
 
     params = {

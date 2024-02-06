@@ -108,7 +108,7 @@ SlitObjMap,C,BotDist,SlitObjMap,BotDist
 
 
 class MaskDesignOutputFitsFile:
-    def __init__(self, targetList, site, params, tel):
+    def __init__(self, slits, site, params, tel):
         """
         This class represents the Mask Design Fits File.
         It is used to save the FITS file as output of the design process
@@ -128,19 +128,19 @@ class MaskDesignOutputFitsFile:
 
         """
 
-        targetList['slitIdx']=-1
-        targetList['objectIndex']=-1
+        slits['slitIdx']=-1
+        slits['objectIndex']=-1
         cnto=0
         cnts=0
-        for i,row in enumerate(targetList.iterrows()):
-            if targetList.sel[i]==1:
-                targetList.objectIndex[i]=cnto
+        for i,row in slits.iterrows():
+            if slits.sel[i]==1:
+                slits.objectIndex[i]=cnto
                 cnto=cnto+1
-                if targetList.pcode[i]!=-1:
-                    targetList.slitIdx[i]=cnts
+                if slits.pcode[i]!=-1:
+                    slits.slitIdx[i]=cnts
                     cnts=cnts+1
 
-        self.targetList = targetList
+        self.slits = slits 
 
         self.site = site
         self.params = params
@@ -151,7 +151,7 @@ class MaskDesignOutputFitsFile:
         Generates the object catalog table
         """
 
-        tlist = self.targetList
+        tlist = self.slits
         selected = tlist[tlist.sel == 1]
         objClassTable = ("Alignment_Star", "Guide_Star",
                          "Ignored", "Program_Target")
@@ -231,7 +231,7 @@ class MaskDesignOutputFitsFile:
         """
         Generates the mask design parameter table.
         """
-        tlist = self.targetList
+        tlist = self.slits
         params = self.params
         tel = self.tel
         cols = []
@@ -292,7 +292,7 @@ class MaskDesignOutputFitsFile:
         P: target
         """
 
-        tlist = self.targetList
+        tlist = self.slits
         params = self.params
         tel = self.tel
         cols = []
@@ -334,7 +334,7 @@ class MaskDesignOutputFitsFile:
         Generates the slits object table with distances to star and end of slit
         """
         cols = []
-        tlist = self.targetList
+        tlist = self.slits
         selected = tlist[(tlist.sel == 1) & (tlist.pcode !=-1)]
         nSlits = selected.shape[0]
         if nSlits > 0:
@@ -355,7 +355,7 @@ class MaskDesignOutputFitsFile:
         """
         Generates table with mask information
         """
-        tlist = self.targetList
+        tlist = self.slits
         params = self.params
         tel = self.tel
         cols = []
@@ -411,7 +411,7 @@ class MaskDesignOutputFitsFile:
         """
         Generates the list of slits coordinates
         """
-        tlist = self.targetList
+        tlist = self.slits
         cols = []
         selected = tlist[(tlist.sel == 1) & (tlist.pcode !=-1)]
         nSlits = selected.shape[0]
@@ -506,7 +506,7 @@ class MaskDesignOutputFitsFile:
         """
         params = self.params
         tel = self.tel
-        tlist = self.targetList
+        tlist = self.slits
 
 
         selected = tlist[(tlist.sel == 1) & (tlist.pcode != -1)]
