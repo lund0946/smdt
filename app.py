@@ -1,4 +1,5 @@
 from datetime import timedelta
+import pdb
 from flask import Flask, render_template, request, session, jsonify
 from threading import Timer
 from flask.logging import default_handler
@@ -70,7 +71,7 @@ def updateTarget():
     values = json.loads(request.data.decode().split('=')[1].split('}&')[0]+'}')
     session['targetList'], idx = targs.update_target(targetList, values)
     outp = targs.to_json_with_info(session['params'], session['targetList'])
-    outp = {**outp, **{'idx': idx}}
+    outp = {**json.loads(outp), 'idx': idx}
     return outp
 
 
@@ -137,7 +138,7 @@ def saveMaskDesignFile():  # should only save current rather than re-running eve
     params = session['params']
 
     targetList = calcmask.genMaskOut(targetList , params)
-    plot.makeplot(params['OutputFits'][0])
+    plot.makeplot(params['OutputFits'])
     session['targetList'] = targetList 
     outp = targs.to_json_with_info(params, targetList)
     return outp
@@ -148,7 +149,7 @@ def saveMaskDesignFile():  # should only save current rather than re-running eve
 @app.route('/sendTargets2Server', methods=["GET", "POST"])
 def sendTargets2Server():
     prms = request.form.to_dict()
-    prms = {k.rstrip('fd'): v for k, v in prms.items()}
+    prms = {k.replace('fd', ''): v for k, v in prms.items()}
     fh = []
     session['params'] = prms
     uploaded_file = request.files['targetList']

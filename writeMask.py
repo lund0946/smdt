@@ -8,7 +8,7 @@ Initial version: 2018-10-03, skwok
 import os
 import math
 import numpy as np
-
+import pdb
 import io
 import pandas as pd
 import astropy.io.fits as pf
@@ -144,7 +144,7 @@ class MaskDesignOutputFitsFile:
 
         self.site = site
         self.params = params
-        self.tel = tel  # <<<------ should be telescope only info like ra0_fld pa0_fld, etc, and not the targetlist stuff
+        self.tel = tel.loc[0]  # <<<------ should be telescope only info like ra0_fld pa0_fld, etc, and not the targetlist stuff
 
     def genObjCatTable(self):
         """
@@ -274,9 +274,11 @@ class MaskDesignOutputFitsFile:
         cols.append(pf.Column(name="LST_PNT", format="F8.3", null="-9999.00",
                     unit="deg", array=[tel.lst]))                   # May be HourAngle in deg??
         logger.debug(f"cols: {cols}")
-        logger.debug(pf.TableHDU.from_columns(cols, name="MaskDesign"))
 
-        return pf.TableHDU.from_columns(cols, name="MaskDesign")
+        out = pf.TableHDU.from_columns(cols, name="MaskDesign")
+        logger.debug(out)
+
+        return out
 
     def genDesiSlits(self):
         """
@@ -547,8 +549,8 @@ class MaskDesignOutputFitsFile:
 
         with open(fileName, "w") as f:
             f.write("# Mask name, center:\n")
-            f.write(""+str(params.maskid[0])+"             "+str(toSexagecimal(tel.newcenterRADeg[0]/15., secFmt="{:08.5f}"))+"    "+str(
-                toSexagecimal(tel.newcenterDECDeg[0], secFmt="{:08.5f}"))+"  2000.0 PA= "+str(params.pa0[0])+" ##\n")
+            f.write(""+str(params.maskid[0])+"             "+str(toSexagecimal(tel.newcenterRADeg/15., secFmt="{:08.5f}"))+"    "+str(
+                toSexagecimal(tel.newcenterDECDeg, secFmt="{:08.5f}"))+"  2000.0 PA= "+str(params.pa0[0])+" ##\n")
             f.write("#\n")
             f.write("#  Guider center:\n")
             f.write("#\n")

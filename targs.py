@@ -223,7 +223,7 @@ def update_target(targetList, jvalues):
         targetList[idx]["decRad"] = decRad
     else:
         # Add a new entry
-        idx = len(targets.index)
+        idx = len(targetList)
         logger.debug(f'idx= {idx}')
 
         newItem = {

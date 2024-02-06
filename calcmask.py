@@ -689,8 +689,7 @@ def gen_obs(targetList, fileparams):
         targetListOut.append(target)
     return targetListOut
 
-
-def genSlits(targetList, fileparams, auto_sel=True):
+def genSlits(targetList, fileparams, auto_sel=True, returnSlitSite=False):
     logger.debug('genSlits')
 
     if fileparams['NoOverlap'] == 'yes':
@@ -701,6 +700,7 @@ def genSlits(targetList, fileparams, auto_sel=True):
         proj_len = True
     else:
         proj_len = False
+    
     obs, site = init_dicts(targetList, fileparams)
     logger.debug('init_dicts')
     obs = refr_coords(obs, site)
@@ -722,12 +722,14 @@ def genSlits(targetList, fileparams, auto_sel=True):
                 'rlength1', 'rlength2', 
                 'slitX1', 'slitX2', 'slitX3', 'slitX4',
                 'slitY1', 'slitY2', 'slitY3', 'slitY4',
-                'arcslitX1', 'arcslitX2', 'arcslitX3', 'arcslitX4',
+                'arcslitX1', 'arcslitX2', 'arcslitX3', 'arcslitX4','newcenterRADeg', 'newcenterDECDeg',
                 'arcslitX1', 'arcslitX2', 'arcslitX3', 'arcslitX4']
-    obsKeys = ['length1', 'length2', 'xarcs', 'yarcs', 'objectId', 'ra_fldR', 'dec_fldR']
+    obsKeys = ['length1', 'length2', 'xarcs', 'yarcs', 'objectId', 'ra_fldR', 'dec_fldR', 'lst']
     outTargetList = combine_target_with_slit_and_obs(targetList, slit, obs, slitKeys, obsKeys)
 
-    return outTargetList 
+    out = [outTargetList , slit, site] if returnSlitSite else outTargetList 
+
+    return out 
 
 def combine_target_with_slit_and_obs(targetList, slit, obs, slitKeys, obsKeys):
     outTargetList = []
@@ -740,48 +742,13 @@ def combine_target_with_slit_and_obs(targetList, slit, obs, slitKeys, obsKeys):
 
 def genMaskOut(targetList, fileparams):
 
+    targetList, slits, site = genSlits(targetList, fileparams, auto_sel=False, returnSlitSite=True)
+    df = pd.DataFrame(targetList)
 
-    if 'slitX1' not in targetList[0].keys():  # rethink this?!
-        if fileparams['NoOverlap'] == 'yes':
-            adj_len = True
-        else:
-            adj_len = False
-        if fileparams['ProjSlitLength'] == 'yes':
-            proj_len = True
-        else:
-            proj_len = False
-        targetListSel = [ target for target in targetList if target['selected'] == 1 ]
-        obs, site = init_dicts(targetListSel, fileparams)
-        obs= refr_coords(obs, site)
-        obs= fld2telax(obs, 'ra_fldR', 'dec_fldR', 'ra_telR', 'dec_telR')
-        obs= tel_coords(obs, 'raRadR', 'decRadR',
-                         'ra_telR', 'dec_telR', proj_len)
-        slit = gen_slits_from_obs(obs, adj_len)
-        slit = sky_coords(slit)
-        slit = unrefr_coords(slit, site)
-        slit = fld2telax(slit, 'ra0_fldU', 'dec0_fldU', 'ra_telU', 'dec_telU')
-        slit = tel_coords(slit, 'raRadU', 'decRadU', 'ra_telU', 'dec_telU', proj_len)
-        slit = mask_coords(slit)
 
-        outTargetList = []
-        slitKeys = [ 'slitWidth', 'sel', 'selected',
-            'xarcsS', 'yarcsS',
-            'length1', 'length2', 
-            'xarcs', 'yarcs', 
-            'length1S', 'length2S',
-            'rlength1', 'rlength2', 
-            'slitX1', 'slitX2', 'slitX3', 'slitX4',
-            'slitY1', 'slitY2', 'slitY3', 'slitY4',
-            'arcslitX1', 'arcslitX2', 'arcslitX3', 'arcslitX4',
-            'arcslitX1', 'arcslitX2', 'arcslitX3', 'arcslitX4']
-        obsKeys = ['length1', 'length2', 'xarcs', 'yarcs']
-        outTargetList = combine_target_with_slit_and_obs(targetList, slit, obs, slitKeys, obsKeys)
-
-    tel = {}
-    tel['newcenterRADeg'] = slit['newcenterRADeg']
-    tel['newcenterDECDeg'] = slit['newcenterDECDeg']
+    tel = df[['newcenterRADeg', 'newcenterDECDeg', 'lst' ]] 
     tel['dateobs'] = fileparams['ObsDate']
-    tel['lst'] = slit['lst']
+    #tel = {k: ([v] if type(v) != list else v) for (k, v) in tel.items()}
 
     params = {
         'objfile': '',  # Pass separately?
@@ -820,18 +787,18 @@ def genMaskOut(targetList, fileparams):
     site = {k: ([v] if type(v) != list else v) for (k, v) in site.items()}
     params = {k: ([v] if type(v) != list else v)
               for (k, v) in params.items()}  # <-----fix this for correct outputs
-    tel = {k: ([v] if type(v) != list else v) for (k, v) in tel.items()}
 
-    slitsdf = pd.DataFrame(slit)
+    slitsdf = pd.DataFrame(slits)
     slitsdf = slitsdf[(slitsdf['sel'] == 1) & (slitsdf['inMask'] == 1)]
     slitsdf.reset_index(drop=True, inplace=True)
+    assert slitsdf.shape[0] > 0, 'No slits selected for mask'
 
     paramdf = pd.DataFrame(params)
     sitedf = pd.DataFrame(site)
     teldf = pd.DataFrame(tel)
 
     mdf = MaskDesignOutputFitsFile(slitsdf, sitedf, paramdf, teldf)
-    mdf.writeTo(params['mdf'])
-    mdf.writeOut(params['mdf']+'.out')
+    mdf.writeTo(params['mdf'][0])
+    mdf.writeOut(params['mdf'][0]+'.out')
 
-    return outTargetList 
+    return df.to_dict(orient='records')
