@@ -67,6 +67,7 @@ def setColumnValue():
 @check_session
 @app.route('/updateTarget', methods=["GET", "POST"])
 def updateTarget():
+    pdb.set_trace()
     targetList = session['targetList']
     values = json.loads(request.data.decode().split('=')[1].split('}&')[0]+'}')
     session['targetList'], idx = targs.update_target(targetList, values)
@@ -101,6 +102,7 @@ def resetSelection():
 def getTargetsAndInfo():
     try:
         logger.debug('targetList/getTargetsAndInfo')
+        pdb.set_trace()
         targetList = calcmask.gen_obs(session['targetList'], session['params'])
         targetList = targs.mark_inside(targetList)
         outp = targs.to_json_with_info(session['params'], targetList)

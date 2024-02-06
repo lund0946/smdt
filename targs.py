@@ -208,7 +208,7 @@ def update_target(targetList, jvalues):
 
     idx = next((index for (index, d) in enumerate(targetList) if d["objectId"] == targetName), None)
 
-    if idx:
+    if not idx is None:
         # Existing entry
         targetList[idx]["pcode"] = pcode
         targetList[idx]["selected"] = selected
@@ -247,9 +247,9 @@ def update_target(targetList, jvalues):
         }
         
 
-        targets = targetList.append(newItem)
+        targetList.append(newItem)
 
-    return targets, idx
+    return targetList, idx
 
 def mark_inside(targetList):
     """
@@ -259,6 +259,6 @@ def mark_inside(targetList):
     inOutChecker = InOutChecker(layout)
     outTargets = [] 
     for target in targetList:
-        isIn = 1 if inOutChecker.checkPoint(target['xarcs'], target['yarcs']) else 0
+        isIn = int(inOutChecker.checkPoint(target.get('xarcs'), target.get('yarcs')))
         outTargets.append( {**target, 'inMask': isIn})
     return outTargets 

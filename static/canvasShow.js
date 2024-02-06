@@ -942,7 +942,7 @@ function CanvasShow(containerName, zoomContainer) {
             'slitX1': 'arcslitX1', 'slitX2': 'arcslitX2', 'slitX3': 'arcslitX3', 'slitX4': 'arcslitX4',
             'slitY1': 'arcslitY1', 'slitY2': 'arcslitY2', 'slitY3': 'arcslitY3', 'slitY4': 'arcslitY4',
             'slitPAs': 'slitLPA', 'slitWidths': 'slitWidth',
-            'length1s': 'rlength1', 'lengths2s': 'rlength2',
+            'length1s': 'rlength1', 'length2s': 'rlength2',
             'selected': 'selected', 'pcode': 'pcode', 'magn': 'mag'
         }
         var myVars = {}
@@ -1077,7 +1077,7 @@ function CanvasShow(containerName, zoomContainer) {
         var targetIdx = idx;
         var targets = targetTable.targets;
 
-        E("targetName").value = targets[targetIdx].objectId[targetIdx];
+        E("targetName").value = targets[targetIdx].objectId;
         E("targetRA").value = targets[targetIdx].raSexa;
         E("targetDEC").value = targets[targetIdx].decSexa;
 

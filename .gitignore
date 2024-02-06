@@ -9,3 +9,4 @@ flask_session/
 *.out
 *.log
 *.sel
+*.png
