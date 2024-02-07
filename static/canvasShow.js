@@ -552,7 +552,7 @@ function CanvasShow(containerName, zoomContainer) {
             E("MaskPAfd").value = paDeg.toFixed(3);
 
             showMsg(
-                "statusDiv",
+                "centerDiv",
                 " RA= <b>" + raSexa + "</b> hrs; DEC= <b>" + decSexa + "</b> deg; Pos Ang= <b>" + paDeg.toFixed(2) + "</b> deg "
             );
         }

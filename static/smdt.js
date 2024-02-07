@@ -36,6 +36,9 @@ function SlitmaskDesignTool() {
 
 	self.loadConfigParams = function () {
 		function callback(schema) {
+			const filename = E('targetList');
+			const msg = !filename.value ? 'Please select target list file to load' : 'Ready to load targets';
+			self.setStatus(msg);
 			self.buildParamTable(schema);
 		}
 		ajaxCall('getSchema', {}, callback);

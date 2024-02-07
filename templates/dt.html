@@ -36,6 +36,9 @@
                 <td><input type='button' name='saveMDF' id='saveMDF'
                         title='Save Mask Design .fits, .out, and .png files' value='Save Mask Design File'>
             </tr>
+            <tr>
+                <td>Status: <span id='statusDiv'>&nbsp;</span>
+            </tr>
         </table>
         <table id='optionPanel'>
             <tr>
@@ -76,11 +79,9 @@
                             <td>Show bad columns: <input type='checkbox' name='showBadColumns' id='showBadColumns'>
 
                     </table>
-            <tr>
-                <td>Center: <span id='statusDiv'>&nbsp;</span>
-            </tr>
         </table>
         <div id="contentPanel">
+            Center: <span id='centerDiv'>&nbsp;</span>
             <div id='canvasDiv' tabindex='0'>Initializing ...</div>
         </div>
         <div id='mouseStatus'></div> &#x2795; Selected target; &#x25ef;Target; &#x2b1c;
@@ -127,13 +128,11 @@
                 <th>length2:
                 <td><input id='targetLength2' size='7'></input>
         </table>
-                <div>
-                    <input type='button' id='updateTarget' title='Updates selected target values'
-                        value='Update target'>&nbsp;
-                    <input type='button' id='deleteTarget' title='Deletes selected target' value='Delete target'>&nbsp;
-                    <input type='button' id='selectToggle' title='Toggle selection for current target'
-                        value='Toggle selection'>
-                </div>
+        <div>
+            <input type='button' id='updateTarget' title='Updates selected target values' value='Update target'>&nbsp;
+            <input type='button' id='deleteTarget' title='Deletes selected target' value='Delete target'>&nbsp;
+            <input type='button' id='selectToggle' title='Toggle selection for current target' value='Toggle selection'>
+        </div>
     </div>
 </div>
 {% endblock %}
