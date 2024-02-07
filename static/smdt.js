@@ -32,6 +32,7 @@ function SlitmaskDesignTool() {
 		buf.push('</table>');
 		E('paramTableDiv').innerHTML = buf.join('');
 	};
+	
 
 	self.loadConfigParams = function () {
 		function callback(schema) {
