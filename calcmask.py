@@ -673,7 +673,7 @@ def proj_to_mask(xp, yp, ap):
     return xc, yc, ac
 
 
-def gen_obs(targetList, fileparams):
+def gen_obs(fileparams, targetList):
     obs, site = init_dicts(targetList, fileparams)
     obs = refr_coords(obs, site)
     obs = fld2telax(obs, 'ra_fldR', 'dec_fldR', 'ra_telR', 'dec_telR')

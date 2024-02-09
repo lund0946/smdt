@@ -1,9 +1,7 @@
 from datetime import timedelta
 import pdb
-from flask import Flask, render_template, request, session, jsonify
-from threading import Timer
+from flask import Flask, render_template, request, jsonify
 from flask.logging import default_handler
-from flask_session import Session
 import webbrowser
 import numpy as np
 import maskLayouts as ml
@@ -14,7 +12,7 @@ import plot
 import logging
 from logging import FileHandler, StreamHandler
 
-from utils import schema, validate_params, toSexagecimal, sexg2Float
+from utils import schema, validate_params, toSexagecimal
 
 logger = logging.getLogger('smdt')
 formatter = logging.Formatter(
@@ -33,113 +31,97 @@ def launchBrowser(host, portnr, path):
     webbrowser.open(f"http://{host}:{portnr}/{path}", new=1)
 
 
-def check_session(params=('targetList', 'params')):
-    def decorator(fun):
-        def wrapper(*args, **kwargs):
-            for prm in params:
-                if session.get(prm) is None:
-                    raise Exception(f'No {prm} in session')
-            return fun(*args, **kwargs)
-        return wrapper
-    return decorator
-
 
 app = Flask(__name__)
 app.config.from_pyfile('config.ini')
-Session(app)
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(
     hours=app.config['PERMANENT_SESSION_LIFETIME'])
 
 
 
 
-@check_session
 @app.route('/setColumnValue', methods=["GET", "POST"])
 def setColumnValue():
-    targetList = session['targetList']
-    values = json.loads(request.data.decode().split('=')[2].split('&')[0])
-    column = request.data.decode().split('=')[1].split('&')[0]
-    session['targetList'] = targs.update_column(targetList, column, values)
-    outp = targs.to_json_with_info(session['params'], session['targetList'])
-    return outp
+    targetList = request.json['targets'] 
+    values = request.json['value']
+    column = request.json['column']
+    targetList = targs.update_column(targetList, column, values)
+    return {'status': 'OK', 'targets': targetList}
 
 
-@check_session
+
 @app.route('/updateTarget', methods=["GET", "POST"])
 def updateTarget():
-    targetList = session['targetList']
-    values = json.loads(request.data.decode().split('=')[1].split('}&')[0]+'}')
-    session['targetList'], idx = targs.update_target(targetList, values)
-    outp = targs.to_json_with_info(session['params'], session['targetList'])
-    outp = {**outp, 'idx': idx}
+    values = request.json['values']
+    targetList = request.json['targets']    
+    params = request.json['params']
+    targetList, idx = targs.update_target(targetList, values)
+    outp = targs.to_json_with_info(params, targetList)
+    outp = {**outp, 'idx': idx, "info": targs.getROIInfo(params)}
     return outp
 
+@app.route('/updateSelection',methods=["GET","POST"])
+def updateSelection():
+    targetList = request.json['targets']
+    values = request.json['values']
+    params = request.json['params']
+    targetList,idx=targs.update_target(targetList,values)
+    outp = targs.to_json_with_info(params, targetList)
+    outp = {**outp, 'idx': idx, "info": targs.getROIInfo(params)}
+    return outp
 
-@check_session
 @app.route('/deleteTarget', methods=["GET", "POST"])
 def deleteTarget():
-    idx = int(request.args.get('idx', None))
-    targetList = session['targetList']
+    idx = request.json['idx']
+    targetList = request.json['targets']    
+    params = request.json['params']
     targetList.pop(idx)
-    session['targetList'] = targetList
-    outp = targs.to_json_with_info(session['params'], session['targetList'])
+    outp = targs.to_json_with_info(params, targetList)
+    outp = {**outp, 'idx': idx, "info": targs.getROIInfo(params)}
     return outp
 
 
-@check_session
+
 @app.route('/resetSelection', methods=["GET", "POST"])
 def resetSelection():
-    targetList = session['targetList']
-    prms = session['params']
+    pdb.set_trace()
+    targetList = request.json['targets']    
+    params = request.json['params']
     targetList = [ {**target, 'selected': target['localselected']} for target in targetList]
-    outp = targs.to_json_with_info(prms, targetList)
+    outp = targs.to_json_with_info(params, targetList)
+    outp = {**outp, "info": targs.getROIInfo(params)}
     return outp
 
 
-@check_session
-@app.route('/getTargetsAndInfo')
-def getTargetsAndInfo():
-    try:
-        logger.debug('targetList/getTargetsAndInfo')
-        targetList = calcmask.gen_obs(session['targetList'], session['params'])
-        targetList = targs.mark_inside(targetList)
-        outp = targs.to_json_with_info(session['params'], targetList)
-    except Exception as err:
-        logger.error(f'Exception {err}')
-        outp = {'status': 'ERR', 'msg': str(err)} 
-    return outp
-
-
-@check_session
 @app.route('/generateSlits', methods=["GET", "POST"])
 def generateSlits():
-    targetList = targs.mark_inside(session['targetList'])
-    targetList = calcmask.genSlits(targetList, session['params'], auto_sel=True)
-    session['targetList'] = targetList 
-    outp = targs.to_json_with_info(session['params'], targetList)
+    targetList = request.json['targets']    
+    params = request.json['params']
+    targetList = targs.mark_inside(targetList)
+    targetList = calcmask.genSlits(targetList, params, auto_sel=True)
+    outp = targs.to_json_with_info(params, targetList)
     return outp
 
 
 ## Performs auto-selection of slits##
-@check_session
+
 @app.route('/recalculateMask', methods=["GET", "POST"])
 def recalculateMask():
-    targetList = targs.mark_inside(session['targetList'])
-    targetList = calcmask.genSlits(targetList, session['params'], auto_sel=True)
-    session['targetList'] = targetList 
-    outp = targs.to_json_with_info(session['params'], targetList)
+    targetList = targs.mark_inside(request.json['targets'])
+    targetList = calcmask.genSlits(targetList, request.json['params'], auto_sel=True)
+    outp = targs.to_json_with_info(request.json['params'], targetList)
     return outp
 
 
-@check_session
+
 @app.route('/saveMaskDesignFile', methods=["GET", "POST"])
 def saveMaskDesignFile():  # should only save current rather than re-running everything!
     try:
-        targetList = targs.mark_inside(session['targetList'])
-        params = session['params']
+        
+        targetList = targs.mark_inside(request.json['targets'])
+        params = request.json['params'] 
         targetList = calcmask.gen_mask_out(targetList , params)
         plot.makeplot(params['OutputFits'])
-        session['targetList'] = targetList 
         outp = {'status': 'OK', **targs.to_json_with_info(params, targetList)}
     except Exception as err:
         logger.error(f'Exception {err}')
@@ -148,48 +130,41 @@ def saveMaskDesignFile():  # should only save current rather than re-running eve
 
 
 # Update Params Button, Load Targets Button
-# @check_session(params=['params', 'file'])
 @app.route('/sendTargets2Server', methods=["GET", "POST"])
 def sendTargets2Server():
-    uploaded_file = request.files['targetList']
-    if not uploaded_file.filename != '':
+    filename = request.json.get('filename')
+    if not filename:
         return
-    prms = request.form.to_dict()
-    prms = {k.replace('fd', ''): v for k, v in prms.items()}
-    fh = []
-    for line in uploaded_file.stream:
-        fh.append(line.strip().decode('UTF-8'))
-
+    prms = request.json['formData']
+    # prms = {k.replace('fd', ''): v for k, v in prms.items()}
+    fh = [line for line in request.json['file'].split('\n') if line]
     targetList = targs.readRaw(fh, prms)
     # Only backup selected targets on file load.
     targetList = [ {**target, 'localselected': target['selected']} for target in targetList]
 
     # generate slits
-    targetList = calcmask.gen_obs(targetList, prms)
+    targetList = calcmask.gen_obs(prms, targetList)
     targetList = targs.mark_inside(targetList)
     targetList = calcmask.genSlits(targetList , prms, auto_sel=True)
-    session['params'] = prms
-    session['targetList'] = targetList 
-    session['file'] = fh
     raMedian = np.median([target['raHour'] for target in targetList])
     decMedian = np.median([target['decDeg'] for target in targetList])
-    session['params'] = {**prms, 
+    prms = {**prms, 
                             'InputRA': toSexagecimal(raMedian), 
                             'InputDEC': toSexagecimal(decMedian),
                             }
 
-    outp = targs.to_json_with_info(session['params'], targetList)
+    outp = targs.to_json_with_info(prms, targetList)
     return outp
 
 
 @app.route('/updateParams4Server', methods=["GET", "POST"])
 def updateParams4Server():
-    prms = request.json
+    prms = request.json['params']
+    targetList = request.json['targets']
     ok, prms = validate_params(prms)
     if not ok:
         return [str(x) for x in prms ]
-    session['params'] = prms
-    outp = targs.to_json_with_info(session['params'], session['targetList'])
+    outp = targs.to_json_with_info(prms, targetList)
     outp = {**outp, 'status': 'OK'}
     return outp
 

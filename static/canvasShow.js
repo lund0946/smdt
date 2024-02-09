@@ -1111,16 +1111,10 @@ function CanvasShow(containerName, zoomContainer) {
 
     self.addAlign = function () {
         function callback(data) {
-            let i = idx;
-            if (data && data.length > 0)
-                i = data[0]
-            //      self.updateTarget(idx);
-
-            //                    self.selectedTargetIdx = i;
-            //                   self.reDrawTable();
-            //                   self.redraw();
-            self.SlitmaskDesignTool.reloadTargets(idx, i);
-            self.selectedTargetIdx = i;
+            data.targets && localStorage.setItem('targets', JSON.stringify(data.targets));
+            data.params && localStorage.setItem('params', JSON.stringify(data.params));
+            self.SlitmaskDesignTool.reloadTargets(idx);
+            self.selectedTargetIdx = idx;
             self.reDrawTable();
             self.SlitmaskDesignTool.redraw();
             self.targetTable.scrollTo(idx);
@@ -1142,29 +1136,26 @@ function CanvasShow(containerName, zoomContainer) {
         let targetMagn = E("targetMagn").value;
         let targetBand = E('targetBand').value;
 
-        let params = {
+        let values = {
             'idx': idx, 'raSexa': targetRA, 'decSexa': targetDEC, 'eqx': 2000,
             'mag': targetMagn, 'pBand': targetBand,
             'prior': prior, 'selected': selected, 'slitLPA': slitLPA, 'slitWidth': slitWidth,
             'len1': length1, 'len2': length2, 'targetName': tname
         };
-        let ajax = new AjaxClass();
-        ajax.postRequest('updateTarget', { 'values': JSON.stringify(params) }, callback);
+        const data = {
+            'targets': JSON.parse(localStorage.getItem('targets')),
+            'params': JSON.parse(localStorage.getItem('params')),
+            'values': values
+        }
+        ajaxPost('updateTarget', data, callback);
     };
 
     self.selTarget = function () {
         function callback(data) {
-            let i = idx;
-            if (data && data.length > 0)
-                i = data[0]
-            //      self.updateTarget(idx);
-
-            //                    self.selectedTargetIdx = i;
-            //                   self.reDrawTable();
-            //                   self.redraw();
-
+            data.targets && localStorage.setItem('targets', JSON.stringify(data.targets));
+            data.params && localStorage.setItem('params', JSON.stringify(data.params));
             self.smdt.reloadTargets(idx);
-            self.selectedTargetIdx = i;
+            self.selectedTargetIdx = idx;
             self.reDrawTable();
             self.SlitmaskDesignTool.redraw();
             self.targetTable.scrollTo(idx);
@@ -1187,28 +1178,26 @@ function CanvasShow(containerName, zoomContainer) {
         let targetMagn = E("targetMagn").value;
         let targetBand = E('targetBand').value;
 
-        let params = {
+        let values = {
             'idx': idx, 'raSexa': targetRA, 'decSexa': targetDEC, 'eqx': 2000,
             'mag': targetMagn, 'pBand': targetBand,
             'prior': prior, 'selected': selected, 'slitLPA': slitLPA, 'slitWidth': slitWidth,
             'len1': length1, 'len2': length2, 'targetName': tname
         };
-        let ajax = new AjaxClass();
-        ajax.postRequest('updateTarget', { 'values': JSON.stringify(params) }, callback);
+        const data = {
+            'targets': JSON.parse(localStorage.getItem('targets')),
+            'params': JSON.parse(localStorage.getItem('params')),
+            'values': values
+        }
+        ajaxPost('updateTarget', data, callback);
     };
 
     self.deselTarget = function () {
         function callback(data) {
-            let i = idx;
-            if (data && data.length > 0)
-                i = data[0]
-            //      self.updateTarget(idx);
-
-            //                    self.selectedTargetIdx = i;
-            //                   self.reDrawTable();
-            //                   self.redraw();
-            self.SlitmaskDesignTool.reloadTargets(idx, i);
-            self.selectedTargetIdx = i;
+            data.targets && localStorage.setItem('targets', JSON.stringify(data.targets));
+            data.params && localStorage.setItem('params', JSON.stringify(data.params));
+            self.SlitmaskDesignTool.reloadTargets(idx);
+            self.selectedTargetIdx = idx;
             self.reDrawTable();
             self.SlitmaskDesignTool.redraw();
             self.targetTable.scrollTo(idx);
@@ -1230,14 +1219,18 @@ function CanvasShow(containerName, zoomContainer) {
         let targetMagn = E("targetMagn").value;
         let targetBand = E('targetBand').value;
 
-        let params = {
+        let values = {
             'idx': idx, 'raSexa': targetRA, 'decSexa': targetDEC, 'eqx': 2000,
             'mag': targetMagn, 'pBand': targetBand,
             'prior': prior, 'selected': selected, 'slitLPA': slitLPA, 'slitWidth': slitWidth,
             'len1': length1, 'len2': length2, 'targetName': tname
         };
-        let ajax = new AjaxClass();
-        ajax.postRequest('updateTarget', { 'values': JSON.stringify(params) }, callback);
+        const data = {
+            'targets': JSON.parse(localStorage.getItem('targets')),
+            'params': JSON.parse(localStorage.getItem('params')),
+            'values': values
+        }
+        ajaxPost('updateTarget', data, callback);
     };
 
 
