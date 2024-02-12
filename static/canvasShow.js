@@ -863,9 +863,9 @@ function CanvasShow(containerName, zoomContainer) {
             var x = xOut[idx];
             var y = yOut[idx];
 
-            var bSize = targetSizeScale * 2; // magn[idx];
-            bSize = limit(bSize, 3, 20);
-            drawPlusBig(ctx, x, y, bSize, bSize);
+            var l1 = length1s[idx] * arc2Pixel;
+            var l2 = length2s[idx] * arc2Pixel;
+            drawRect(ctx, x - l1, y - l1, x + l2, y + l2);
         }
 
         function drawTarget(idx) {
@@ -1077,7 +1077,7 @@ function CanvasShow(containerName, zoomContainer) {
         if (showAlignBox) {
             drawListIdx(alignBoxInIdx, "#99ff99", drawAlignBox);
             drawListIdx(alignBoxOutIdx, "#ff0000", drawAlignBox);
-            drawListIdx(selectedAlignBoxInIdx, "#99ff99", drawSelAlignBox);
+            drawListIdx(selectedAlignBoxInIdx, "#dcfcdf", drawSelAlignBox);
             drawListIdx(selectedAlignBoxOutIdx, "#ff0000", drawAlignBox);
         }
 
