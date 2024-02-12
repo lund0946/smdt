@@ -815,9 +815,14 @@ function CanvasShow(containerName, zoomContainer) {
                 }
 
                 if (pri == AlignBox) {
-                    if (inMask) alignBoxInIdx.push(i);
-                    else alignBoxOutIdx.push(i);
-                    continue;
+                    if (selected[i]) {
+                        if (inMask) selectedAlignBoxInIdx.push(i);
+                        else selectedAlignBoxOutIdx.push(i);
+                    } else {
+                        if (inMask) alignBoxInIdx.push(i);
+                        else alignBoxOutIdx.push(i);
+                        continue;
+                    }
                 }
 
                 if (showSelected || (showMinPriority <= pri && pri <= showMaxPriority)) {
@@ -851,6 +856,16 @@ function CanvasShow(containerName, zoomContainer) {
             var l1 = length1s[idx] * arc2Pixel;
             var l2 = length2s[idx] * arc2Pixel;
             drawRect(ctx, x - l1, y - l1, x + l2, y + l2);
+        }
+
+        function drawSelAlignBox(idx) {
+            // alignemtn box
+            var x = xOut[idx];
+            var y = yOut[idx];
+
+            var bSize = targetSizeScale * 2; // magn[idx];
+            bSize = limit(bSize, 3, 20);
+            drawPlusBig(ctx, x, y, bSize, bSize);
         }
 
         function drawTarget(idx) {
@@ -1016,7 +1031,9 @@ function CanvasShow(containerName, zoomContainer) {
         var showInIdx = [];
         var showOutIdx = [];
         var alignBoxInIdx = [];
+        var selectedAlignBoxInIdx=[];
         var alignBoxOutIdx = [];
+        var selectedAlignBoxOutIdx = [];
         var guideBoxInIdx = [];
         var guideBoxOutIdx = [];
         var xOut = [];
@@ -1060,6 +1077,8 @@ function CanvasShow(containerName, zoomContainer) {
         if (showAlignBox) {
             drawListIdx(alignBoxInIdx, "#99ff99", drawAlignBox);
             drawListIdx(alignBoxOutIdx, "#ff0000", drawAlignBox);
+            drawListIdx(selectedAlignBoxInIdx, "#99ff99", drawSelAlignBox);
+            drawListIdx(selectedAlignBoxOutIdx, "#ff0000", drawAlignBox);
         }
 
         if (showGuideBox) {
