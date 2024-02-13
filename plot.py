@@ -63,4 +63,4 @@ def makeplot(plotname):
     plt.gca().invert_xaxis()
     plt.grid()
     plt.legend([Line2D([], [], color='gold'),Line2D([], [], color='violet'),Line2D([], [], color='royalblue'),Line2D([], [], color='crimson')],['Guide Star','Alignment Box','Target slit','Unknown'],loc="upper left")
-    plt.savefig(plotname+'.png')
+    return plt 

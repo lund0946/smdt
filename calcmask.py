@@ -798,7 +798,5 @@ def gen_mask_out(targetList, fileparams):
     teldf = pd.DataFrame(tel)
 
     mdf = MaskDesignOutputFitsFile(slitsdf, sitedf, paramdf, teldf)
-    mdf.writeTo(params['mdf'][0])
-    mdf.writeOut(params['mdf'][0]+'.out')
 
-    return df.to_dict(orient='records')
+    return mdf, df.to_dict(orient='records')

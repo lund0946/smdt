@@ -88,7 +88,7 @@ function SlitmaskDesignTool() {
 				data['file'] = fr.result;
 				console.log('data', data)
 				self.setStatus("Loading ...");
-		        ajaxPost('sendTargets2Server', data, self.generate_slitmask_callback);
+				ajaxPost('sendTargets2Server', data, self.generate_slitmask_callback);
 			},
 			false,
 		);
@@ -187,7 +187,7 @@ function SlitmaskDesignTool() {
 		self.canvasShow.selectTargetByIndex(self.canvasShow.selectedTargetIdx);
 	};
 
-	self.reloadTargets = function (newIdx, info=[]) {
+	self.reloadTargets = function (newIdx, info = []) {
 
 		let data = {
 			'targets': JSON.parse(localStorage.getItem('targets')),
@@ -535,8 +535,8 @@ function SlitmaskDesignTool() {
 	self.updateTarget = function (evt) {
 		// Updates an existing or adds a new target.
 		function updateTargetCallback(data) {
-            data.targets && localStorage.setItem('targets', JSON.stringify(data.targets));
-            data.params && localStorage.setItem('params', JSON.stringify(data.params));
+			data.targets && localStorage.setItem('targets', JSON.stringify(data.targets));
+			data.params && localStorage.setItem('params', JSON.stringify(data.params));
 			self.reloadTargets(idx, data.info);
 			self.canvasShow.selectedTargetIdx = i;
 			self.canvasShow.reDrawTable();
@@ -572,12 +572,12 @@ function SlitmaskDesignTool() {
 
 	self.deleteTarget = function (evt) {
 		function callback(data) {
-            data.targets && localStorage.setItem('targets', JSON.stringify(data.targets));
-            data.params && localStorage.setItem('params', JSON.stringify(data.params));
+			data.targets && localStorage.setItem('targets', JSON.stringify(data.targets));
+			data.params && localStorage.setItem('params', JSON.stringify(data.params));
 			self.reloadTargets(idx, data.info);
 			self.canvasShow.selectedTargetIdx = i;
 			self.canvasShow.reDrawTable();
-		    self.updateLoadedTargets(data);
+			self.updateLoadedTargets(data);
 		}
 
 		let idx = self.canvasShow.selectedTargetIdx;
@@ -622,31 +622,37 @@ function SlitmaskDesignTool() {
 	};
 
 	self.saveMDF = function (evt) {
-		function callbackSave(data) {
-			console.log('evt', evt, 'data', data)
-			if (data.status != 'OK') {
-				alert(`Error saving file: ${data.msg}`)
-				return
-			}
-			data.targets && localStorage.setItem('targets', JSON.stringify(data.targets))
-			data.params && localStorage.setItem('params', JSON.stringify(data.params))
-			let fname = data.params.OutputFits;
-			let fstr = `Fits file<br><b>${fname}</b> successfully saved`;
-			self.showDiv("savePopup", `${fstr}`);
-		}
-
-		function mdf_callback(data) {
+		async function mdf_callback(data) {
 			self.canvasShow.slitsReady = 1;
 			self.canvasShow.setTargets(data.targets);
 			self.redraw();
-
 			data = {
 				targets: JSON.parse(localStorage.getItem('targets')),
 				params: JSON.parse(localStorage.getItem('params')),
 				mdFile: E('OutputFitsfd').value
 			}
-
-			ajaxPost("saveMaskDesignFile", data, callbackSave);
+			const response = await fetch("saveMaskDesignFile", {
+				method: "POST",
+				body: JSON.stringify(data),
+				headers: {
+					'Content-type': 'application/json',
+				}
+			})
+			if(response.status != 200) {
+				alert(`Error saving file: ${await response.json()['msg']}`)
+				return
+			}
+			const blob = await response.blob();
+			let fname = data.params.OutputFits;
+			let fstr = `Fits file<br><b>${fname}</b> successfully saved`;
+			self.showDiv("savePopup", `${fstr}`);
+			let el = document.createElement("a");
+			el.setAttribute("download", [data.mdFile + '.tar.gz'])
+			el.setAttribute("target", "_blank")
+			let url = URL.createObjectURL(blob);
+			el.href = url; // set the href attribute attribute
+			el.click();
+			el.remove()
 		}
 
 		self.recalculateMaskHelper(mdf_callback);
