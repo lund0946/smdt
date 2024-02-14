@@ -25,9 +25,10 @@ function SlitmaskDesignTool() {
 			sortedProps[key] = schema.properties[key]
 		}
 		const params = JSON.parse(localStorage.getItem('params'));
+		console.log(sortedProps)
 		for (let [key, props] of Object.entries(sortedProps)) {
 			const type = props.type.includes('number') ? 'number' : 'text';
-			const value = params[key] ?? props.default;
+			const value = params ? params[key] : props.default;
 			txt = `<tr><td> ${props.label} :<td><input ftype=${type} id="${key}fd" name="${key}" value="${value}"><td>${props.description}`;
 			buf.push(txt);
 		}
