@@ -39,7 +39,7 @@
         },
         "ObsDate": {
             "type": "string",
-            "label": "Obs. Date",
+            "label": "Date",
             "description": "Observation date and time",
             "default": "2022-08-31",
             "pattern": "(\\d{4})-(\\d{2})-(\\d{2})"
@@ -124,6 +124,8 @@
             "default": 7000,
             "description": "Center wavelength (&#x212B;)",
             "label": "Center wavelength",
+            "minimum": 3200,
+            "maximum": 9999,
             "units": "&#x212B;"
         },
         "ProjSlitLength": {

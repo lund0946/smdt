@@ -125,9 +125,9 @@ def saveMaskDesignFile():  # should only save current rather than re-running eve
         outp = {'status': 'OK', **targs.to_json_with_info(params, targetList)}
         # with tempfile.TemporaryDirectory() as tmpdirname:
         tmpdirname = tempfile.mkdtemp()
-        mdfName = os.path.join(tmpdirname, params['OutputFits'])
+        mdfName = os.path.join(tmpdirname, params['OutputFits']).replace('.fits', '')
         gzName = os.path.join(tmpdirname, mdfName + '.tar.gz')
-        names = [mdfName, f'{mdfName}.out',
+        names = [f'{mdfName}.fits', f'{mdfName}.out',
                  f'{mdfName}.png', f'{mdfName}.json']
         mdf, targetList = calcmask.gen_mask_out(targetList, params)
         mdf.writeTo(names[0])
