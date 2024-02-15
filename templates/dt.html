@@ -14,18 +14,18 @@
                         value='Show Parameters'>
             </tr>
             <tr>
-                <td colspan='8'><input type='button' id='setSlitsPA' title='Apply slitpa to all slits'
-                        value='Set slits PA'> &nbsp;
+                <td colspan='8'>
+                    <input type='button' id='setSlitsPA' title='Apply slitpa to all slits' value='Apply slit PA'> &nbsp;
+                    <input type='button' name='setSlitsLength' id='setSlitsLength'
+                        title='Apply minimum slitlength for all slits' value='Apply slit length'> &nbsp;
+                    <input type='button' name='setSlitsWidth' id='setSlitsWidth' title='Apply slitwidth to all slits'
+                        value='Apply slit width'>
                     <input type='button' name='updateParams' id='updateParams' title='Save current parameters'
                         value='Update Params' formaction='updateParams4Server'> &nbsp;
-                    <input type='button' name='setSlitsLength' id='setSlitsLength'
-                        title='Apply minimum slitlength for all slits' value='Set slits length'> &nbsp; <input
-                        type='button' name='setSlitsWidth' id='setSlitsWidth' title='Apply slitwidth to all slits'
-                        value='Set slit width'>
                     <div id='paramTableDiv' style='visibility: hidden; display: none'></div>
             <tr>
-                <td colspan='6'><input type='button' id='recalculateMask' title='Runs auto-selection'
-                        value='Auto-select'>
+                <td colspan='6'>
+                    <input type='button' id='recalculateMask' title='Runs auto-selection' value='Auto-select'>
                     <input type='button' name='generateSlits' id='generateSlits'
                         title='Generates slits for selected targets' value='Generate Slits'>
                     <input type='button' name='resetSelection' id='resetSelection'
@@ -33,7 +33,8 @@
                     <input type='button' name='clearSelection' id='clearSelection' title='Clears all selected targets'
                         value="Clear selection">
             <tr>
-                <td><input type='button' name='saveMDF' id='saveMDF'
+                <td>
+                    <input type='button' name='saveMDF' id='saveMDF'
                         title='Save Mask Design .fits, .out, and .png files' value='Save Mask Design File'>
             </tr>
             <tr>
