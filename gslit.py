@@ -92,7 +92,7 @@ def len_slits(obs):
     FLIP = -1
     SLIT_GAP = 0.35  # parameter min distance gap between slits
     # remove pcode=-1 from list  ## was just tg=df[(df['pcode']!=-1) prev
-    tg = df[(df['pcode'] != -1) & (df['sel'] == 1) & (df['inMask'] == 1)]
+    tg = df[(df['pcode'] != -1) & (df['selected'] == 1) & (df['inMask'] == 1)]
     # Correct value to sort on?
     tg = tg.sort_values(by=['xarcs'], ascending=True)
     gsx1, gsx2 = gs_ingest()  # only x used

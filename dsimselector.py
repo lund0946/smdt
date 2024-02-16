@@ -3,13 +3,14 @@ import numpy as np
 import logging
 import maskLayouts as ml
 import targs
+import pdb
 logger = logging.getLogger('smdt')
 
 
 def selector(df, xmin, xmax, min_slit, slit_gap):
     logger.debug('Running Selector')
     # need to check for preselected
-    npre = len(df[(df["sel"] == 1) & (df["pcode"] != -1)])
+    npre = len(df[(df['selected'] == 1) & (df["pcode"] != -1)])
 
     # need to select options
 
@@ -17,9 +18,9 @@ def selector(df, xmin, xmax, min_slit, slit_gap):
     df = df.sort_values(by=["xarcs"])
     tg = df[df['pcode'] != -1]
 
-    sel = tg[tg['sel'] == 1]
-    opt = tg[(tg['sel'] != 1) & (tg['inMask'] == 1) & (df['pcode'] > 0)]
-    nopt = len(tg[(tg['sel'] != 1) & (tg['inMask'] == 1) & (df['pcode'] > 0)])
+    sel = tg[tg['selected'] == 1]
+    opt = tg[(tg['selected'] != 1) & (tg['inMask'] == 1) & (df['pcode'] > 0)]
+    nopt = opt.shape[0]
 
     # Should this be L1+L2 instead of min_slit?  Or maybe optional ones we all assume min_slit.
     minsep = 2*(0.5*min_slit+slit_gap)
@@ -129,7 +130,7 @@ def sel_rank(opt, xlow, xupp, minsep, slit_gap):
         # set selection if
         logger.debug(f'Saving selection {ndx}, {isel}')
         # New column to differentiate between originally selected and sel_rank selected ones for re-running at different angles?
-        opt.sel[ndx] = 1
+        opt.selected[ndx] = 1
 
     return opt
 

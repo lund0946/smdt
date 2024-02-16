@@ -118,7 +118,7 @@ def init_dicts(targetList, params):
             'slitpa': slitpa[idx],
             'mag': mag[idx],
             'magband': magband[idx],
-            'sel': sel[idx]
+            'selected': sel[idx]
             }
         obs.append(ob)
     site = {'lat': lat, 'htm': htm, 'tdk': tdk, 'pmb': pmb,
@@ -714,7 +714,7 @@ def genSlits(targetList, fileparams, auto_sel=True, returnSlitSite=False):
     slit = mask_coords(slit)
 
     outTargetList = []
-    slitKeys = [ 'slitWidth', 'sel',
+    slitKeys = [ 'slitWidth', 'selected',
                 'xarcsS', 'yarcsS',
                 'length1', 'length2', 
                 'xarcs', 'yarcs', 
@@ -789,7 +789,7 @@ def gen_mask_out(targetList, fileparams):
               for (k, v) in params.items()}  # <-----fix this for correct outputs
 
     slitsdf = pd.DataFrame(slits)
-    slitsdf = slitsdf[(slitsdf['sel'] == 1) & (slitsdf['inMask'] == 1)]
+    slitsdf = slitsdf[(slitsdf['selected'] == 1) & (slitsdf['inMask'] == 1)]
     slitsdf.reset_index(drop=True, inplace=True)
     assert slitsdf.shape[0] > 0, 'No slits selected for mask'
 

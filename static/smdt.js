@@ -11,6 +11,7 @@ function SlitmaskDesignTool() {
 	self.xAsPerPixel = 1;
 	self.yAsPerPixel = 1;
 
+
 	function E(n) {
 		return document.getElementById(n);
 	}
@@ -24,8 +25,8 @@ function SlitmaskDesignTool() {
 		for (let key of schema.required) {
 			sortedProps[key] = schema.properties[key]
 		}
-		const params = JSON.parse(localStorage.getItem('params'));
-		console.log(sortedProps)
+		//const params = JSON.parse(localStorage.getItem('params'));
+		const params = undefined;
 		for (let [key, props] of Object.entries(sortedProps)) {
 			const type = props.type.includes('number') ? 'number' : 'text';
 			const value = params ? params[key] : props.default;
@@ -43,8 +44,18 @@ function SlitmaskDesignTool() {
 			const msg = !filename.value ? 'Please select target list file to load' : 'Ready to load targets';
 			self.setStatus(msg);
 			self.buildParamTable(schema);
-		}
-		ajaxCall('getSchema', {}, schema_callback);
+
+			//init
+			self.canvasShow = new CanvasShow('canvasDiv', 'zoomCanvasDiv');
+			self.canvasShow.setShowPriorities(E('minPriority').value, E('maxPriority').value);
+			self.loadMaskLayout();
+			data = {
+				'targets': JSON.parse(localStorage.getItem('targets')),
+				'params': JSON.parse(localStorage.getItem('params'))
+			}
+			recalculate_callback(data)
+			}
+			ajaxCall('getSchema', {}, schema_callback);
 	};
 
 	self.setStatus = function (msg) {
@@ -56,8 +67,6 @@ function SlitmaskDesignTool() {
 		self.canvasShow.slitsReady = false;
 		if (!data) return;
 		if (!data.targets) return;
-		data.params && localStorage.setItem('params', JSON.stringify(data.params))
-		data.targets && localStorage.setItem('targets', JSON.stringify(data.targets))
 		self.canvasShow.slitsReady = true;
 		self.updateLoadedTargets(data);
 	};
@@ -87,7 +96,6 @@ function SlitmaskDesignTool() {
 			"load",
 			() => {
 				data['file'] = fr.result;
-				console.log('data', data)
 				self.setStatus("Loading ...");
 				ajaxPost('sendTargets2Server', data, self.generate_slitmask_callback);
 			},
@@ -127,14 +135,6 @@ function SlitmaskDesignTool() {
 		ajaxPost('updateParams4Server', input, param_update_callback);
 	};
 
-	self.loadBackgroundImage = function () {
-		// This is the DSS image if requested
-		// or a blank image, if no DSS.
-		// The URL 'getDssImage' returns an image that is pushed to a <img>."
-		//self.canvasShow.show('getDSSImage?r=' + Date.now(), 0);
-		//self.canvasShow.redrawTxImage();
-	};
-
 	self.loadMaskLayout = function () {
 		function callback(data) {
 			self.canvasShow.setMaskLayout(data.mask, data.guiderFOV, data.badColumns);
@@ -143,8 +143,6 @@ function SlitmaskDesignTool() {
 
 		ajaxCall("getMaskLayout", { 'instrument': 'deimos' }, callback);
 	};
-	// init config params
-	self.loadConfigParams();
 
 	self.updateLoadedTargets = function (data) {
 		// Called when targets are loaded from server
@@ -201,7 +199,6 @@ function SlitmaskDesignTool() {
 
 
 	self.loadAll = function () {
-		self.loadBackgroundImage();
 		self.canvasShow.clearTargetSelection();
 		self.canvasShow.slitsReady = 0;
 		self.reloadTargets(0);
@@ -392,34 +389,24 @@ function SlitmaskDesignTool() {
 		cs.centerRaDeg = cs.currRaDeg;
 		cs.centerDecDeg = cs.currDecDeg;
 
-		let minSepAs = E('MinSlitSeparationfd').value;
-		let minSlitLengthAs = E('MinSlitLengthfd').value;
-		let boxSizeAs = E('AlignBoxSizefd').value;
-		let extendSlits = E('extendSlits').checked ? 1 : 0;
-
 		let params = {
-			'currRaDeg': cs.currRaDeg, 'currDecDeg': cs.currDecDeg,
-			'currAngleDeg': cs.positionAngle + cs.origPA,
-			'minSepAs': minSepAs,
-			'minSlitLengthAs': minSlitLengthAs,
-			'boxSize': boxSizeAs,
-			'extendSlits': extendSlits,
 			'targets': JSON.parse(localStorage.getItem('targets')),
 			'params': JSON.parse(localStorage.getItem('params'))
 		};
 		ajaxPost('recalculateMask', params, callback);
 	};
 
-	self.recalculateMask = function (evt) {
-		function recalculate_callback(data) {
-			self.canvasShow.slitsReady = false;
-			if (!data) return;
-			if (!data.targets) return;
+	self.recalculate_callback = function (data) {
+		self.canvasShow.slitsReady = false;
+		if (!data) return;
+		if (!data.targets) return;
+		self.canvasShow.slitsReady = false;
+		self.canvasShow.setTargets(data.targets);
+		self.redraw();
+	};
 
-			self.canvasShow.slitsReady = false;
-			self.updateLoadedTargets(data);
-		}
-		self.recalculateMaskHelper(recalculate_callback);
+	self.recalculateMask = function (evt) {
+		self.recalculateMaskHelper(self.recalculate_callback);
 	};
 
 
@@ -434,21 +421,7 @@ function SlitmaskDesignTool() {
 		cs.centerRaDeg = cs.currRaDeg;
 		cs.centerDecDeg = cs.currDecDeg;
 
-		let minSepAs = E('MinSlitSeparationfd').value;
-		let minSlitLengthAs = E('MinSlitLengthfd').value;
-		let boxSizeAs = E('AlignBoxSizefd').value;
-		let extendSlits = E('extendSlits').checked ? 1 : 0;
-
-		let values = {
-			'currRaDeg': cs.currRaDeg, 'currDecDeg': cs.currDecDeg,
-			'currAngleDeg': cs.positionAngle + cs.origPA,
-			'minSepAs': minSepAs,
-			'minSlitLengthAs': minSlitLengthAs,
-			'boxSize': boxSizeAs,
-			'extendSlits': extendSlits
-		};
 		let data = {
-			'values': values,
 			'targets': JSON.parse(localStorage.getItem('targets')),
 			'params': JSON.parse(localStorage.getItem('params'))
 		}
@@ -499,7 +472,6 @@ function SlitmaskDesignTool() {
 			self.canvasShow.selectedTargetIdx = i;
 			self.canvasShow.reDrawTable();
 			self.redraw();
-
 		}
 		// Sends new target info to server
 		let idx = self.canvasShow.selectedTargetIdx;
@@ -659,21 +631,7 @@ function SlitmaskDesignTool() {
 		self.recalculateMaskHelper(mdf_callback);
 	};
 
-	function splitArgs() {
-		var parts = window.location.search.replace('?', '').split("&");
-		var out = Array();
-		for (arg in parts) {
-			var twoparts = parts[arg].split('=');
-			out[twoparts[0]] = twoparts[1];
-		}
-		return out;
-	} // splitArgs	
-
 	self.statusDiv = E('statusDiv');
-	self.canvasShow = new CanvasShow('canvasDiv', 'zoomCanvasDiv');
-	self.canvasShow.setShowPriorities(E('minPriority').value, E('maxPriority').value);
-	self.loadMaskLayout();
-	self.loadBackgroundImage();
 
 	E('showHideParams').onclick = self.showHideParams;
 	E('targetListFrame').onload = self.loadAll;
@@ -706,5 +664,11 @@ function SlitmaskDesignTool() {
 
 	hideDiv("savePopup");
 
+	// init config params
+	function init() {
+		// init config params
+		self.loadConfigParams();
+	}
+	init()
 	return this;
 }

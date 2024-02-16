@@ -114,6 +114,7 @@ def recalculateMask():
     targetList = calcmask.genSlits(
         targetList, request.json['params'], auto_sel=True)
     outp = targs.to_json_with_info(request.json['params'], targetList)
+    outp = { **outp, "info": targs.getROIInfo(request.json['params'])}
     return outp
 
 
