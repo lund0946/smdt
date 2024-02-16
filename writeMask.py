@@ -133,7 +133,7 @@ class MaskDesignOutputFitsFile:
         cnto=0
         cnts=0
         for i,row in slits.iterrows():
-            if slits.sel[i]==1:
+            if slits.selected[i]==1:
                 slits.objectIndex[i]=cnto
                 cnto=cnto+1
                 if slits.pcode[i]!=-1:
@@ -152,7 +152,7 @@ class MaskDesignOutputFitsFile:
         """
 
         tlist = self.slits
-        selected = tlist[tlist.sel == 1]
+        selected = tlist[tlist.selected == 1]
         objClassTable = ("Alignment_Star", "Guide_Star",
                          "Ignored", "Program_Target")
         cols = []
@@ -235,7 +235,7 @@ class MaskDesignOutputFitsFile:
         params = self.params
         tel = self.tel
         cols = []
-        selected = tlist[tlist.sel == 1]
+        selected = tlist[tlist.selected == 1]
         nSlits = selected.shape[0]
         nObjs = nSlits + selected[selected.pcode == -2].shape[0]
 
@@ -296,7 +296,7 @@ class MaskDesignOutputFitsFile:
         params = self.params
         tel = self.tel
         cols = []
-        selected = tlist[(tlist.sel == 1) & (tlist.pcode !=-1)]
+        selected = tlist[(tlist.selected == 1) & (tlist.pcode !=-1)]
 
         nSlits = selected.shape[0]
         if nSlits > 0:
@@ -335,7 +335,7 @@ class MaskDesignOutputFitsFile:
         """
         cols = []
         tlist = self.slits
-        selected = tlist[(tlist.sel == 1) & (tlist.pcode !=-1)]
+        selected = tlist[(tlist.selected == 1) & (tlist.pcode !=-1)]
         nSlits = selected.shape[0]
         if nSlits > 0:
             cols.append(pf.Column(name="DesId", format="I11",
@@ -413,7 +413,7 @@ class MaskDesignOutputFitsFile:
         """
         tlist = self.slits
         cols = []
-        selected = tlist[(tlist.sel == 1) & (tlist.pcode !=-1)]
+        selected = tlist[(tlist.selected == 1) & (tlist.pcode !=-1)]
         nSlits = selected.shape[0]
         if nSlits > 0:
             cols.append(pf.Column(name="bSlitId", format="I11",
@@ -509,7 +509,7 @@ class MaskDesignOutputFitsFile:
         tlist = self.slits
 
 
-        selected = tlist[(tlist.sel == 1) & (tlist.pcode != -1)]
+        selected = tlist[(tlist.selected == 1) & (tlist.pcode != -1)]
         objClassTable = ("Alignment_Star", "Guide_Star",
                          "Ignored", "Program_Target")
         cols = []
@@ -524,7 +524,7 @@ class MaskDesignOutputFitsFile:
 
         # Done quickly and can be cleaned up.
 
-        guides = tlist[(tlist.sel == 1) & (tlist.pcode == -1)]
+        guides = tlist[(tlist.selected == 1) & (tlist.pcode == -1)]
         gsobjClassTable = ("Alignment_Star", "Guide_Star",
                            "Ignored", "Program_Target")
         gscols = []
@@ -533,7 +533,7 @@ class MaskDesignOutputFitsFile:
         gsobjClass = [gsobjClassTable[min(3, p + 2)] for p in guides.pcode]
         gsMajAxPA = np.degrees(guides.slitLPA)
 
-        nonselected = tlist[tlist.sel == 0]
+        nonselected = tlist[tlist.selected == 0]
         nsobjClassTable = ("Alignment_Star", "Guide_Star",
                            "Ignored", "Program_Target")
         nscols = []
@@ -559,21 +559,21 @@ class MaskDesignOutputFitsFile:
             for i, row in enumerate(selected.iterrows()):
                 idx = selected.index[i]
                 f.write(str(selected.objectId[idx])+"       "+str(toSexagecimal(np.degrees(float(selected.raRad[idx].astype(float)))/15., secFmt="{:08.5f}"))+" "+str(toSexagecimal(np.degrees(float(selected.decRad[idx].astype(float))), secFmt="{:08.5f}"))+" 2000.0 "+str(selected.mag[idx].astype(
-                    str))+" "+str(selected.magband[idx])+" "+str(selected.pcode[idx].astype(str)) + " 0 "+str(selected.sel[idx].astype(str))+" "+str(MajAxPA[idx])+" "+str(selected.length1[idx].astype(str))+" "+str(selected.length2[idx].astype(str))+" "+str(selected.slitWidth[idx].astype(str))+"\n")
+                    str))+" "+str(selected.magband[idx])+" "+str(selected.pcode[idx].astype(str)) + " 0 "+str(selected.selected[idx].astype(str))+" "+str(MajAxPA[idx])+" "+str(selected.length1[idx].astype(str))+" "+str(selected.length2[idx].astype(str))+" "+str(selected.slitWidth[idx].astype(str))+"\n")
 
             f.write("\n# Selected Guide Stars:\n")
 #            for i in range(len(guides)):
             for i, row in enumerate(guides.iterrows()):
                 idx = guides.index[i]
                 f.write(str(guides.objectId[idx])+"       "+str(toSexagecimal(np.degrees(float(guides.raRad[idx].astype(float)))/15., secFmt="{:08.5f}"))+" "+str(toSexagecimal(np.degrees(float(guides.decRad[idx].astype(float))), secFmt="{:08.5f}"))+" 2000.0 "+str(guides.mag[idx].astype(
-                    str))+" "+str(guides.magband[idx])+" "+str(guides.pcode[idx].astype(str)) + " 0 "+str(guides.sel[idx].astype(str))+" "+str(gsMajAxPA[idx])+" "+str(guides.length1[idx].astype(str))+" "+str(guides.length2[idx].astype(str))+" "+str(guides.slitWidth[idx].astype(str))+"\n")
+                    str))+" "+str(guides.magband[idx])+" "+str(guides.pcode[idx].astype(str)) + " 0 "+str(guides.selected[idx].astype(str))+" "+str(gsMajAxPA[idx])+" "+str(guides.length1[idx].astype(str))+" "+str(guides.length2[idx].astype(str))+" "+str(guides.slitWidth[idx].astype(str))+"\n")
 
             f.write("\n# Non-Selected Objects:\n")
 #            for i in range(len(nonselected)):
             for i, row in enumerate(nonselected.iterrows()):
                 idx = nonselected.index[i]
                 f.write(str(nonselected.objectId[idx])+"       "+str(toSexagecimal(np.degrees(float(nonselected.raRad[idx].astype(float)))/15., secFmt="{:08.5f}"))+" "+str(toSexagecimal(np.degrees(float(nonselected.decRad[idx].astype(float))), secFmt="{:08.5f}"))+" 2000.0 "+str(nonselected.mag[idx].astype(
-                    str))+" "+str(nonselected.magband[idx])+" "+str(nonselected.pcode[idx].astype(str)) + " 0 "+str(nonselected.sel[idx].astype(str))+" "+str(nsMajAxPA[idx])+" "+str(nonselected.length1[idx].astype(str))+" "+str(nonselected.length2[idx].astype(str))+" "+str(nonselected.slitWidth[idx].astype(str))+"\n")
+                    str))+" "+str(nonselected.magband[idx])+" "+str(nonselected.pcode[idx].astype(str)) + " 0 "+str(nonselected.selected[idx].astype(str))+" "+str(nsMajAxPA[idx])+" "+str(nonselected.length1[idx].astype(str))+" "+str(nonselected.length2[idx].astype(str))+" "+str(nonselected.slitWidth[idx].astype(str))+"\n")
 
 
 def _outputAsList(fh, targets):

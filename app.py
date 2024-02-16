@@ -133,7 +133,7 @@ def saveMaskDesignFile():  # should only save current rather than re-running eve
         mdf, targetList = calcmask.gen_mask_out(targetList, params)
         mdf.writeTo(names[0])
         mdf.writeOut(names[1])
-        plt = plot.makeplot(mdfName)
+        plt = plot.makeplot(names[0])
         plt.savefig(names[2])
         with open(names[3], 'w') as f:
             json.dump(outp, f, ensure_ascii=False, indent=4)
