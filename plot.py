@@ -1,5 +1,3 @@
-
-
 from astropy.io import fits
 import maskLayouts
 import drawUtils
@@ -7,6 +5,8 @@ import utils
 import matplotlib
 from matplotlib.lines import Line2D
 import matplotlib.pyplot as plt
+import logging
+logger = logging.getLogger('smdt')
 matplotlib.use('agg')
 import os
 
@@ -19,7 +19,7 @@ def makeplot(plotname):
     slitdata=f[7].data
     typedata=f[4].data
     for i in range(len(slitdata)):
-        print(slitdata[i])
+        logger.debug(f'slitdata: {slitdata[i]}')
         sx1.append(slitdata[i][3])
         sy1.append(slitdata[i][4])
         sx2.append(slitdata[i][5])
@@ -37,10 +37,6 @@ def makeplot(plotname):
         else:
             #can't identify slit type?
             col.append('crimson')    #color red if something else
-    
-
-
-    import matplotlib.pyplot as plt
 
     fig, sps = plt.subplots(1, figsize=(16, 5))
     plt.subplot(111)
@@ -67,4 +63,4 @@ def makeplot(plotname):
     plt.gca().invert_xaxis()
     plt.grid()
     plt.legend([Line2D([], [], color='gold'),Line2D([], [], color='violet'),Line2D([], [], color='royalblue'),Line2D([], [], color='crimson')],['Guide Star','Alignment Box','Target slit','Unknown'],loc="upper left")
-    plt.savefig(plotname+'.png')
+    return plt 

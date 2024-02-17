@@ -4,3 +4,9 @@
 *.pkl
 flask_session/
 *.txt
+*.live.ini
+*.fits
+*.out
+*.log
+*.sel
+*.png

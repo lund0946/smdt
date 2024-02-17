@@ -38,7 +38,6 @@ function InOutChecker(region) {
 		var ymin = 1E10, ymax = -99999;
 		for (i in lines) {
 			row = lines[i];
-			//print ("line ", i, row);
 			x = row[0];
 			y = row[1];
 			code = row[2];

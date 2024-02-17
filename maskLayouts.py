@@ -240,15 +240,12 @@ def shrinkMask(mask, margin=0.5):
             x1, y1 = x2, y2
             x2, y2 = xStart, yStart
         if state == 2:
-            # print (f"({x0}, {y0})  ({x1}, {y1})  ({x2}, {y2}), flg={flag})")
             x, y = calc(x0, y0, x1, y1, x2, y2, margin)
             out.append((x, y, flag1))
             if flag1 == 0:
                 ox0, oy0 = x, y
             flag1 = 1
         if state == 3:
-            # print (f"({x0}, {y0})  ({x1}, {y1})  ({x2}, {y2}), flg={flag})")
-            # print (f"({x1}, {y1})  ({x2}, {y2})  ({xStart1}, {yStart1}), flg={flag})")
 
             x, y = calc(x0, y0, x1, y1, x2, y2, margin)
             out.append((x, y, 1))
@@ -257,7 +254,6 @@ def shrinkMask(mask, margin=0.5):
             out.append((x, y, 1))
             out.append((ox0, oy0, 2))
             flag1 = 0
-            # print()
             state = 0
     return out
 

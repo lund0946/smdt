@@ -5,17 +5,16 @@ Created on Mar 20, 2018
 """
 
 from targetSelector import TargetSelector
-from smdtLogger import SMDTLogger
 from smdtLibs.inOutChecker import InOutChecker
 from maskLayouts import MaskLayouts
 from smdtLibs import utils, dss2Header, DARCalculator
 from astropy.modeling import models
 import datetime
 import json
-import traceback
 import pandas as pd
 import numpy as np
-import sys
+import logging
+logger = logging.getLogger('smdt')
 import io
 import math
 import os
@@ -153,7 +152,7 @@ class TargetList:
             try:
                 return self.readRaw(fh)
             except:
-                SMDTLogger.info(f"Failed to open {fname}")
+                logger.error(f"Failed to open {fname}")
                 return None
 
     def readRaw(self, fh):
@@ -209,7 +208,6 @@ class TargetList:
             parts = parts[1:]
             if len(parts) < 3:
                 continue
-            # print (nr, "len", parts)
 
             template = ["", "", "2000", "99", "I", "0", "-1", "0", slitpa, halfLen, halfLen, slitWidth, "0", "0"]
             minLength = min(len(parts), len(template))
@@ -246,9 +244,7 @@ class TargetList:
                 slitWidth = toFloat(template[11])
                 inMask = int(template[12])
             except Exception as e:
-                SMDTLogger.info("line {}, error {}, {}".format(nr, e, line))
-                # traceback.print_exc()
-                # break
+                logger.error("line {}, error {}, {}".format(nr, e, line))
                 pass
             raRad = math.radians(raHour * 15)
             decRad = math.radians(decDeg)
@@ -278,8 +274,7 @@ class TargetList:
 
         if self.centerRADeg is None or self.centerRADeg is None:
             msg = "Center RA and DEC undefined. Using averge of input RA and DEC."
-            SMDTLogger.info(msg)
-            # print(msg)
+            logger.info(msg)
             self.centerRADeg = df.raHour.mean() * 15
             self.centerDEC = df.decDeg.mean()
             self.positionAngle = 0
@@ -333,7 +328,7 @@ class TargetList:
             data1[colName] = data[i]
 
         data2 = {"info": self.getROIInfo(), "targets": data1, "xgaps": self.xgaps}
-        print(data2)
+        logger.debug(f'targets and ROI {data2}')
         return json.dumps(data2, cls=MyJsonEncoder)
 
     def setColum(self, colName, value):
@@ -403,7 +398,7 @@ class TargetList:
             tgs.at[idx, "raRad"] = raRad
             tgs.at[idx, "decRad"] = decRad
 
-            SMDTLogger.info(
+            logger.info(
                 f"Updated target {idx}, ra {raSexa}, dec {decSexa}, pcode={pcode}, selected={selected}, slitLPA={slitLPA:.2f}, slitWidth={slitWidth:.2f}, len1={len1}, len2={len2}"
             )
         else:
@@ -431,7 +426,7 @@ class TargetList:
 
             self.targets = tgs.append(newItem, ignore_index=True)
 
-            SMDTLogger.info(
+            logger.info(
                 f"New target {targetName}, ra {raSexa}, dec {decSexa}, pcode={pcode}, selected={selected}, slitLPA={slitLPA:.2f}, slitWidth={slitWidth:.2f}, len1={len1}, len2={len2}, idx={idx}"
             )
 
@@ -446,7 +441,7 @@ class TargetList:
             return
         tgs = self.targets
         self.targets = tgs.drop(tgs.index[idx])
-        SMDTLogger.info("Delete target idx")
+        logger.info(f"Delete target idx {idx}")
 
     def markInside(self):
         """
@@ -471,9 +466,9 @@ class TargetList:
 
         raDeg, decDeg, refr = atRefr.getRefr([centerRADeg], [centerDECDeg], centerRADeg, haDeg)
         refa,refb,ra,rb,pMMHg, temperature, centerWavelength,zd,el=(atRefr.getRefTest([centerRADeg], [centerDECDeg], centerRADeg, haDeg))
-        print('el:',el)
-        print(refa-ra,refb-rb)
-        print('getrefr:',refr*3600.,np.degrees(zd)*3600.)
+        logger.debug(f'el: {el}')
+        logger.debug(f'{refa-ra} {refb-rb}')
+        logger.debug(f'getrefr: {refr*3600} {np.degrees(zd)*3600.}')
         return raDeg, decDeg
 
     def calcUnrefrCoords(self, centerRADeg, centerDECDeg, haDeg=100.52916667*np.pi/180):
@@ -635,40 +630,21 @@ class TargetList:
         Returns xarcs, yarcs in focal plane coordinates in arcs.
         """
 
-        print('-=--=-=-=-=-=-=-=-=-==--=-=-=')
-        print(self.__dict__.keys())
-        #for k,v in self.__dict__.items():
-        #    print(k,v)
-        print(self.config.properties['params'])
-        print(self.targets)
-        print('PA:',self.positionAngle)
+        logger.debug(f"TargetList keys: {self.__dict__.keys()}")
+        logger.debug(f"config params: {self.config.properties['params']}")
+        logger.debug(f"target list targets: {self.targets}")
+        logger.debug(f'PA: {self.positionAngle}')
 
-#        print('TelTarg',self.targets.raRad[15], self.targets.decRad[15])
-#        for i in range(len(self.targets.raRad)):
-#            self.targets.raRad[i], self.targets.decRad[i] = self.calcRefrCoords(self.targets.raRad[i], self.targets.decRad[i])
-
-
-#        raDeg, decDeg = self.calcRefrCoords(raDeg, decDeg)
 
         telRaRad, telDecRad = self._fld2telax(raDeg, decDeg, posAngleDeg)
         self.telRaRad, self.telDecRad = telRaRad, telDecRad
 
- #       raDeg, decDeg = self.calcUnrefrCoords(raDeg, decDeg)
- #       telRaRad, telDecRad = self._fld2telax(raDeg, decDeg, posAngleDeg)
- #       self.telRaRad, self.telDecRad = telRaRad, telDecRad
 
-  #      print('TelTarg',self.targets.raRad[15], self.targets.decRad[15])
         xarcs, yarcs = self._calcTelTargetCoords(telRaRad, telDecRad, self.targets.raRad, self.targets.decRad, posAngleDeg)
 
         self.targets["xarcs"] = xarcs
         self.targets["yarcs"] = yarcs
 
-##        xmm, ymm, pas = self.proj_to_mask(xarcs, yarcs, 0)
-
-##        self.targets["xmm"] = xmm
-##        self.targets["ymm"] = ymm
-
-##        self.targets["orgIndex"] = range(0, self.targets.shape[0])
 
         self.__updateDate()
         return xarcs, yarcs
@@ -865,7 +841,7 @@ class TargetList:
 
     def writeTo(self, fileName):
         def outputPA(fh):
-            print("# Mark name, center:", file=fh)
+            print(f"# Mark name, center: {fh}", file=fh)
             print("#", file=fh)
             print(
                 "{:20s} {} {} 2000.0 PA={:.3f}".format(
@@ -878,15 +854,15 @@ class TargetList:
             )
             print("#", file=fh)
             print("#", file=fh)
-            print ("# Columns", file=fh)
+            print("# Columns", file=fh)
             print("# Obj_Id, RA, DEC, EQX, Magn, pBand, pCode, sampleNr, selected, slitLPA, length1, length2, slitWidth", file=fh)
             print("#", file=fh)
             print("#", file=fh)
             # end of outputPA
 
         def outputTargets(fh):
-            for i, row in tgs.iterrows():
-                print(
+            for idx, row in tgs.iterrows():
+                logger.debug(
                     fmt.format(
                         row.objectId,
                         utils.toSexagecimal(row.raHour, secFmt="{:06.3f}"),
