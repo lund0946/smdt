@@ -98,9 +98,9 @@ function TargetTable(targets) {
 
 	self.setOnClickCB = function (fn) {
 		// Setup the function to call when a row in the target table is clicked on.
-		let i;
-		for (i in self.targets.orgIndex) {
-			E('target' + i).onclick = fn;
+		for (let idx=0; idx < self.targets.length; ++idx) {
+			const tgt = targets[idx];
+			E('target' + tgt['orgIndex']).onclick = fn;
 		}
 	};
 

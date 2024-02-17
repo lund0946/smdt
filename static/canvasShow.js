@@ -1236,6 +1236,7 @@ function CanvasShow(containerName, zoomContainer) {
 
     self.clickedRow = function (evt) {
         // Called when clicked on a row in the target table
+        console.log('clicked row!')
         var tId = this.id;
         var idx = Number(tId.replace("target", ""));
 
