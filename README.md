@@ -15,10 +15,6 @@ Launch using `python app.py`
 - Click the Generate Slits button to visualize slits.
 - Click save mask design file to save the file.
 
-### Known bugs
-- SaveMaskDesignFile Button doesn't show correct filename/path.
-- If loading a dsimulator output file, it adds an extra target for the field center.
-
 
 ### Other items
 - Recalculate mask or save mask doesn't automatically update the parameters, instead it requires the update parameters button to be pressed first to lock in the selection.
