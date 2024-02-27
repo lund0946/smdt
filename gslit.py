@@ -130,15 +130,15 @@ def len_slits(obs):
             del1 = xcen - 0.5*SLIT_GAP - tg.X2[ndx1] + dxlow
             del2 = tg.X1[ndx2] - (xcen + 0.5*SLIT_GAP) - dxupp
 
-        tg.X2[ndx1] = tg.X2[ndx1] + del1
+        tg.loc[ndx1, 'X2'] = tg.X2[ndx1] + del1
         if (del1 != 0. and tg.relpa[ndx1] != None):
             tana = math.tan(tg.relpa[ndx1])
-            tg.Y2[ndx1] = tg.Y2[ndx1] + del1 * FLIP * tana
+            tg.loc[ndx1, 'Y2'] = tg.Y2[ndx1] + del1 * FLIP * tana
 
-        tg.X1[ndx2] = tg.X1[ndx2] - del2
+        tg.loc[ndx2, 'X1'] = tg.X1[ndx2] - del2
         if (del2 != 0. and tg.relpa[ndx2] != None):
             tana = math.tan(tg.relpa[ndx2])
-            tg.Y1[ndx2] = tg.Y1[ndx2] - del2 * FLIP * tana
+            tg.loc[ndx2, 'Y1'] = tg.Y1[ndx2] - del2 * FLIP * tana
 
     cols = list(df.columns)
     tg = tg.sort_values(by=["index"])

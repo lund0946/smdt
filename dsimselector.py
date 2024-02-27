@@ -130,7 +130,7 @@ def sel_rank(opt, xlow, xupp, minsep, slit_gap):
         # set selection if
         logger.debug(f'Saving selection {ndx}, {isel}')
         # New column to differentiate between originally selected and sel_rank selected ones for re-running at different angles?
-        opt.selected[ndx] = 1
+        opt.loc[ndx, 'selected'] = 1
 
     return opt
 

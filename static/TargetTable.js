@@ -11,7 +11,7 @@ function TargetTable(targets) {
 	self.targets = targets;
 	self.columns = [
 		['#', 60, 'orgIndex', 0],
-		['Name', 160, 'objectId', 0],
+		['Name', 100, 'objectId', 0],
 		['RA', 80, 'raSexa', 0],
 		['DEC', 80, 'decSexa', 0],
 		
@@ -20,8 +20,8 @@ function TargetTable(targets) {
 		['Prior', 60, 'pcode', 0],		
 		['Sel', 35, 'selected', 0],
 		['Slit PA', 60, 'slitLPA', 0],
-		['Len1', 50, 'length1', 0],
-		['Len2', 50, 'length2', 0],
+		['Len1', 50, 'rlength1', 0],
+		['Len2', 50, 'rlength2', 0],
 		['SlitWidth', 60, 'slitWidth', 0],
 		['In', 35, 'inMask', 0],
 	].map(function (x) {
@@ -64,10 +64,10 @@ function TargetTable(targets) {
 			// Alternating color is done in CSS with tr:nth-child(even) and tr:nth-child(odd) 			
 			//
 			buf.push("<tr id='" + tId + "'>");
-			const nums = ['mag', 'rlength1', 'rlength2', 'slitWidth']
+			const nums = ["mag", "rlength1", "rlength2", "slitWidth"]
 			for (let kdx = 0 ; kdx < self.columns.length; ++kdx) {
 				const col = self.columns[kdx];
-				const val = nums.includes(tgt[col.key]) ? tgt[col.key].toFixed(2) : tgt[col.key];
+				const val = nums.includes(col.key) ? tgt[col.key].toFixed(2) : tgt[col.key];
 				buf.push("<td width='" + col.width + "px'>" + val);
 			}
 			buf.push("</tr>");

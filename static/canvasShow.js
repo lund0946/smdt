@@ -955,7 +955,7 @@ function CanvasShow(containerName, zoomContainer) {
         }
 
         for (let [key, value] of Object.entries(myVars)) {
-            const string = key + ' = ' + JSON.stringify(value)
+            const string = 'var ' + key + ' = ' + JSON.stringify(value)
             eval(string)
         }
         var len = targets.length;
@@ -1085,8 +1085,8 @@ function CanvasShow(containerName, zoomContainer) {
         E("targetSelect").value = targets[targetIdx].selected;
         E("targetSlitPA").value = targets[targetIdx].slitLPA;
         E("targetSlitWidth").value = targets[targetIdx].slitWidth;
-        E("targetLength1").value = targets[targetIdx].length1.toFixed(2);
-        E("targetLength2").value = targets[targetIdx].length2.toFixed(2);
+        E("targetLength1").value = targets[targetIdx].rlength1.toFixed(2);
+        E("targetLength2").value = targets[targetIdx].rlength2.toFixed(2);
         E("targetMagn").value = targets[targetIdx].mag;
         E("targetBand").value = targets[targetIdx].pBand;
     };
@@ -1236,7 +1236,6 @@ function CanvasShow(containerName, zoomContainer) {
 
     self.clickedRow = function (evt) {
         // Called when clicked on a row in the target table
-        console.log('clicked row!')
         var tId = this.id;
         var idx = Number(tId.replace("target", ""));
 

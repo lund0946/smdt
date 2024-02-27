@@ -306,9 +306,8 @@ def sky_coords(slit):
         # calc the centers and lengths of the slits
         # XXX NB: by convention, slit length will be defined as TOTAL length
 
-        x = 0.5 * (ob['X2'] + ob['X1'])
-        y = 0.5 * (ob['Y2'] + ob['Y1'])
-
+        x = ob['X2'] - ob['X1']
+        y = ob['Y2'] - ob['Y1']
         len1 = 0.5 * np.sqrt(x*x + y*y)
 
         # Slit length on either side of target
@@ -589,10 +588,10 @@ def mask_coords(obs):
         ob['slitX3'] = XMM3
         ob['slitX4'] = XMM4
 
-        ob['slitY1'] = XMM1
-        ob['slitY2'] = XMM2
-        ob['slitY3'] = XMM3
-        ob['slitY4'] = XMM4
+        ob['slitY1'] = YMM1
+        ob['slitY2'] = YMM2
+        ob['slitY3'] = YMM3
+        ob['slitY4'] = YMM4
 
         ob['arcslitX1'] = xfp1
         ob['arcslitX2'] = xfp2
@@ -701,7 +700,6 @@ def genSlits(targetList, fileparams, auto_sel=True, returnSlitSite=False):
         proj_len = True
     else:
         proj_len = False
-    
     obs, site = init_dicts(targetList, fileparams)
     logger.debug('init_dicts')
     obs = refr_coords(obs, site)
@@ -724,8 +722,8 @@ def genSlits(targetList, fileparams, auto_sel=True, returnSlitSite=False):
                 'slitX1', 'slitX2', 'slitX3', 'slitX4',
                 'slitY1', 'slitY2', 'slitY3', 'slitY4',
                 'arcslitX1', 'arcslitX2', 'arcslitX3', 'arcslitX4','newcenterRADeg', 'newcenterDECDeg',
-                'arcslitX1', 'arcslitX2', 'arcslitX3', 'arcslitX4']
-    obsKeys = ['length1', 'length2', 'xarcs', 'yarcs', 'objectId', 'ra_fldR', 'dec_fldR', 'lst']
+                'arcslitY1', 'arcslitY2', 'arcslitY3', 'arcslitY4']
+    obsKeys = ['xarcs', 'yarcs', 'objectId', 'ra_fldR', 'dec_fldR', 'lst']
     outTargetList = combine_target_with_slit_and_obs(targetList, slit, obs, slitKeys, obsKeys)
 
     out = [outTargetList , slit, site] if returnSlitSite else outTargetList 
