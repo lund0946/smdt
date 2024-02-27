@@ -101,7 +101,7 @@ def generateSlits():
     targetList = request.json['targets']
     params = request.json['params']
     targetList = targs.mark_inside(targetList)
-    targetList = calcmask.genSlits(targetList, params, auto_sel=True)
+    targetList, slit, site= calcmask.genSlits(targetList, params, auto_sel=True, returnSlitSite=True)
     outp = targs.to_json_with_info(params, targetList)
     return outp
 
@@ -238,4 +238,4 @@ def LoadTargets():
 if __name__ == '__main__':
     # t = Timer(1, launchBrowser, ['localhost', 9302, '/'])
     # t.start()
-    app.run(host='localhost', port=9302, debug=True, use_reloader=False)
+    app.run(host='localhost', port=9303, debug=True, use_reloader=False)

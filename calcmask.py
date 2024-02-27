@@ -260,7 +260,7 @@ def tel_coords(obs, ra, dec, ra0, dec0, proj_len=False):
         ob['yarcs'] =_yarcs
         ob['relpa'] =_relpa
         outObs.append(ob)
-    return obs
+    return outObs 
 
 def gen_slits_from_obs(obs, adj_len=False, auto_sel=True):
     for idx, ob in enumerate(obs):
@@ -486,7 +486,8 @@ def mask_coords(obs):
     FLIP = -1.
     FL_TEL = 150327.0
     outObs=[]
-    for idx, ob in enumerate(obs):
+
+    for ob in obs:
         RELPA = ob['relpa']
         XARCS = ob['xarcsS']
         YARCS = ob['yarcsS']
@@ -604,7 +605,7 @@ def mask_coords(obs):
         ob['arcslitY4'] = yfp4
         outObs.append(ob)
 
-    return obs
+    return outObs 
 
 #
 # GNOM_TO_DPROJ: adjust gnomonic coords to curved surface, take projection
