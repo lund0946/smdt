@@ -65,13 +65,14 @@
         },
         "MaskName": {
             "type": "string",
-            "default": "Mask Name",
+            "default": "MaskID",
             "description": "Short name of the mask",
-            "label": "Mask Name"
+            "label": "Mask Name",
+            "maxLength": 6
         },
         "MinSlitLength": {
             "type": "number",
-            "default": 1,
+            "default": 10,
             "description": "Minimum slit length (arcsec)",
             "label": "Min. slit length",
             "exclusiveMinimum": 0,
@@ -157,7 +158,7 @@
         },
         "Pressure": {
             "type": "number",
-            "default": 6,
+            "default": 615,
             "description": "Atmospheric Pressure (hPa)",
             "label": "Pressure",
             "units": "hPa"
