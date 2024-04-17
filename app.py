@@ -131,6 +131,7 @@ def saveMaskDesignFile():  # should only save current rather than re-running eve
         names = [f'{mdfName}.fits', f'{mdfName}.out',
                  f'{mdfName}.png', f'{mdfName}.json']
         mdf, targetList = calcmask.gen_mask_out(targetList, params)
+        pdb.set_trace()
         mdf.writeTo(names[0])
         mdf.writeOut(names[1])
         plt = plot.makeplot(names[0])
@@ -173,12 +174,12 @@ def sendTargets2Server():
     targetList = calcmask.gen_obs(prms, targetList)
     targetList = targs.mark_inside(targetList)
     targetList = calcmask.genSlits(targetList, prms, auto_sel=True)
-    raMedian = np.median([target['raHour'] for target in targetList])
-    decMedian = np.median([target['decDeg'] for target in targetList])
-    prms = {**prms,
-            'InputRA': toSexagecimal(raMedian),
-            'InputDEC': toSexagecimal(decMedian),
-            }
+    # raMedian = np.median([target['raHour'] for target in targetList])
+    # decMedian = np.median([target['decDeg'] for target in targetList])
+    # prms = {**prms,
+    #         'InputRA': toSexagecimal(raMedian),
+    #         'InputDEC': toSexagecimal(decMedian),
+    #         }
 
     outp = targs.to_json_with_info(prms, targetList)
     return outp

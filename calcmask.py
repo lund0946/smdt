@@ -204,7 +204,6 @@ def tel_coords(obs, ra, dec, ra0, dec0, proj_len=False):
     outObs = []
     for ob in obs:
         pa0 = ob['pa0_fld']
-        dec_obj = ob[ra]
         dec_obj = ob[dec]
         del_ra = ob[ra] - ob[ra0]
 
@@ -320,7 +319,7 @@ def sky_coords(slit):
         rlen2 = np.sqrt(xl2*xl2 + yl2*yl2)
 
         add = {'xarcsS': xarc, 'yarcsS': yarc,
-            'length1S': len1, 'length2S': len1,
+            'length1S': len1, 'length2S': len1, # length1S and length2S are the same
             'rlength1': rlen1, 'rlength2': rlen2,
             'raRadS': ra, 'decRadS': dec}
 
@@ -674,6 +673,7 @@ def proj_to_mask(xp, yp, ap):
 
 
 def gen_obs(fileparams, targetList):
+    pdb.set_trace()
     obs, site = init_dicts(targetList, fileparams)
     obs = refr_coords(obs, site)
     obs = fld2telax(obs, 'ra_fldR', 'dec_fldR', 'ra_telR', 'dec_telR')
@@ -715,15 +715,16 @@ def genSlits(targetList, fileparams, auto_sel=True, returnSlitSite=False):
     outTargetList = []
     slitKeys = [ 'slitWidth', 'selected',
                 'xarcsS', 'yarcsS',
-                'length1', 'length2', 
                 'xarcs', 'yarcs', 
                 'length1S', 'length2S',
                 'rlength1', 'rlength2', 
                 'slitX1', 'slitX2', 'slitX3', 'slitX4',
                 'slitY1', 'slitY2', 'slitY3', 'slitY4',
-                'arcslitX1', 'arcslitX2', 'arcslitX3', 'arcslitX4','newcenterRADeg', 'newcenterDECDeg',
+                'arcslitX1', 'arcslitX2', 'arcslitX3', 'arcslitX4',
+                'newcenterRADeg', 'newcenterDECDeg',
                 'arcslitY1', 'arcslitY2', 'arcslitY3', 'arcslitY4']
-    obsKeys = ['xarcs', 'yarcs', 'objectId', 'ra_fldR', 'dec_fldR', 'lst']
+    obsKeys = ['xarcs', 'yarcs', 'objectId', 'length1',
+               'length2', 'ra_fldR', 'dec_fldR', 'lst']
     outTargetList = combine_target_with_slit_and_obs(targetList, slit, obs, slitKeys, obsKeys)
 
     out = [outTargetList , slit, site] if returnSlitSite else outTargetList 

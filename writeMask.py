@@ -417,11 +417,13 @@ class MaskDesignOutputFitsFile:
         nSlits = selected.shape[0]
         if nSlits > 0:
             cols.append(pf.Column(name="bSlitId", format="I11",
-                        null="-9999", unit="None", array=range(nSlits)))
+                        # null="-9999", unit="None", array=range(nSlits)))
+                        null="-9999", unit="None", array=selected.slitIndex))
             cols.append(pf.Column(name="BluId", format="I11",
                         null="-9999", unit="None", array=[1] * nSlits))
             cols.append(pf.Column(name="dSlitId", format="I11",
-                        null="-9999", unit="None", array=range(nSlits)))
+                        # null="-9999", unit="None", array=range(nSlits)))
+                        null="-9999", unit="None", array=selected.slitIndex))
             cols.append(pf.Column(name="slitX1", format="F9.3",
                         null="0.000", unit="mm", array=selected.slitX1))
             cols.append(pf.Column(name="slitY1", format="F9.3",
