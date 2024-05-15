@@ -673,7 +673,6 @@ def proj_to_mask(xp, yp, ap):
 
 
 def gen_obs(fileparams, targetList):
-    pdb.set_trace()
     obs, site = init_dicts(targetList, fileparams)
     obs = refr_coords(obs, site)
     obs = fld2telax(obs, 'ra_fldR', 'dec_fldR', 'ra_telR', 'dec_telR')
