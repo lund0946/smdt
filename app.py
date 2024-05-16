@@ -131,7 +131,6 @@ def saveMaskDesignFile():  # should only save current rather than re-running eve
         names = [f'{mdfName}.fits', f'{mdfName}.out',
                  f'{mdfName}.png', f'{mdfName}.json']
         mdf, targetList = calcmask.gen_mask_out(targetList, params)
-        pdb.set_trace()
         mdf.writeTo(names[0])
         mdf.writeOut(names[1])
         plt = plot.makeplot(names[0])

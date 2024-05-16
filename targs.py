@@ -5,6 +5,7 @@ import dss2Header
 from inOutChecker import InOutChecker
 from maskLayouts import MaskLayouts
 import logging
+import pdb
 logger = logging.getLogger('smdt')
 
 
@@ -14,6 +15,9 @@ def readRaw(fh, params):
             return float(x)
         except:
             return 0
+
+    def str2Int(x):
+        return int(float(x))
 
     out = []
     cols = (
@@ -92,17 +96,17 @@ def readRaw(fh, params):
 
             mag = toFloat(template[3])
             pBand = template[4].upper()
-            pcode = int(template[5])
-            sampleNr = int(template[6])
-            selected = int(template[7])
+            pcode = str2Int(template[5])
+            sampleNr = str2Int(template[6])
+            selected = str2Int(template[7])
             slitLPA = toFloat(template[8])
             length1 = toFloat(template[9])
             length2 = toFloat(template[10])
             slitWidth = toFloat(template[11])
-            inMask = int(template[12])
+            inMask = str2Int(template[12])
         except Exception as err:
             logger.error(err)
-            pass
+            continue 
         raRad = math.radians(raHour * 15)
         decRad = math.radians(decDeg)
         target = (
