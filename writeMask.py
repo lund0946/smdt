@@ -220,8 +220,8 @@ class MaskDesignOutputFitsFile:
         cols = []
         createDate = params.descreate
         selected = tlist[tlist.sel == 1]
-        nSlits = selected.shape[0]
-        nObjs = nSlits + selected[selected.pcode == -2].shape[0]
+        nSlits = selected.shape[0] - selected[selected.pcode == -1].shape[0]
+        nObjs = nSlits + selected[selected.pcode == -2].shape[0] + selected[selected.pcode == -1].shape[0]
         pId = -1
 
         
@@ -317,9 +317,6 @@ class MaskDesignOutputFitsFile:
         refWave = float(params.lambda_cen[0]) / 10  # to nanometer
 
 
-        print('hhgjjghgjhkghjkghjkkghjghjkghjkjghk')
-        print(params.guiname)
-        print(params.maskid,type(params.guiname))
 
         cols.append(pf.Column(name="BluId", format="I11", null="-9999", unit="None", array=[1]))
         cols.append(pf.Column(name="DesId", format="I11", null="-9999", unit="None", array=[1]))
