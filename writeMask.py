@@ -221,7 +221,7 @@ class MaskDesignOutputFitsFile:
         createDate = params.descreate
         selected = tlist[tlist.sel == 1]
         nSlits = selected.shape[0] - selected[selected.pcode == -1].shape[0]
-        nObjs = nSlits + selected[selected.pcode == -2].shape[0] + selected[selected.pcode == -1].shape[0]
+        nObjs = nSlits + selected[selected.pcode == -1].shape[0]
         pId = -1
 
         

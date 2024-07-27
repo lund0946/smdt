@@ -20,7 +20,6 @@ import maskLayouts
 import utils
 import dsimselector
 
-
 import pdb
 
 
@@ -880,6 +879,9 @@ def genMaskOut(df,fileparams):
     from writeMask import MaskDesignOutputFitsFile
     mdf=MaskDesignOutputFitsFile(slitsdf,sitedf,paramdf,teldf)
     mdf.writeTo(params['mdf'][0])
-    mdf.writeOut(params['mdf'][0]+'.out')
+    if params['mdf'][0].endswith('.fits'):
+        mdf.writeOut(params['mdf'][0][:-5]+'.out')
+    else:
+        mdf.writeOut(params['mdf'][0]+'.out')
 
     return df

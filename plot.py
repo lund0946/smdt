@@ -30,8 +30,8 @@ def makeplot(plotname):
         sy4.append(slitdata[i][10])
         if typedata[i][5]=='P':      #color blue for slits
             col.append('royalblue')
-        elif typedata[i][5]=='G':    #color gold for guidestars
-            col.append('gold')
+#        elif typedata[i][5]=='G':    #color gold for guidestars - but will never appear in slitdata commenting out
+#            col.append('gold')
         elif typedata[i][5]=='A':    #color purple for alignment boxes
             col.append('violet')
         else:
@@ -66,5 +66,9 @@ def makeplot(plotname):
 
     plt.gca().invert_xaxis()
     plt.grid()
-    plt.legend([Line2D([], [], color='gold'),Line2D([], [], color='violet'),Line2D([], [], color='royalblue'),Line2D([], [], color='crimson')],['Guide Star','Alignment Box','Target slit','Unknown'],loc="upper left")
-    plt.savefig(plotname+'.png')
+#plt.legend([Line2D([], [], color='gold'),Line2D([], [], color='violet'),Line2D([], [], color='royalblue'),Line2D([], [], color='crimson')],['Guide Star','Alignment Box','Target slit','Unknown'],loc="upper left")
+    plt.legend([Line2D([], [], color='violet'),Line2D([], [], color='royalblue')],['Alignment Box','Target slit'],loc="upper left")
+    if plotname.endswith('.fits'):
+        plt.savefig(plotname[:-5]+'.png')
+    else:
+        plt.savefig(plotname+'.png')

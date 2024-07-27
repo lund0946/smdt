@@ -9,7 +9,7 @@ import configFile as cf
 import json
 import re
 import numpy as np
-import dss2Header
+#import dss2Header
 import targs
 import pdb
 import calcmask
