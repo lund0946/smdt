@@ -7,7 +7,7 @@ import math
 def selector(df,xmin,xmax,min_slit,slit_gap):
     print('/n/n/n/n/n Running Selector /n/n/n/n/n')
     #need to check for preselected
-    npre=len(df[(df["sel"]==1) & (df["pcode"]!=-1)])
+    npre=len(df[(df["sel"]==1) & (df["inMask"]==1) & (df["pcode"]!=-1)])
 
     #need to select options
 
@@ -16,7 +16,7 @@ def selector(df,xmin,xmax,min_slit,slit_gap):
 #    print(df)
     tg=df[df['pcode']!=-1]
 
-    sel=tg[tg['sel']==1]
+    sel=tg[tg['sel']==1 & (tg['inMask']==1)]
 #    print('sel\n',len(sel),sel)
     opt=tg[(tg['sel']!=1) & (tg['inMask']==1) & (df['pcode']>0)]
 #    print('opt\n',opt)
@@ -152,6 +152,7 @@ def from_dict(dict,sel=True):
     minX, maxX = np.min(mask, axis=0)[0], np.max(mask, axis=0)[0]
     df=pd.DataFrame.from_dict(dict)
     df=targs.markInside(df)
+    df.loc[df.inMask==0,'sel']=0
     min_slit,slit_gap=10,0.35  ## set from inputs
     if sel:
         dfout=selector(df,minX,maxX,min_slit,slit_gap)
