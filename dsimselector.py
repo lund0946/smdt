@@ -11,7 +11,7 @@ def selector(df, xmin, xmax, min_slit, slit_gap):
     logger.debug('Running Selector')
     # need to check for preselected
 
-    npre=len(df[(df["sel"]==1) & (df["inMask"]==1) & (df["pcode"]!=-1)])
+    npre=len(df[(df['selected']==1) & (df["inMask"]==1) & (df["pcode"]!=-1)])
 
     # sel_sort() low-to high sort of x1 and xarcs
     df = df.sort_values(by=["xarcs"])
@@ -19,9 +19,9 @@ def selector(df, xmin, xmax, min_slit, slit_gap):
 
     # Should this be L1+L2 instead of min_slit?  Or maybe optional ones we all assume min_slit.
     minsep = 2*(0.5*min_slit+slit_gap)
-    sel=tg[tg['sel']==1 & (tg['inMask']==1)]
-    opt=tg[(tg['sel']!=1) & (tg['inMask']==1) & (df['pcode']>0)]
-    nopt=len(tg[(tg['sel']!=1) & (tg['inMask']==1) & (df['pcode']>0)])
+    sel=tg[tg['selected']==1 & (tg['inMask']==1)]
+    opt=tg[(tg['selected']!=1) & (tg['inMask']==1) & (df['pcode']>0)]
+    nopt=len(tg[(tg['selected']!=1) & (tg['inMask']==1) & (df['pcode']>0)])
 
     # Already selected
     # The number of "gaps" to search is npre+1
