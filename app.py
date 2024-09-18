@@ -1,11 +1,12 @@
 from datetime import timedelta
-import pdb
 from flask import Flask, render_template, request, jsonify, send_from_directory, make_response
 from flask.logging import default_handler
 import webbrowser
 import numpy as np
 import maskLayouts as ml
 import os
+import json
+import numpy as np
 import targs
 import calcmask
 import json
@@ -13,9 +14,7 @@ import plot
 import logging
 from logging import FileHandler, StreamHandler
 import tarfile
-import gzip
 import tempfile
-import io
 
 
 from utils import schema, validate_params, toSexagecimal

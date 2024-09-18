@@ -235,9 +235,10 @@ class MaskDesignOutputFitsFile:
         params = self.params
         tel = self.tel
         cols = []
+        createDate = params.descreate
         selected = tlist[tlist.selected == 1]
-        nSlits = selected.shape[0]
-        nObjs = nSlits + selected[selected.pcode == -2].shape[0]
+        nSlits = selected.shape[0] - selected[selected.pcode == -1].shape[0]
+        nObjs = nSlits + selected[selected.pcode == -1].shape[0]
 
         cols.append(pf.Column(name="DesId", format="I11",
                     null="-9999", unit="None", array=[1]))
