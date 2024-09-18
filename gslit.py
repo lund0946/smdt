@@ -86,11 +86,9 @@ def gseval(x1, x2, cen, yas):
 
 
 # Adjust slit lengths to fit
-def len_slits(obs):
+def len_slits(obs, slit_gap):
     logger.debug('len_slits')
     df = pd.DataFrame(obs)
-    FLIP = -1
-    SLIT_GAP = 0.35  # parameter min distance gap between slits
     # remove pcode=-1 from list  ## was just tg=df[(df['pcode']!=-1) prev
     tg = df[(df['pcode'] != -1) & (df['selected'] == 1) & (df['inMask'] == 1)]
     # Correct value to sort on?
@@ -108,8 +106,8 @@ def len_slits(obs):
         if pc1 == -2 and pc2 == -2:
             continue
 
-        xlow = tg.X2[ndx1] + SLIT_GAP
-        xupp = tg.X1[ndx2] - SLIT_GAP
+        xlow = tg.X2[ndx1] + slit_gap 
+        xupp = tg.X1[ndx2] - slit_gap 
         xcen = 0.5 * (xlow + xupp)
 
         yas = tg.Y2[ndx1]
@@ -127,18 +125,18 @@ def len_slits(obs):
             del1 = xupp - tg.X2[ndx1] + (dxlow - dxupp)
             del2 = 0.
         else:
-            del1 = xcen - 0.5*SLIT_GAP - tg.X2[ndx1] + dxlow
-            del2 = tg.X1[ndx2] - (xcen + 0.5*SLIT_GAP) - dxupp
+            del1 = xcen - 0.5*slit_gap - tg.X2[ndx1] + dxlow
+            del2 = tg.X1[ndx2] - (xcen + 0.5*slit_gap) - dxupp
 
         tg.loc[ndx1, 'X2'] = tg.X2[ndx1] + del1
         if (del1 != 0. and tg.relpa[ndx1] != None):
             tana = math.tan(tg.relpa[ndx1])
-            tg.loc[ndx1, 'Y2'] = tg.Y2[ndx1] + del1 * FLIP * tana
+            tg.loc[ndx1, 'Y2'] = tg.Y2[ndx1] - del1 * tana
 
         tg.loc[ndx2, 'X1'] = tg.X1[ndx2] - del2
         if (del2 != 0. and tg.relpa[ndx2] != None):
             tana = math.tan(tg.relpa[ndx2])
-            tg.loc[ndx2, 'Y1'] = tg.Y1[ndx2] - del2 * FLIP * tana
+            tg.loc[ndx2, 'Y1'] = tg.Y1[ndx2] + del2 * tana
 
     cols = list(df.columns)
     tg = tg.sort_values(by=["index"])

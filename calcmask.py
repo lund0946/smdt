@@ -275,7 +275,7 @@ def gen_slits_from_obs(obs, min_slit, slit_gap, adj_len=False, auto_sel=True):
 
     obs = dsimselector.from_list(obs, min_slit, slit_gap, sel=True)
     if adj_len:
-        obs = gslit.len_slits(obs)
+        obs = gslit.len_slits(obs, slit_gap)
     return obs
 
 
