@@ -261,7 +261,7 @@ def tel_coords(obs, ra, dec, ra0, dec0, proj_len=False):
         outObs.append(ob)
     return outObs 
 
-def gen_slits_from_obs(obs, adj_len=False, auto_sel=True):
+def gen_slits_from_obs(obs, min_slit, slit_gap, adj_len=False, auto_sel=True):
     for idx, ob in enumerate(obs):
 
         ob['index'] = idx 
@@ -273,7 +273,7 @@ def gen_slits_from_obs(obs, adj_len=False, auto_sel=True):
         else:
             ob["slitLPA"] = ob['slitpa']
 
-    obs = dsimselector.from_list(obs, auto_sel)
+    obs = dsimselector.from_list(obs, min_slit, slit_gap, sel=True)
     if adj_len:
         obs = gslit.len_slits(obs)
     return obs
@@ -677,7 +677,9 @@ def gen_obs(fileparams, targetList):
     obs = refr_coords(obs, site)
     obs = fld2telax(obs, 'ra_fldR', 'dec_fldR', 'ra_telR', 'dec_telR')
     obs = tel_coords(obs, 'raRadR', 'decRadR', 'ra_telR', 'dec_telR')
-    slit = gen_slits_from_obs(obs, False, False)
+    min_slit = float(fileparams['MinSlitLength'])
+    slit_gap = float(fileparams['MinSlitSeparation'])
+    slit = gen_slits_from_obs(obs, min_slit, slit_gap, False, False)
     slit = sky_coords(slit)
     targetListOut = []
     for idx, target in enumerate(targetList):

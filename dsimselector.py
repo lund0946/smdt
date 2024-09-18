@@ -10,35 +10,18 @@ logger = logging.getLogger('smdt')
 def selector(df, xmin, xmax, min_slit, slit_gap):
     logger.debug('Running Selector')
     # need to check for preselected
-    npre = len(df[(df['selected'] == 1) & (df["pcode"] != -1)])
 
-<<<<<<< HEAD
-    # need to select options
-=======
-def selector(df,xmin,xmax,min_slit,slit_gap):
-    print('/n/n/n/n/n Running Selector /n/n/n/n/n')
-    #need to check for preselected
     npre=len(df[(df["sel"]==1) & (df["inMask"]==1) & (df["pcode"]!=-1)])
->>>>>>> main
 
     # sel_sort() low-to high sort of x1 and xarcs
     df = df.sort_values(by=["xarcs"])
     tg = df[df['pcode'] != -1]
 
-    sel = tg[tg['selected'] == 1]
-    opt = tg[(tg['selected'] != 1) & (tg['inMask'] == 1) & (df['pcode'] > 0)]
-    nopt = opt.shape[0]
-
-<<<<<<< HEAD
     # Should this be L1+L2 instead of min_slit?  Or maybe optional ones we all assume min_slit.
     minsep = 2*(0.5*min_slit+slit_gap)
-=======
     sel=tg[tg['sel']==1 & (tg['inMask']==1)]
-#    print('sel\n',len(sel),sel)
     opt=tg[(tg['sel']!=1) & (tg['inMask']==1) & (df['pcode']>0)]
-#    print('opt\n',opt)
     nopt=len(tg[(tg['sel']!=1) & (tg['inMask']==1) & (df['pcode']>0)])
->>>>>>> main
 
     # Already selected
     # The number of "gaps" to search is npre+1
@@ -150,41 +133,14 @@ def sel_rank(opt, xlow, xupp, minsep, slit_gap):
     return opt
 
 
-def from_list(obs, sel=True):
+def from_list(obs, min_slit, slit_gap, sel=True):
     mask = ml.MaskLayouts["deimos"]
     minX, maxX = np.min(mask, axis=0)[0], np.max(mask, axis=0)[0]
-<<<<<<< HEAD
     # Convert dict of lists to list of dicts
     obs = targs.mark_inside(obs)
-    min_slit, slit_gap = 10, 0.35  # set from inputs
     out = selector(pd.DataFrame(obs), minX, maxX,
                    min_slit, slit_gap) if sel else obs
     keys = ['ra0_fld', 'dec0_fld', 'ha0_fld', 'lst', 'pa0_fld',
             'orig_ref1', 'orig_ref3', 'ra_fldR', 'dec_fldR', 'ra_telR', 'dec_telR']
     out = [{**el, **{key: out[0][key] for key in keys}} for el in out]
     return out
-=======
-    df=pd.DataFrame.from_dict(dict)
-    df=targs.markInside(df)
-    df.loc[df.inMask==0,'sel']=0
-    min_slit,slit_gap=10,0.35  ## set from inputs
-    if sel:
-        dfout=selector(df,minX,maxX,min_slit,slit_gap)
-    else:
-        dfout=df.to_dict('list')
-#    print(dfout)
-
-    dfout['ra0_fld']=dfout['ra0_fld'][0]
-    dfout['dec0_fld']=dfout['dec0_fld'][0]
-    dfout['ha0_fld']=dfout['ha0_fld'][0]
-    dfout['lst']=dfout['lst'][0]
-    dfout['pa0_fld']=dfout['pa0_fld'][0]
-    dfout['orig_ref1']=dfout['orig_ref1'][0]
-    dfout['orig_ref3']=dfout['orig_ref3'][0]
-    dfout['ra_fldR']=dfout['ra_fldR'][0]
-    dfout['dec_fldR']=dfout['dec_fldR'][0]
-    dfout['ra_telR']= dfout['ra_telR'][0]
-    dfout['dec_telR']=dfout['dec_telR'][0]
-    return dfout
-
->>>>>>> main
