@@ -693,6 +693,24 @@ function CanvasShow(containerName, zoomContainer) {
         window.requestAnimationFrame(self.reallyDrawTxImage);
     };
 
+    self.drawPrior = function (ctx, priors, color) {
+        let tmax = self.tMatrix;
+
+        let x0 = 200;
+        let y0 = 50;
+        let psum = 0;
+        with (ctx) {
+            strokeStyle = color;
+            ctx.font="18px Calibri";
+            let psum = 0;
+            for (let i = 0; i < priors.length; i++) {
+                psum += priors[i];
+
+            }
+            strokeText("Priority sum: "+psum, x0 , y0 );
+        }
+    };
+
     self.drawGaps = function (ctx, gaps, y0, color, lw) {
         let tmax = self.tMatrix;
         let minSlitLen = Number(E("MinSlitLengthfd").value);
@@ -833,6 +851,7 @@ function CanvasShow(containerName, zoomContainer) {
                     if (selected[i]) {
                         if (inMask) {
                             selectedInIdx.push(i);
+                            selectedInIdxPrior.push(pri);
                         } else selectedOutIdx.push(i);
                     }
                 }
@@ -883,6 +902,8 @@ function CanvasShow(containerName, zoomContainer) {
             bSize = limit(bSize, 3, 20);
             drawPlusBig(ctx, x, y, bSize, bSize);
         }
+
+
 
         function drawClickedOn(idx) {
             var x = xOut[idx];
@@ -999,6 +1020,20 @@ function CanvasShow(containerName, zoomContainer) {
             ctx.stroke();
         }
 
+        function drawPriorIdx(tlist, color, fnc) {
+            var idx;
+            var prival;
+            let psum = 0;
+            ctx.strokeStyle = color;
+            for (let i = 0; i < tlist.length; i++) {
+                psum += tlist[i];
+            }
+            fnc(psum)
+
+            
+            ctx.stroke();
+        }
+
         var targets = self.targets;
         if (!targets) return;
 
@@ -1027,6 +1062,7 @@ function CanvasShow(containerName, zoomContainer) {
         var len = xpos.length;
 
         var selectedInIdx = [];
+        var selectedInIdxPrior = [];
         var selectedOutIdx = [];
         var showInIdx = [];
         var showOutIdx = [];
@@ -1100,6 +1136,8 @@ function CanvasShow(containerName, zoomContainer) {
             //self.drawGaps(ctx, self.xgaps, 350, "#dddd44", 1);
         } else {
             drawListIdx(selectedInIdx, "#99ff99", drawSelTarget);
+            //drawPriorIdx(selectedInIdxPrior, "#99ff99", drawPrior);
+            self.drawPrior(ctx,selectedInIdxPrior,"#49ff99")
             drawListIdx(selectedOutIdx, "#ff0000", drawSelTarget);
         }
 
