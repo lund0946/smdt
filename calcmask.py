@@ -14,6 +14,7 @@ import datetime
 from astropy import units as u
 from astropy.coordinates import Angle
 
+import pickle
 
 import sl
 import maskLayouts
@@ -720,6 +721,9 @@ def genObs(df,fileparams):
     df['xarcs']=obs['xarcs']
     df['yarcs']=obs['yarcs']
     df['objectId']=obs['objectId']
+    f=open('gen_obs.pkl','wb')
+    pickle.dump([obs,site,slit,df],f)
+    f.close()
     return df
 
 def genSlits(df,fileparams,auto_sel=True):
