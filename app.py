@@ -235,6 +235,6 @@ def LoadTargets():
 
 
 if __name__ == '__main__':
-    # t = Timer(1, launchBrowser, ['localhost', 9302, '/'])
-    # t.start()
+    #t = Timer(1, launchBrowser, ['localhost', 9302, '/'])
+    #t.start()
     app.run(host='localhost', port=9302, debug=True, use_reloader=False)

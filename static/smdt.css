@@ -127,8 +127,6 @@ h2 #headline {
 
 #targetTable {
     font-size: 75%;
-    height: 1000px;
-    overflow: auto;
     border-collapse: collapse;
 }
 
