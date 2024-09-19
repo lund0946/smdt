@@ -127,6 +127,8 @@ h2 #headline {
 
 #targetTable {
     font-size: 75%;
+    height: 1000px;
+    overflow: auto;
     border-collapse: collapse;
 }
 
@@ -195,6 +197,8 @@ h2 #headline {
 #targetTableDiv {
     margin: 10px; 
     float: left;
+    max-height: 300px;
+    overflow: auto;
     border-collapse: collapse;
 }
 #targetFormTable tr th {
