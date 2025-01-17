@@ -156,7 +156,7 @@ def getTargetsAndInfo():
         print('newdf/getTargetsAndInfo')
         newdf=calcmask.genObs(df,params)
         newdf=targs.markInside(newdf)
-        mask = ml.MaskLayouts["deimos"]
+        mask = ml.MaskLayouts["lris"]
         minX, maxX = np.min(mask, axis=0)[0], np.max(mask, axis=0)[0]
         #selector = TargetSelector(newdf, minX, maxX, float(params['MinSlitLengthfd'][0]), float(params['MinSlitSeparationfd'][0]))
         #newdf = selector.performSelection(extendSlits=False)
@@ -174,7 +174,7 @@ def generateSlits():
     params=prms
     df=targs.markInside(df)
     newdf=calcmask.genSlits(df,params,auto_sel=False)
-    mask = ml.MaskLayouts["deimos"]
+    mask = ml.MaskLayouts["lris"]
     minX, maxX = np.min(mask, axis=0)[0], np.max(mask, axis=0)[0]
     df=newdf
     outp=targs.toJsonWithInfo(params,newdf)
@@ -189,7 +189,7 @@ def recalculateMask():
     params=prms
     df=targs.markInside(df)
     newdf=calcmask.genSlits(df,params,auto_sel=True)
-    mask = ml.MaskLayouts["deimos"]
+    mask = ml.MaskLayouts["lris"]
     minX, maxX = np.min(mask, axis=0)[0], np.max(mask, axis=0)[0]
  #   selector = TargetSelector(newdf, minX, maxX, float(params['MinSlitLengthfd'][0]), float(params['MinSlitSeparationfd'][0]))
 #    newdf = selector.performSelection(extendSlits=False)
@@ -203,7 +203,7 @@ def saveMaskDesignFile():  # should only save current rather than re-running eve
     global prms
     params=prms
     df=targs.markInside(df)
-    mask = ml.MaskLayouts["deimos"]
+    mask = ml.MaskLayouts["lris"]
     minX, maxX = np.min(mask, axis=0)[0], np.max(mask, axis=0)[0]
  #   selector = TargetSelector(df, minX, maxX, float(params['MinSlitLengthfd'][0]), float(params['MinSlitSeparationfd'][0]))
 #    df = selector.performSelection(extendSlits=False)
@@ -274,7 +274,7 @@ def getMaskLayout():
     Returns a JSON with mask, guiderFOC and badColumns
     """
     try:
-        instrument = "deimos"
+        instrument = "lris"
         mask = ml.MaskLayouts[instrument]  # a list of (x,y,flag), polygon vertices
         guiderFOV = ml.GuiderFOVs[instrument]  # list of (x, y, w, h, ang), boxes
         badColumns = ml.BadColumns[instrument]  # list of lines, as polygons

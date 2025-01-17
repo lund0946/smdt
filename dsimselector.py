@@ -148,7 +148,7 @@ def sel_rank(opt, xlow, xupp, minsep, slit_gap):
 def from_dict(dict,sel=True):
     import maskLayouts as ml
     import targs
-    mask=ml.MaskLayouts["deimos"]
+    mask=ml.MaskLayouts["lris"]
     minX, maxX = np.min(mask, axis=0)[0], np.max(mask, axis=0)[0]
     df=pd.DataFrame.from_dict(dict)
     df=targs.markInside(df)

@@ -48,8 +48,10 @@ def makeplot(plotname):
 
     ax=plt.gca()
     ZPT_YM=128.803
-    layout = maskLayouts.MaskLayouts["deimos"]
-    layoutMM = maskLayouts.scaleLayout(layout, utils.AS2MM, 0, -ZPT_YM) ###
+    layout = maskLayouts.MaskLayouts["lris"]
+    layoutoff = maskLayouts.scaleLayout(layout, 1, 0,0) ###
+    layoutlris = maskLayouts.lrismcs(layoutoff)
+    layoutMM = maskLayouts.scaleLayout(layoutlris, utils.AS2MM, 0,0) ###
 
     drawUtils.drawPatch(ax, layoutMM, fc="None", ec="g")
   

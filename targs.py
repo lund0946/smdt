@@ -308,7 +308,7 @@ def markInside(targets):
     """
     Sets the inMask flag to 1 (inside) or 0 (outside)
     """
-    layout=MaskLayouts['deimos']
+    layout=MaskLayouts['lris']
     inOutChecker = InOutChecker(layout)
     tgs = targets
     inMask = []

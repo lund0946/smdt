@@ -197,8 +197,8 @@ def fld2telax(obs,ra_fld,dec_fld,ratel,dectel):
     ra_fld=obs[ra_fld]
     dec_fld=obs[dec_fld]
 
-    FLDCEN_X=0.
-    FLDCEN_Y=270.
+    FLDCEN_X=305.
+    FLDCEN_Y=0.
     PA_ROT=obs['pa0_fld']
 
 # convert field center offset (arcsec) to radians
@@ -379,7 +379,7 @@ def gen_slits(obs,adj_len=False,auto_sel=True):
 
     if adj_len:
         import gslit
-        obs=gslit.len_slits(obs)
+        #obs=gslit.len_slits(obs)
     return obs
 def sky_coords(obs):
 
@@ -574,8 +574,11 @@ def mask_coords(obs):
         xfp,yfp=gnom_to_dproj (xfp, yfp)         # (allowed)
         xsm,ysm,pa=proj_to_mask (xfp, yfp, pa)
 
-        XMM1.append(xsm + xoff)
-        YMM1.append(ysm + yoff)
+        _xmm,_ymm=lris_arc2mm(X1[i],Y1[i] - 0.5*SLWID[i])
+        XMM1.append(_xmm)
+        YMM1.append(_ymm)
+#        XMM1.append(xsm + xoff)
+#        YMM1.append(ysm + yoff)
 
         xfp = FL_TEL *  X2[i] / asec_rad
         yfp = FL_TEL * (Y2[i] - 0.5*SLWID[i]) / asec_rad
@@ -587,8 +590,11 @@ def mask_coords(obs):
         xfp,yfp=gnom_to_dproj (xfp, yfp)         # (allowed)
         xsm,ysm,pa=proj_to_mask (xfp, yfp, pa)
 
-        XMM2.append(xsm + xoff)
-        YMM2.append(ysm + yoff)
+        _xmm,_ymm=lris_arc2mm(X2[i],Y2[i] - 0.5*SLWID[i])
+        XMM2.append(_xmm)
+        YMM2.append(_ymm)
+#        XMM2.append(xsm + xoff)
+#        YMM2.append(ysm + yoff)
 
         xfp = FL_TEL *  X2[i] / asec_rad
         yfp = FL_TEL * (Y2[i] + 0.5*SLWID[i]) / asec_rad
@@ -600,8 +606,11 @@ def mask_coords(obs):
         xfp,yfp=gnom_to_dproj (xfp, yfp)         # (allowed)
         xsm,ysm,pa=proj_to_mask (xfp, yfp, pa)
 
-        XMM3.append(xsm + xoff)
-        YMM3.append(ysm + yoff)
+        _xmm,_ymm=lris_arc2mm(X2[i],Y2[i] + 0.5*SLWID[i])
+        XMM3.append(_xmm)
+        YMM3.append(_ymm)
+ #       XMM3.append(xsm + xoff)
+ #       YMM3.append(ysm + yoff)
 
         xfp = FL_TEL *  X1[i] / asec_rad
         yfp = FL_TEL * (Y1[i] + 0.5*SLWID[i]) / asec_rad
@@ -613,14 +622,24 @@ def mask_coords(obs):
         xfp,yfp=gnom_to_dproj (xfp, yfp)         # (allowed)
         xsm,ysm,pa=proj_to_mask (xfp, yfp, pa)
 
-        XMM4.append(xsm + xoff)
-        YMM4.append(ysm + yoff)
+        _xmm,_ymm=lris_arc2mm(X1[i],Y1[i] + 0.5*SLWID[i])
+        XMM4.append(_xmm)
+        YMM4.append(_ymm)
+#        XMM4.append(xsm + xoff)
+#        YMM4.append(ysm + yoff)
 
     obs['slitX1'],obs['slitX2'],obs['slitX3'],obs['slitX4']=XMM1,XMM2,XMM3,XMM4
     obs['slitY1'],obs['slitY2'],obs['slitY3'],obs['slitY4']=YMM1,YMM2,YMM3,YMM4
     obs['arcslitX1'],obs['arcslitX2'],obs['arcslitX3'],obs['arcslitX4']=xfp1,xfp2,xfp3,xfp4
     obs['arcslitY1'],obs['arcslitY2'],obs['arcslitY3'],obs['arcslitY4']=yfp1,yfp2,yfp3,yfp4
+
     return obs
+
+def lris_arc2mm(x,y):
+    xmm = ((0 - y) + 177.8) * 0.7253
+    ymm = ((x - 305) + 132.3) * 0.7253
+    return xmm,ymm
+ 
 
 #
 # GNOM_TO_DPROJ: adjust gnomonic coords to curved surface, take projection
@@ -862,7 +881,7 @@ def genMaskOut(df,fileparams):
         'author':fileparams['Authorfd'][0],
         'observer':fileparams['Observerfd'][0],
         'project':fileparams['ProjectNamefd'][0],
-        'instrument':'DEIMOS',
+        'instrument':'LRIS',
         'telescope':'Keck II'
  }
 

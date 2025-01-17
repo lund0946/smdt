@@ -325,8 +325,8 @@ function CanvasShow(containerName, zoomContainer) {
     self.origSkyMatrix = new TxMatrix(); // describes the orignal sky PA
 
 
-    self.maskOffsetX = 0;
-    self.maskOffsetY = 270;
+    self.maskOffsetX = 305;
+    self.maskOffsetY = 0;
     self.slitColor = "#FF0000";
     self.maskColor = "#8888FF";
     self.guiderFOVColor = "#FFFF88";
