@@ -311,7 +311,7 @@ def tel_coords(obs,ra_ref,dec_ref,ra_telref,dec_telref,proj_len=False):
     return obs
 
 
-def gen_slits(obs,adj_len=False,auto_sel=True):
+def gen_slits(obs,adj_len=False,auto_sel=True,min_slit=10,slit_gap=0.35):
 
 
 
@@ -373,13 +373,13 @@ def gen_slits(obs,adj_len=False,auto_sel=True):
  #   obs["sel"]=_sel
 
 
-    print('\n\n\n\n\n\n\n\ =================')
+#    print('\n\n\n\n\n\n\n\ =================')
 #    if auto_sel:
-    obs=dsimselector.from_dict(obs,auto_sel)
+    obs=dsimselector.from_dict(obs,auto_sel,min_slit,slit_gap)
 
     if adj_len:
         import gslit
-        obs=gslit.len_slits(obs)
+        obs=gslit.len_slits(obs,min_slit,slit_gap)
     return obs
 def sky_coords(obs):
 
@@ -709,12 +709,12 @@ def proj_to_mask(xp,yp,ap):
 
 
 def genObs(df,fileparams):
-
+    min_slit,slit_gap=float(fileparams['MinSlitLengthfd'][0]),float(fileparams['MinSlitSeparationfd'][0])
     obs,site=init_dicts(df,fileparams)
     obs=refr_coords(obs,site)
     obs=fld2telax(obs,'ra_fldR','dec_fldR','ra_telR','dec_telR')
     obs=tel_coords(obs,'raRadR','decRadR','ra_telR','dec_telR')
-    slit=gen_slits(obs,False,False)
+    slit=gen_slits(obs,False,False,min_slit,slit_gap)
     slit=sky_coords(slit)
     df['xarcsS']=slit['xarcsS']
     df['yarcsS']=slit['yarcsS']
@@ -727,10 +727,11 @@ def genObs(df,fileparams):
     return df
 
 def genSlits(df,fileparams,auto_sel=True):
-    print('genSlits\n\n\n\n\n\n\n\n\n')
+#    print('genSlits\n\n\n\n\n\n\n\n\n')
 
     global slit
     global site
+    min_slit,slit_gap=float(fileparams['MinSlitLengthfd'][0]),float(fileparams['MinSlitSeparationfd'][0])
 
     if fileparams['NoOverlapfd'][0]=='yes':
         adj_len=True
@@ -741,11 +742,11 @@ def genSlits(df,fileparams,auto_sel=True):
     else:
         proj_len=False
     obs,site=init_dicts(df,fileparams)
-    print('init_dicts')
+#    print('init_dicts')
     obs=refr_coords(obs,site)
     obs=fld2telax(obs,'ra_fldR','dec_fldR','ra_telR','dec_telR')
     obs=tel_coords(obs,'raRadR','decRadR','ra_telR','dec_telR',proj_len)
-    slit=gen_slits(obs,adj_len,auto_sel)
+    slit=gen_slits(obs,adj_len,auto_sel,min_slit,slit_gap)
     slit=sky_coords(slit)
     slit=unrefr_coords(slit,site)
     slit=fld2telax(slit,'ra0_fldU','dec0_fldU','ra_telU','dec_telU')
@@ -779,6 +780,7 @@ def genMaskOut(df,fileparams):
 
     global slit
     global site
+    min_slit,slit_gap=float(fileparams['MinSlitLengthfd'][0]),float(fileparams['MinSlitSeparationfd'][0])
 
     if 'slitX1' not in df.columns:    #rethink this?!
         if fileparams['NoOverlapfd'][0]=='yes':
@@ -794,7 +796,7 @@ def genMaskOut(df,fileparams):
         obs=refr_coords(obs,site)
         obs=fld2telax(obs,'ra_fldR','dec_fldR','ra_telR','dec_telR')
         obs=tel_coords(obs,'raRadR','decRadR','ra_telR','dec_telR',proj_len)
-        slit=gen_slits(obs,adj_len)
+        slit=gen_slits(obs,adj_len,True,min_slit,slit_gap)
         slit=sky_coords(slit)
         slit=unrefr_coords(slit,site)
         slit=fld2telax(slit,'ra0_fldU','dec0_fldU','ra_telU','dec_telU')

@@ -34,6 +34,8 @@ def readRaw(fh,params):
         "slitLPA",
         "length1",
         "length2",
+        "rlength1",
+        "rlength2",
         "slitWidth",
         "orgIndex",
         "inMask",
@@ -45,6 +47,7 @@ def readRaw(fh,params):
     halfLen = slitLength / 2.
     slitWidth = params["SlitWidthfd"][0]              ####
     slitpa = params["SlitPAfd"][0]                    ####
+
 
     for nr, line in enumerate(fh):
         if not line:
@@ -66,11 +69,10 @@ def readRaw(fh,params):
             continue
         # print (nr, "len", parts)
 
-        template = ["", "", "2000", "99", "I", "0", "-1", "0", slitpa, halfLen, halfLen, slitWidth, "0", "0"]
+        template = ["", "", "2000", "99", "I", "1", "1", "0", slitpa, halfLen, halfLen, slitWidth,"0","0"]
         minLength = min(len(parts), len(template))
         template[:minLength] = parts[:minLength]
-
-        sampleNr, selected, slitLPA, length1, length2, slitWidth = 1, 1, 0, 4, 4, 1.5
+        sampleNr, selected, slitLPA, length1, length2, slitWidth = 1, 0, 0, 5, 5, 1.0
         mag, pBand, pcode = 99, "I", 99
 
         try:
@@ -102,11 +104,14 @@ def readRaw(fh,params):
             slitLPA = toFloat(template[8])
             length1 = toFloat(template[9])
             length2 = toFloat(template[10])
+            rlength1 = toFloat(template[9])
+            rlength2 = toFloat(template[10])
             slitWidth = toFloat(template[11])
             inMask = int(template[12])
         except Exception as e:
             # traceback.print_exc()
             # break
+            print('Exception has occured: ',e)
             pass
         raRad = math.radians(raHour * 15)
         decRad = math.radians(decDeg)
@@ -123,6 +128,8 @@ def readRaw(fh,params):
             slitLPA,
             length1,
             length2,
+            rlength1,
+            rlength2,
             slitWidth,
             cnt,
             inMask,
@@ -134,13 +141,13 @@ def readRaw(fh,params):
     df = pd.DataFrame(out, columns=cols)
     # df["inMask"] = np.zeros_like(df.name)
 
-    fieldcenterRADeg = df.raHour.mean() * 15
-    fieldcenterDEC = df.decDeg.mean()
+ #   fieldcenterRADeg = df.raHour.mean() * 15
+ #   fieldcenterDEC = df.decDeg.mean()
 
     return df
 
 
-def toJsonWithInfo(params,tgs,xgaps=[]):
+def oldtoJsonWithInfo(params,tgs,xgaps=[]):
     """
     Returns the targets and ROI info in JSON format
     """
@@ -149,6 +156,42 @@ def toJsonWithInfo(params,tgs,xgaps=[]):
     for i, colName in enumerate(tgs.columns):
         data1[colName] = data[i]
     data2 = {"info": getROIInfo(params), "targets": data1, "xgaps": xgaps}
+    return json.dumps(data2)
+
+
+import json
+
+def toJsonWithInfo(params, tgs, xgaps=[]):
+    """
+    Returns the targets and ROI info in JSON format with reduced data size.
+    Includes only essential columns and limits precision for selected fields.
+    """
+    # Define essential columns and those requiring reduced precision
+    essential_columns = {
+        "xarcs", "yarcs", "arcslitX1", "arcslitX2", "arcslitX3", "arcslitX4",
+        "arcslitY1", "arcslitY2", "arcslitY3", "arcslitY4", "slitLPA", "slitWidth",
+        "rlength1", "rlength2", "length1", "length2", "selected", "pcode", "mag", "pBand", 
+        "raHour", "decDeg", "raSexa", "decSexa", "objectId", "orgIndex", "inMask"
+    }
+    
+    precision_columns = {
+        "xarcs", "yarcs", "arcslitX1", "arcslitX2", "arcslitX3", "arcslitX4",
+        "arcslitY1", "arcslitY2", "arcslitY3", "arcslitY4", "rlength1", "rlength2", "mag"
+    }
+
+    # Filter and format data
+    data1 = {}
+    for col in essential_columns:
+        if col in tgs.columns:
+            if col in precision_columns:
+                # Limit precision to 2 decimal places
+                data1[col] = [round(float(val), 2) if isinstance(val, (float, int)) else val for val in tgs[col]]
+            else:
+                data1[col] = list(tgs[col])  # Keep as is
+
+    # Construct final JSON data
+    data2 = {"info": getROIInfo(params), "targets": data1, "xgaps": xgaps}
+    
     return json.dumps(data2)
 
 

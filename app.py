@@ -18,6 +18,22 @@ import plot
 from targetSelector import TargetSelector
 import dsimselector
 
+import logging
+from functools import wraps
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+def log_function_call(func):
+    """Decorator to log function calls"""
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        logging.info(f"Function '{func.__name__}' called with args: {args} kwargs: {kwargs}")
+        result = func(*args, **kwargs)
+        logging.info(f"Function '{func.__name__}' returned: {result}")
+        return result
+    return wrapper
+
 
 def launchBrowser(host, portnr, path):
     webbrowser.open(f"http://{host}:{portnr}/{path}", new=1)
@@ -60,11 +76,17 @@ app.secret_key='dsf2315ewd'
 app.config['SESSION_PERMANENT'] = True
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=0.001)
+app.config['MAX_CONTENT_LENGTH'] = 100*1024*1024
 
 # The maximum number of items the session stores 
 # before it starts deleting some, default 500
 app.config['SESSION_FILE_THRESHOLD'] = 10000  
 Session(app)
+
+
+@app.before_request
+def log_request():
+    logging.info(f"Request made to: {request.path} with method {request.method}")
 
 
 #@app.route('/readparams')
@@ -153,7 +175,7 @@ def getTargetsAndInfo():
     params=prms
     global df
     try:
-        print('newdf/getTargetsAndInfo')
+#        print('newdf/getTargetsAndInfo')
         newdf=calcmask.genObs(df,params)
         newdf=targs.markInside(newdf)
         mask = ml.MaskLayouts["deimos"]
@@ -209,6 +231,7 @@ def saveMaskDesignFile():  # should only save current rather than re-running eve
 #    df = selector.performSelection(extendSlits=False)
 
     newdf=calcmask.genMaskOut(df,params)
+#    print('makeplot')
     plot.makeplot(params['OutputFitsfd'][0])
     df=newdf
 
@@ -219,16 +242,16 @@ def saveMaskDesignFile():  # should only save current rather than re-running eve
 ##Update Params Button, Load Targets Button
 @app.route('/sendTargets2Server',methods=["GET","POST"])
 def sendTargets2Server():
-    print('sendTargets2Server()')
+#    print('sendTargets2Server()')
     global prms
     prms=request.form.to_dict(flat=False)
     params=prms
-    print(prms)
+#    print(prms)
     centerRADeg,centerDEC,positionAngle=15*utils.sexg2Float(params['InputRAfd'][0]),utils.sexg2Float(params['InputDECfd'][0]),float(params['MaskPAfd'][0])
     fh=[]
     session['params']=params
     prms=params
-    print(request.files['targetList'])
+#    print(request.files['targetList'])
     uploaded_file = request.files['targetList']
     if uploaded_file.filename != '':
         input=uploaded_file.stream
@@ -237,6 +260,7 @@ def sendTargets2Server():
 
         session['file']=fh
         global df
+#        print('Loading file')
         df=targs.readRaw(session['file'],prms)
         df['loadselected']=df.selected                   #Only backup selected targets on file load.
     outp=targs.toJsonWithInfo(params,df)
@@ -259,7 +283,7 @@ def getConfigParams():
     global prms
     paramData=readparams()
     prms=paramData
-    print('params:',paramData)
+#    print('params:',paramData)
     session['params']=paramData
     prms=paramData
     return json.dumps({"params": paramData})

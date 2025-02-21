@@ -95,7 +95,7 @@ function TargetTable(targets) {
 				k += 1;
 				buf.push("<td width='" + columns[k][1] + "px'>" + decDegs[i]);
 				k += 1;
-				buf.push("<td width='" + columns[k][1] + "px'>" + mags[i].toFixed(2));
+				buf.push("<td width='" + columns[k][1] + "px'>" + mags[i]);
 				k += 1;
 				buf.push("<td width='" + columns[k][1] + "px'>" + bands[i]);
 				k += 1;
@@ -105,11 +105,11 @@ function TargetTable(targets) {
 				k += 1;
 				buf.push("<td width='" + columns[k][1] + "px'>" + slitPAs[i]);
 				k += 1;
-				buf.push("<td width='" + columns[k][1] + "px'>" + len1s[i].toFixed(2));
+				buf.push("<td width='" + columns[k][1] + "px'>" + (len1s[i] !== undefined ? len1s[i] : ""));
 				k += 1;
-				buf.push("<td width='" + columns[k][1] + "px'>" + len2s[i].toFixed(2));
+				buf.push("<td width='" + columns[k][1] + "px'>" + (len2s[i] !== undefined ? len2s[i] : ""));
 				k += 1;
-				buf.push("<td width='" + columns[k][1] + "px'>" + slitWidths[i].toFixed(2));
+				buf.push("<td width='" + columns[k][1] + "px'>" + (slitWidths[i] !== undefined ? slitWidths[i] : ""));
 				k += 1;
 				buf.push("<td width='" + columns[k][1] + "px'>" + inMask[i]);
 				buf.push("</tr>");

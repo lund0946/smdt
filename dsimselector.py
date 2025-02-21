@@ -5,10 +5,10 @@ import math
 
 
 def selector(df,xmin,xmax,min_slit,slit_gap):
-    print('/n/n/n/n/n Running Selector /n/n/n/n/n')
+#    print('/n/n/n/n/n Running Selector /n/n/n/n/n')
     #need to check for preselected
     npre=len(df[(df["sel"]==1) & (df["inMask"]==1) & (df["pcode"]!=-1)])
-
+#    print('Selector: \nNumber of preselected: ',npre)
     #need to select options
 
     ###sel_sort() low-to high sort of x1 and xarcs
@@ -16,14 +16,15 @@ def selector(df,xmin,xmax,min_slit,slit_gap):
 #    print(df)
     tg=df[df['pcode']!=-1]
 
-    sel=tg[tg['sel']==1 & (tg['inMask']==1)]
+    sel=tg[(tg['sel']==1) & (tg['inMask']==1)]
 #    print('sel\n',len(sel),sel)
-    opt=tg[(tg['sel']!=1) & (tg['inMask']==1) & (df['pcode']>0)]
+    opt=tg[(tg['sel']!=1) & (tg['inMask']==1) & (tg['pcode']>0)]
 #    print('opt\n',opt)
-    nopt=len(tg[(tg['sel']!=1) & (tg['inMask']==1) & (df['pcode']>0)])
+    nopt=len(tg[(tg['sel']!=1) & (tg['inMask']==1) & (tg['pcode']>0)])
 
 
     minsep=2*(0.5*min_slit+slit_gap) ########       Should this be L1+L2 instead of min_slit?  Or maybe optional ones we all assume min_slit.
+#    print('Selector: \nMinsep value: ',minsep)
 #    print('xarc sorted opt')
 #    print(opt)
 
@@ -33,20 +34,22 @@ def selector(df,xmin,xmax,min_slit,slit_gap):
     xlow = xmin
     xskip = 0.
     nselect = 0                     # triggers init in sel_rank
-    print('sel conditions',len(sel.xarcs),npre,nopt,minsep,slit_gap)
+#    print('sel conditions',len(sel.xarcs),npre,nopt,minsep,slit_gap)
     if (len(opt) > 0):            #was sel originally, but didnt make sense
         for i in range(npre+1):
-            print(i,npre,range(npre))
+#            print(i,npre,range(npre))
             if (i < npre):
 #                print(sel.index[i])
                 ndx=sel.index[i]
                 xupp = sel.X1[ndx]
                 xskip = sel.X2[ndx] - sel.X1[ndx]
+#                print('Xupp,xskip,X2,X1: ',xupp,xskip,sel.X2[ndx],sel.X1[ndx])
+
             else:
                 xupp = xmax
                 
             if (xupp > xlow):
-                print('running sel rank over range ',xlow, xupp,len(opt))
+#                print('running sel rank over range ',xlow, xupp,len(opt))
                 opt=sel_rank (opt, xlow, xupp, minsep, slit_gap)
             xlow = xupp + xskip
 
@@ -65,11 +68,11 @@ def selector(df,xmin,xmax,min_slit,slit_gap):
 
 
 def sel_rank(opt, xlow, xupp, minsep, slit_gap):
-    print('Starting sel_rank (xlow,xupp):',xlow,xupp)
+#    print('Starting sel_rank (xlow,xupp):',xlow,xupp)
         
 # Can we fit a minimum slit in here?
     if (xupp - xlow < minsep):               # probably too restrictive, can't fit anything in this gap, exit
-        print('too restrictive,returning')
+#        print('too restrictive,returning')
         return opt
 
 # Start at half a slit length; stop inside half slit length  
@@ -85,14 +88,14 @@ def sel_rank(opt, xlow, xupp, minsep, slit_gap):
         x = opt.xarcs[ndx]
         if (x < xnext):                          # xarc is too close for a slit, continue
             i=i+1
-            print('too close, continue')
+#            print('too close, continue')
             continue
         if (opt.X1[ndx] < xlast):                  # X1 (slit edge) is less than xlast, continue
             i=i+1
-            print('edge overlap, continue')
+#            print('edge overlap, continue')
             continue
         if (x > xstop):                          #xarc > last target or upper limit to stop; break  
-            print('exceeded xstop, break')
+#            print('exceeded xstop, break')
             break
                 
         isel = i                                 #selected index (best)
@@ -135,17 +138,18 @@ def sel_rank(opt, xlow, xupp, minsep, slit_gap):
         ndx=opt.index[isel]
         xlast = opt.X2[ndx]
         xnext = xlast + 0.5 * minsep
+#        print('xlast,xnext,opt.X1[ndx],opt.X2[ndx]: ',xlast,xnext,opt.X1[ndx],opt.X2[ndx])
         i = isel                        # Reset search start point
         i=i+1
         #set selection if 
-        print('Saving selection ',ndx,isel)
+#        print('Saving selection ',ndx,isel)
         opt.sel[ndx]=1           # New column to differentiate between originally selected and sel_rank selected ones for re-running at different angles?
 
     return opt
 
 
 
-def from_dict(dict,sel=True):
+def from_dict(dict,sel=True,min_slit=10,slit_gap=0.35):
     import maskLayouts as ml
     import targs
     mask=ml.MaskLayouts["deimos"]
@@ -153,7 +157,6 @@ def from_dict(dict,sel=True):
     df=pd.DataFrame.from_dict(dict)
     df=targs.markInside(df)
     df.loc[df.inMask==0,'sel']=0
-    min_slit,slit_gap=10,0.35  ## set from inputs
     if sel:
         dfout=selector(df,minX,maxX,min_slit,slit_gap)
     else:
