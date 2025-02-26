@@ -785,7 +785,7 @@ def gen_mask_out(targetList, fileparams):
         'telescope': 'Keck II'
     }
 
-    params['descreate'] = '2022-12-01T01:00:00'
+    params['descreate'] = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
 
     site = {k: ([v] if type(v) != list else v) for (k, v) in site.items()}
     params = {k: ([v] if type(v) != list else v)

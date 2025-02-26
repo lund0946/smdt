@@ -35,7 +35,7 @@ function AjaxClass() {
                 }
             }
         }
-        self.maxTime = 60000;
+        self.maxTime = 120000;
         self.xmlHttp = xt;
     };
 

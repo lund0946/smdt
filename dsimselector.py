@@ -19,9 +19,9 @@ def selector(df, xmin, xmax, min_slit, slit_gap):
 
     # Should this be L1+L2 instead of min_slit?  Or maybe optional ones we all assume min_slit.
     minsep = 2*(0.5*min_slit+slit_gap)
-    sel=tg[tg['selected']==1 & (tg['inMask']==1)]
-    opt=tg[(tg['selected']!=1) & (tg['inMask']==1) & (df['pcode']>0)]
-    nopt=len(tg[(tg['selected']!=1) & (tg['inMask']==1) & (df['pcode']>0)])
+    sel=tg[(tg['selected']==1) & (tg['inMask']==1)]
+    opt=tg[(tg['selected']!=1) & (tg['inMask']==1) & (tg['pcode']>0)]
+    nopt=len(tg[(tg['selected']!=1) & (tg['inMask']==1) & (tg['pcode']>0)])
 
     # Already selected
     # The number of "gaps" to search is npre+1

@@ -13,6 +13,7 @@ import json
 import plot
 import logging
 from logging import FileHandler, StreamHandler
+from threading import Timer
 import tarfile
 import tempfile
 
@@ -41,7 +42,6 @@ app.config.from_pyfile('config.ini')
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(
     hours=app.config['PERMANENT_SESSION_LIFETIME'])
 
-
 @app.route('/setColumnValue', methods=["GET", "POST"])
 def setColumnValue():
     targetList = request.json['targets']
@@ -58,8 +58,7 @@ def updateTarget():
     params = request.json['params']
     targetList, idx = targs.update_target(targetList, values)
     outp = targs.to_json_with_info(params, targetList)
-    outp = {**outp, 'idx': idx, "info": targs.getROIInfo(params)}
-    return outp
+    return {**outp, 'idx': idx, "info": targs.getROIInfo(params)}
 
 
 @app.route('/updateSelection', methods=["GET", "POST"])
@@ -69,8 +68,7 @@ def updateSelection():
     params = request.json['params']
     targetList, idx = targs.update_target(targetList, values)
     outp = targs.to_json_with_info(params, targetList)
-    outp = {**outp, 'idx': idx, "info": targs.getROIInfo(params)}
-    return outp
+    return {**outp, 'idx': idx, "info": targs.getROIInfo(params)}
 
 
 @app.route('/deleteTarget', methods=["GET", "POST"])
@@ -78,7 +76,10 @@ def deleteTarget():
     idx = request.json['idx']
     targetList = request.json['targets']
     params = request.json['params']
-    targetList.pop(idx)
+    if idx < len(targetList):
+        targetList.pop(idx)
+    else:
+        logger.debug('Invalid idx. Not deleting')
     outp = targs.to_json_with_info(params, targetList)
     outp = {**outp, 'idx': idx, "info": targs.getROIInfo(params)}
     return outp
@@ -91,8 +92,7 @@ def resetSelection():
     targetList = [{**target, 'selected': target['localselected']}
                   for target in targetList]
     outp = targs.to_json_with_info(params, targetList)
-    outp = {**outp, "info": targs.getROIInfo(params)}
-    return outp
+    return {**outp, "info": targs.getROIInfo(params)}
 
 
 @app.route('/generateSlits', methods=["GET", "POST"])
@@ -100,9 +100,9 @@ def generateSlits():
     targetList = request.json['targets']
     params = request.json['params']
     targetList = targs.mark_inside(targetList)
-    targetList, slit, site= calcmask.genSlits(targetList, params, auto_sel=True, returnSlitSite=True)
+    targetList, slit, site= calcmask.genSlits(targetList, params, auto_sel=False, returnSlitSite=True)  #auto_sel=False, since everything is already selected by this point?
     outp = targs.to_json_with_info(params, targetList)
-    return outp
+    return outp  ##? No {**outp, "info": targs.getROIInfo(params)} ??
 
 
 ## Performs auto-selection of slits##
@@ -113,8 +113,8 @@ def recalculateMask():
     targetList = calcmask.genSlits(
         targetList, request.json['params'], auto_sel=True)
     outp = targs.to_json_with_info(request.json['params'], targetList)
-    outp = { **outp, "info": targs.getROIInfo(request.json['params'])}
-    return outp
+    return { **outp, "info": targs.getROIInfo(request.json['params'])}
+    
 
 
 @app.route('/saveMaskDesignFile', methods=["GET", "POST"])
@@ -155,8 +155,8 @@ def saveMaskDesignFile():  # should only save current rather than re-running eve
 # Update Params Button, Load Targets Button
 
 
-@app.route('/sendTargets2Server', methods=["GET", "POST"])
-def sendTargets2Server():
+@app.route('/oldsendTargets2Server', methods=["GET", "POST"])
+def oldsendTargets2Server():
     filename = request.json.get('filename')
     if not filename:
         return
@@ -182,6 +182,30 @@ def sendTargets2Server():
     outp = targs.to_json_with_info(prms, targetList)
     return outp
 
+@app.route('/sendTargets2Server', methods=["GET", "POST"])
+def sendTargets2Server():
+    filename = request.json.get('filename')
+    if not filename:
+        return jsonify({'status': 'ERR', 'msg': 'No filename provided'})
+
+    params = request.json['formData']
+    uploaded_file = request.files.get('targetList')
+    
+    if uploaded_file and uploaded_file.filename:
+        file_content = uploaded_file.stream.read().decode('utf-8').splitlines()
+        session['file'] = file_content
+        session['params'] = params
+
+        targetList = targs.readRaw(file_content, params)
+        targetList = [{**target, 'localselected': target['selected']} for target in targetList]
+
+        targetList = calcmask.gen_obs(params, targetList)
+        targetList = targs.mark_inside(targetList)
+        targetList = calcmask.genSlits(targetList, params, auto_sel=True)
+
+        return targs.to_json_with_info(params, targetList)
+
+    return jsonify({'status': 'ERR', 'msg': 'No file uploaded'})
 
 @app.route('/updateParams4Server', methods=["GET", "POST"])
 def updateParams4Server():
@@ -189,7 +213,9 @@ def updateParams4Server():
     targetList = request.json['targets']
     ok, prms = validate_params(prms)
     if not ok:
-        return [str(x) for x in prms]
+#        return [str(x) for x in prms]
+        return jsonify({'status': 'ERR', 'errors': prms})
+
     outp = targs.to_json_with_info(prms, targetList)
     outp = {**outp, 'status': 'OK'}
     return outp
@@ -235,6 +261,6 @@ def LoadTargets():
 
 
 if __name__ == '__main__':
-    #t = Timer(1, launchBrowser, ['localhost', 9302, '/'])
-    #t.start()
+    t = Timer(1, launchBrowser, ['localhost', 9302, '/'])
+    t.start()
     app.run(host='localhost', port=9302, debug=True, use_reloader=False)

@@ -33,6 +33,8 @@ def readRaw(fh, params):
         "slitLPA",
         "length1",
         "length2",
+        "rlength1",
+        "rlength2",
         "slitWidth",
         "orgIndex",
         "inMask",
@@ -65,12 +67,12 @@ def readRaw(fh, params):
             continue
         # print (nr, "len", parts)
 
-        template = ["", "", "2000", "99", "I", "0", "-1", "0",
+        template = ["", "", "2000", "99", "I", "1", "1", "0",
                     slitpa, halfLen, halfLen, slitWidth, "0", "0"]
         minLength = min(len(parts), len(template))
         template[:minLength] = parts[:minLength]
 
-        sampleNr, selected, slitLPA, length1, length2, slitWidth = 1, 1, 0, 4, 4, 1.5
+        sampleNr, selected, slitLPA, length1, length2, slitWidth = 1, 0, 0, 5, 5, 1.0
         mag, pBand, pcode = 99, "I", 99
 
         try:
@@ -102,6 +104,8 @@ def readRaw(fh, params):
             slitLPA = toFloat(template[8])
             length1 = toFloat(template[9])
             length2 = toFloat(template[10])
+            rlength1 = toFloat(template[9])
+            rlength2 = toFloat(template[10])
             slitWidth = toFloat(template[11])
             inMask = str2Int(template[12])
         except Exception as err:
@@ -122,6 +126,8 @@ def readRaw(fh, params):
             slitLPA,
             length1,
             length2,
+            rlength1,
+            rlength2,
             slitWidth,
             cnt,
             inMask,
@@ -134,13 +140,45 @@ def readRaw(fh, params):
     return out 
 
 
-def to_json_with_info(params, targetList, xgaps=[]):
+def oldto_json_with_info(params, targetList, xgaps=[]):
     """
     Returns the targets and ROI info in JSON format
     """
     data = {"params": params, "info": getROIInfo(params), "targets": targetList, "xgaps": xgaps}
     return data 
 
+def to_json_with_info(params, tgs, xgaps=[]):
+    """
+    Returns the targets and ROI info in JSON format with reduced data size.
+    Includes only essential columns and limits precision for selected fields.
+    """
+    # Define essential columns and those requiring reduced precision
+    essential_columns = {
+        "xarcs", "yarcs", "arcslitX1", "arcslitX2", "arcslitX3", "arcslitX4",
+        "arcslitY1", "arcslitY2", "arcslitY3", "arcslitY4", "slitLPA", "slitWidth",
+        "rlength1", "rlength2", "length1", "length2", "selected", "pcode", "mag", "pBand",
+        "raHour", "decDeg", "raSexa", "decSexa", "objectId", "orgIndex", "inMask"
+    }
+   
+    precision_columns = {
+        "xarcs", "yarcs", "arcslitX1", "arcslitX2", "arcslitX3", "arcslitX4",
+        "arcslitY1", "arcslitY2", "arcslitY3", "arcslitY4", "rlength1", "rlength2", "mag"
+    }
+
+    # Filter and format data
+    data1 = {}
+    for col in essential_columns:
+        if col in tgs.columns:
+            if col in precision_columns:
+                # Limit precision to 2 decimal places
+                data1[col] = [round(float(val), 2) if isinstance(val, (float, int)) else val for val in tgs[col]]
+            else:
+                data1[col] = list(tgs[col])  # Keep as is
+
+    # Construct final JSON data
+    data2 = {"params": params, "info": getROIInfo(params), "targets": data1, "xgaps": xgaps}
+   
+    return json.dumps(data2)
 
 def getROIInfo(params):
     """
