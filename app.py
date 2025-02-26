@@ -155,8 +155,8 @@ def saveMaskDesignFile():  # should only save current rather than re-running eve
 # Update Params Button, Load Targets Button
 
 
-@app.route('/oldsendTargets2Server', methods=["GET", "POST"])
-def oldsendTargets2Server():
+@app.route('/sendTargets2Server', methods=["GET", "POST"])
+def sendTargets2Server():
     filename = request.json.get('filename')
     if not filename:
         return
@@ -182,8 +182,8 @@ def oldsendTargets2Server():
     outp = targs.to_json_with_info(prms, targetList)
     return outp
 
-@app.route('/sendTargets2Server', methods=["GET", "POST"])
-def sendTargets2Server():
+@app.route('/newsendTargets2Server', methods=["GET", "POST"])
+def newsendTargets2Server():
     filename = request.json.get('filename')
     if not filename:
         return jsonify({'status': 'ERR', 'msg': 'No filename provided'})
@@ -213,8 +213,8 @@ def updateParams4Server():
     targetList = request.json['targets']
     ok, prms = validate_params(prms)
     if not ok:
-#        return [str(x) for x in prms]
-        return jsonify({'status': 'ERR', 'errors': prms})
+        return [str(x) for x in prms]
+#        return jsonify({'status': 'ERR', 'errors': prms})
 
     outp = targs.to_json_with_info(prms, targetList)
     outp = {**outp, 'status': 'OK'}

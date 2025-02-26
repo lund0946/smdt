@@ -140,14 +140,14 @@ def readRaw(fh, params):
     return out 
 
 
-def oldto_json_with_info(params, targetList, xgaps=[]):
+def to_json_with_info(params, targetList, xgaps=[]):
     """
     Returns the targets and ROI info in JSON format
     """
     data = {"params": params, "info": getROIInfo(params), "targets": targetList, "xgaps": xgaps}
     return data 
 
-def to_json_with_info(params, tgs, xgaps=[]):
+def newto_json_with_info(params, tgs, xgaps=[]):
     """
     Returns the targets and ROI info in JSON format with reduced data size.
     Includes only essential columns and limits precision for selected fields.
