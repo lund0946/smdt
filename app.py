@@ -155,8 +155,37 @@ def saveMaskDesignFile():  # should only save current rather than re-running eve
 # Update Params Button, Load Targets Button
 
 
+
 @app.route('/sendTargets2Server', methods=["GET", "POST"])
 def sendTargets2Server():
+    filename = request.json.get('filename')
+    if not filename:
+        return
+    prms = request.json['formData']
+    # prms = {k.replace('fd', ''): v for k, v in prms.items()}
+    fh = [line for line in request.json['file'].split('\n') if line]
+    targetList = targs.readRaw(fh, prms)
+    
+    # Only backup selected targets on file load.
+    targetList = [{**target, 'localselected': target['selected']}
+                  for target in targetList]
+
+    # generate slits
+    targetList = calcmask.gen_obs(prms, targetList)
+    targetList = targs.mark_inside(targetList)
+    targetList = calcmask.genSlits(targetList, prms, auto_sel=False)
+    # raMedian = np.median([target['raHour'] for target in targetList])
+    # decMedian = np.median([target['decDeg'] for target in targetList])
+    # prms = {**prms,
+    #         'InputRA': toSexagecimal(raMedian),
+    #         'InputDEC': toSexagecimal(decMedian),
+    #         }
+
+    outp = targs.to_json_with_info(prms, targetList)
+    return outp
+
+@app.route('/osendTargets2Server', methods=["GET", "POST"])
+def osendTargets2Server():
     filename = request.json.get('filename')
     if not filename:
         return
@@ -171,7 +200,7 @@ def sendTargets2Server():
     # generate slits
     targetList = calcmask.gen_obs(prms, targetList)
     targetList = targs.mark_inside(targetList)
-    targetList = calcmask.genSlits(targetList, prms, auto_sel=True)
+    targetList = calcmask.genSlits(targetList, prms, auto_sel=False)
     # raMedian = np.median([target['raHour'] for target in targetList])
     # decMedian = np.median([target['decDeg'] for target in targetList])
     # prms = {**prms,

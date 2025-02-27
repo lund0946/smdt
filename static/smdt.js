@@ -67,15 +67,16 @@ function SlitmaskDesignTool() {
 		self.canvasShow.slitsReady = false;
 		if (!data) return;
 		if (!data.targets) return;
-		self.canvasShow.slitsReady = true;
+		self.canvasShow.slitsReady = false;
 		self.updateLoadedTargets(data);
+                self.redraw()
 	};
 
 	self.sendTargets2Server = function () {
 		// The browser loads the targets and sends them to the server.
 		// The server responds with targetList.
 		// Slitmask is then generated.
-
+                self.loadAll()
 		const filename = E('targetList');
 		if (!filename.value) {
 			self.setStatus('Please select target list file to load');
@@ -105,6 +106,14 @@ function SlitmaskDesignTool() {
 		fr.readAsText(filename.files[0]);
 	};
 
+
+        self.param_update_callback = function (data) {
+                        if (!data.status?.includes('OK')) {
+                                alert(data)
+                        }
+                        self.generate_slitmask_callback(data);
+        };
+
 	self.sendParamUpdate = function () {
 		self.setStatus("Updating ...");
 		const form2 = E('form2');
@@ -121,18 +130,12 @@ function SlitmaskDesignTool() {
 			}
 		});
 
-		const param_update_callback = function (data) {
-			if (!data.status?.includes('OK')) {
-				alert(data)
-			}
-			self.generate_slitmask_callback(data);
-		}
 
-		const input = {
+		let data = {
 			params: formJson,
 			targets: JSON.parse(localStorage.getItem('targets'))
 		}
-		ajaxPost('updateParams4Server', input, param_update_callback);
+		ajaxPost('updateParams4Server', data, self.param_update_callback);
 	};
 
 	self.loadMaskLayout = function () {

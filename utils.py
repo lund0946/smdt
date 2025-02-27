@@ -157,10 +157,11 @@ def stripquote(string):
     return string[0]
 
 def validate_params(params):
+    print(params)
     try:
         validate(instance=params, schema=schema)
         width = params['SlitWidth'] 
-        paWithinRange = np.abs(params['SlitPA']) < np.arccos(0.63/width) * np.pi / 180
+        paWithinRange = np.abs(params['SlitPA']-params['MaskPA']) < np.arccos(0.63/width) * 180 / np.pi
         assert paWithinRange, f'PA {params["SlitPA"]} is out of range for slit width {width}'
     except jsonschema.exceptions.ValidationError as err:
         logger.error(f'Failed to validate parameters: {err}')

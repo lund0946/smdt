@@ -9,6 +9,7 @@ import sl
 import utils
 import dsimselector
 import logging
+import datetime
 logger = logging.getLogger('smdt')
 
 
@@ -273,7 +274,7 @@ def gen_slits_from_obs(obs, min_slit, slit_gap, adj_len=False, auto_sel=True):
         else:
             ob["slitLPA"] = ob['slitpa']
 
-    obs = dsimselector.from_list(obs, min_slit, slit_gap, sel=True)
+    obs = dsimselector.from_list(obs, min_slit, slit_gap, auto_sel)
     if adj_len:
         obs = gslit.len_slits(obs, slit_gap)
     return obs

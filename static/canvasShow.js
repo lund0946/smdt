@@ -891,6 +891,9 @@ function CanvasShow(containerName, zoomContainer) {
             let slitWidth = slitWidths[idx];
             let halfWidth = slitWidth * scale * 0.5;
 
+
+
+
             // The slit angle is relative to screen
             let slitAngle = radians(Number(slitPAs[idx]));
             let slitAngleOnScreen = 1 * radians(self.slitBaseAngleDeg) + slitAngle;
