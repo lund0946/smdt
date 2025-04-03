@@ -109,6 +109,7 @@ def readRaw(fh, params):
             slitWidth = toFloat(template[11])
             inMask = str2Int(template[12])
         except Exception as err:
+            print('ReadRaw Error ',err)
             logger.error(err)
             continue 
         raRad = math.radians(raHour * 15)
