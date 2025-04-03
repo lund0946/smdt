@@ -1,5 +1,5 @@
 from datetime import timedelta
-from flask import Flask, render_template, request, jsonify, send_from_directory, make_response
+from flask import Flask, render_template, request, jsonify, send_from_directory, make_response, session
 from flask.logging import default_handler
 import webbrowser
 import numpy as np
@@ -18,7 +18,7 @@ import tarfile
 import tempfile
 
 
-from utils import schema, validate_params, toSexagecimal
+from utils import schema, validate_params
 
 logger = logging.getLogger('smdt')
 formatter = logging.Formatter(
@@ -44,92 +44,80 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(
 
 @app.route('/setColumnValue', methods=["GET", "POST"])
 def setColumnValue():
-    targetList = request.json['targets']
     values = request.json['value']
     column = request.json['column']
-    targetList = targs.update_column(targetList, column, values)
-    return {'status': 'OK', 'targets': targetList}
+    session['targetList'] = targs.update_column(session['targetList'], column, values)
+    return {'status': 'OK', 'targets': session['targetList']}
 
 
 @app.route('/updateTarget', methods=["GET", "POST"])
 def updateTarget():
     values = request.json['values']
-    targetList = request.json['targets']
-    params = request.json['params']
-    targetList, idx = targs.update_target(targetList, values)
-    outp = targs.to_json_with_info(params, targetList)
-    return {**outp, 'idx': idx, "info": targs.getROIInfo(params)}
+    session['targetList'], idx = targs.update_target(session['targetList'], values)
+    outp = targs.to_json_with_info(session['params'], session['targetList'])
+    return {**outp, 'idx': idx, "info": targs.getROIInfo(session['params'])}
 
 
 @app.route('/updateSelection', methods=["GET", "POST"])
 def updateSelection():
-    targetList = request.json['targets']
     values = request.json['values']
-    params = request.json['params']
-    targetList, idx = targs.update_target(targetList, values)
-    outp = targs.to_json_with_info(params, targetList)
-    return {**outp, 'idx': idx, "info": targs.getROIInfo(params)}
+    session['targetList'], idx = targs.update_target(session['targetList'], values)
+    outp = targs.to_json_with_info(session['params'], session['targetList'])
+    return {**outp, 'idx': idx, "info": targs.getROIInfo(session['params'])}
 
 
 @app.route('/deleteTarget', methods=["GET", "POST"])
 def deleteTarget():
     idx = request.json['idx']
-    targetList = request.json['targets']
-    params = request.json['params']
-    if idx < len(targetList):
-        targetList.pop(idx)
+    if idx < len(session['targetList']):
+        session['targetList'].pop(idx)
     else:
         logger.debug('Invalid idx. Not deleting')
-    outp = targs.to_json_with_info(params, targetList)
-    outp = {**outp, 'idx': idx, "info": targs.getROIInfo(params)}
+    outp = targs.to_json_with_info(session['params'], session['targetList'])
+    outp = {**outp, 'idx': idx, "info": targs.getROIInfo(session['params'])}
     return outp
 
 
 @app.route('/resetSelection', methods=["GET", "POST"])
 def resetSelection():
-    targetList = request.json['targets']
-    params = request.json['params']
-    targetList = [{**target, 'selected': target['localselected']}
-                  for target in targetList]
-    outp = targs.to_json_with_info(params, targetList)
-    return {**outp, "info": targs.getROIInfo(params)}
+    session['targetList'] = [{**target, 'selected': target['localselected']}
+                  for target in session['targetList']]
+    outp = targs.to_json_with_info(session['params'], session['targetList'])
+    return {**outp, "info": targs.getROIInfo(session['params'])}
 
 
 @app.route('/generateSlits', methods=["GET", "POST"])
 def generateSlits():
-    targetList = request.json['targets']
-    params = request.json['params']
-    targetList = targs.mark_inside(targetList)
-    targetList, slit, site= calcmask.genSlits(targetList, params, auto_sel=False, returnSlitSite=True)  #auto_sel=False, since everything is already selected by this point?
-    outp = targs.to_json_with_info(params, targetList)
-    return outp  ##? No {**outp, "info": targs.getROIInfo(params)} ??
+    session['targetList'] = targs.mark_inside(session['targetList'])
+    session['targetList'], slit, site= calcmask.genSlits(session['targetList'], session['params'], auto_sel=False, returnSlitSite=True)  #auto_sel=False, since everything is already selected by this point?
+    outp = targs.to_json_with_info(session['params'], session['targetList'])
+    return outp
 
 
 ## Performs auto-selection of slits##
 
 @app.route('/recalculateMask', methods=["GET", "POST"])
 def recalculateMask():
-    targetList = targs.mark_inside(request.json['targets'])
-    targetList = calcmask.genSlits(
-        targetList, request.json['params'], auto_sel=True)
-    outp = targs.to_json_with_info(request.json['params'], targetList)
-    return { **outp, "info": targs.getROIInfo(request.json['params'])}
+    session['targetList'] = targs.mark_inside(session['targetList'])
+    session['targetList'] = calcmask.genSlits(
+        session['targetList'], session['params'], auto_sel=True)
+    outp = targs.to_json_with_info(session['params'], session['targetList'])
+    return { **outp, "info": targs.getROIInfo(session['params'])}
     
 
 
 @app.route('/saveMaskDesignFile', methods=["GET", "POST"])
 def saveMaskDesignFile():  # should only save current rather than re-running everything!
     try:
-        targetList = targs.mark_inside(request.json['targets'])
-        params = request.json['params']
-        outp = {'status': 'OK', **targs.to_json_with_info(params, targetList)}
+        session['targetList'] = targs.mark_inside(session['targetList'])
+        outp = {'status': 'OK', **targs.to_json_with_info(session['params'], session['targetList'])}
         # with tempfile.TemporaryDirectory() as tmpdirname:
         tmpdirname = tempfile.mkdtemp()
-        mdfName = os.path.join(tmpdirname, params['OutputFits']).replace('.fits', '')
+        mdfName = os.path.join(tmpdirname, session['params']['OutputFits']).replace('.fits', '')
         gzName = os.path.join(tmpdirname, mdfName + '.tar.gz')
         names = [f'{mdfName}.fits', f'{mdfName}.out',
                  f'{mdfName}.png', f'{mdfName}.json']
-        mdf, targetList = calcmask.gen_mask_out(targetList, params)
+        mdf, session['targetList'] = calcmask.gen_mask_out(session['targetList'], session['params'])
         mdf.writeTo(names[0])
         mdf.writeOut(names[1])
         plt = plot.makeplot(names[0])
@@ -160,63 +148,28 @@ def sendTargets2Server():
     filename = request.json.get('filename')
     if not filename:
         return
-    prms = request.json['formData']
-    # prms = {k.replace('fd', ''): v for k, v in prms.items()}
+    session['params'] = request.json['formData']
     fh = [line for line in request.json['file'].split('\n') if line]
-    targetList = targs.readRaw(fh, prms)
+    session['targetList'] = targs.readRaw(fh, session['params'])
     # Only backup selected targets on file load.
-    targetList = [{**target, 'localselected': target['selected']}
-                  for target in targetList]
+    session['targetList'] = [{**target, 'localselected': target['selected']}
+                  for target in session['targetList']]
 
     # generate slits
-    targetList = calcmask.gen_obs(prms, targetList)
-    targetList = targs.mark_inside(targetList)
-    targetList = calcmask.genSlits(targetList, prms, auto_sel=True)
-    # raMedian = np.median([target['raHour'] for target in targetList])
-    # decMedian = np.median([target['decDeg'] for target in targetList])
-    # prms = {**prms,
-    #         'InputRA': toSexagecimal(raMedian),
-    #         'InputDEC': toSexagecimal(decMedian),
-    #         }
+    session['targetList'] = calcmask.gen_obs(session['params'], session['targetList'])
+    session['targetList'] = targs.mark_inside(session['targetList'])
+    session['targetList'] = calcmask.genSlits(session['targetList'], session['params'], auto_sel=True)
 
-    outp = targs.to_json_with_info(prms, targetList)
+    outp = targs.to_json_with_info(session['params'], session['targetList'])
     return outp
-
-@app.route('/newsendTargets2Server', methods=["GET", "POST"])
-def newsendTargets2Server():
-    filename = request.json.get('filename')
-    if not filename:
-        return jsonify({'status': 'ERR', 'msg': 'No filename provided'})
-
-    params = request.json['formData']
-    uploaded_file = request.files.get('targetList')
-    
-    if uploaded_file and uploaded_file.filename:
-        file_content = uploaded_file.stream.read().decode('utf-8').splitlines()
-        session['file'] = file_content
-        session['params'] = params
-
-        targetList = targs.readRaw(file_content, params)
-        targetList = [{**target, 'localselected': target['selected']} for target in targetList]
-
-        targetList = calcmask.gen_obs(params, targetList)
-        targetList = targs.mark_inside(targetList)
-        targetList = calcmask.genSlits(targetList, params, auto_sel=True)
-
-        return targs.to_json_with_info(params, targetList)
-
-    return jsonify({'status': 'ERR', 'msg': 'No file uploaded'})
 
 @app.route('/updateParams4Server', methods=["GET", "POST"])
 def updateParams4Server():
-    prms = request.json['params']
-    targetList = request.json['targets']
-    ok, prms = validate_params(prms)
+    ok, session['params'] = validate_params(session['params'])
     if not ok:
-        return [str(x) for x in prms]
-#        return jsonify({'status': 'ERR', 'errors': prms})
+        return [str(x) for x in session['params']]
 
-    outp = targs.to_json_with_info(prms, targetList)
+    outp = targs.to_json_with_info(session['params'], session['targetList'])
     outp = {**outp, 'status': 'OK'}
     return outp
 

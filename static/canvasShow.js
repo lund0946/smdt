@@ -1167,9 +1167,7 @@ function CanvasShow(containerName, zoomContainer) {
 
 
     self.addAlign = function () {
-        function callback(data) {
-            data.targets && localStorage.setItem('targets', JSON.stringify(data.targets));
-            data.params && localStorage.setItem('params', JSON.stringify(data.params));
+        function alignCallback(data) {
             self.SlitmaskDesignTool.reloadTargets(idx);
             self.selectedTargetIdx = idx;
             self.reDrawTable();
@@ -1200,17 +1198,13 @@ function CanvasShow(containerName, zoomContainer) {
             'len1': length1, 'len2': length2, 'targetName': tname
         };
         const data = {
-            'targets': JSON.parse(localStorage.getItem('targets')),
-            'params': JSON.parse(localStorage.getItem('params')),
             'values': values
         }
-        ajaxPost('updateTarget', data, callback);
+        ajaxPost('updateTarget', data, alignCallback);
     };
 
     self.selTarget = function () {
-        function callback(data) {
-            data.targets && localStorage.setItem('targets', JSON.stringify(data.targets));
-            data.params && localStorage.setItem('params', JSON.stringify(data.params));
+        function selTargetCallback(data) {
             self.smdt.reloadTargets(idx);
             self.selectedTargetIdx = idx;
             self.reDrawTable();
@@ -1218,7 +1212,6 @@ function CanvasShow(containerName, zoomContainer) {
             self.targetTable.scrollTo(idx);
             self.targetTable.highLight(idx);
             self.reallyDrawTxImage();
-
         }
         // Updates an existing or adds a new target.
         // Sends new target info to server
@@ -1242,17 +1235,13 @@ function CanvasShow(containerName, zoomContainer) {
             'len1': length1, 'len2': length2, 'targetName': tname
         };
         const data = {
-            'targets': JSON.parse(localStorage.getItem('targets')),
-            'params': JSON.parse(localStorage.getItem('params')),
             'values': values
         }
-        ajaxPost('updateTarget', data, callback);
+        ajaxPost('updateTarget', data, selTargetCallback);
     };
 
     self.deselTarget = function () {
-        function callback(data) {
-            data.targets && localStorage.setItem('targets', JSON.stringify(data.targets));
-            data.params && localStorage.setItem('params', JSON.stringify(data.params));
+        function deselTargetCallback(data) {
             self.SlitmaskDesignTool.reloadTargets(idx);
             self.selectedTargetIdx = idx;
             self.reDrawTable();
@@ -1283,11 +1272,9 @@ function CanvasShow(containerName, zoomContainer) {
             'len1': length1, 'len2': length2, 'targetName': tname
         };
         const data = {
-            'targets': JSON.parse(localStorage.getItem('targets')),
-            'params': JSON.parse(localStorage.getItem('params')),
             'values': values
         }
-        ajaxPost('updateTarget', data, callback);
+        ajaxPost('updateTarget', data, deselTargetCallback);
     };
 
 

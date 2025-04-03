@@ -25,7 +25,6 @@ function SlitmaskDesignTool() {
 		for (let key of schema.required) {
 			sortedProps[key] = schema.properties[key]
 		}
-		//const params = JSON.parse(localStorage.getItem('params'));
 		const params = undefined;
 		for (let [key, props] of Object.entries(sortedProps)) {
 			const type = props.type.includes('number') ? 'number' : 'text';
@@ -49,11 +48,7 @@ function SlitmaskDesignTool() {
 			self.canvasShow = new CanvasShow('canvasDiv', 'zoomCanvasDiv');
 			self.canvasShow.setShowPriorities(E('minPriority').value, E('maxPriority').value);
 			self.loadMaskLayout();
-			data = {
-				'targets': JSON.parse(localStorage.getItem('targets')),
-				'params': JSON.parse(localStorage.getItem('params'))
-			}
-			recalculate_callback(data)
+			recalculate_callback()
 			}
 			ajaxCall('getSchema', {}, schema_callback);
 	};
@@ -130,7 +125,6 @@ function SlitmaskDesignTool() {
 
 		const input = {
 			params: formJson,
-			targets: JSON.parse(localStorage.getItem('targets'))
 		}
 		ajaxPost('updateParams4Server', input, param_update_callback);
 	};
@@ -147,9 +141,6 @@ function SlitmaskDesignTool() {
 	self.updateLoadedTargets = function (data) {
 		// Called when targets are loaded from server
 		if (!data) return;
-
-		data.targets && localStorage.setItem('targets', JSON.stringify(data.targets))
-		data.params && localStorage.setItem('params', JSON.stringify(data.params))
 
 		self.dssInfo = data.info;
 
@@ -189,8 +180,6 @@ function SlitmaskDesignTool() {
 	self.reloadTargets = function (newIdx, info = []) {
 
 		let data = {
-			'targets': JSON.parse(localStorage.getItem('targets')),
-			'params': JSON.parse(localStorage.getItem('params')),
 			'info': info
 		}
 		self.updateLoadedTargets(data);
@@ -273,7 +262,6 @@ function SlitmaskDesignTool() {
 		let input = {
 			'column': colName,
 			'value': value,
-			'targets': JSON.parse(localStorage.getItem('targets'))
 		};
 		ajaxPost('setColumnValue', input, self.setColumnValueCallback);
 	};
@@ -282,7 +270,6 @@ function SlitmaskDesignTool() {
 		if (data.status != 'OK') {
 			alert(data.msg);
 		}
-		data.targets && localStorage.setItem('targets', JSON.stringify(data.targets))
 	}
 
 	self.setSlitsLength = function (evt) {
@@ -310,7 +297,6 @@ function SlitmaskDesignTool() {
 		let input = {
 			'column': colName,
 			'value': value,
-			'targets': JSON.parse(localStorage.getItem('targets'))
 		};
 		ajaxPost('setColumnValue', input, self.setColumnValueCallback);
 
@@ -336,7 +322,6 @@ function SlitmaskDesignTool() {
 		let input = {
 			'column': colName,
 			'value': value,
-			'targets': JSON.parse(localStorage.getItem('targets'))
 		};
 		ajaxPost('setColumnValue', input, self.setColumnValueCallback);
 	};
@@ -358,23 +343,17 @@ function SlitmaskDesignTool() {
 		let input = {
 			'column': column,
 			'value': value,
-			'targets': JSON.parse(localStorage.getItem('targets'))
 		};
 		ajaxPost('setColumnValue', input, self.setColumnValueCallback);
 	};
 
 
 	self.resetSelection = function (evt) {
-		function callback() {
+		function resetSelectionCallback() {
 			self.reloadTargets(0);
 		}
 
-		let data = {
-			'targets': JSON.parse(localStorage.getItem('targets')),
-			'params': JSON.parse(localStorage.getItem('params'))
-		};
-
-		ajaxPost("resetSelection", data, callback);
+		ajaxPost("resetSelection", data, resetSelectionCallback);
 	};
 
 
@@ -390,16 +369,12 @@ function SlitmaskDesignTool() {
 		cs.centerDecDeg = cs.currDecDeg;
 
 		let params = {
-			'targets': JSON.parse(localStorage.getItem('targets')),
-			'params': JSON.parse(localStorage.getItem('params'))
 		};
 		ajaxPost('recalculateMask', params, callback);
 	};
 
-	self.recalculate_callback = function (data) {
+	self.recalculate_callback = function () {
 		self.canvasShow.slitsReady = false;
-		if (!data) return;
-		if (!data.targets) return;
 		self.canvasShow.slitsReady = false;
 		self.canvasShow.setTargets(data.targets);
 		self.redraw();
@@ -422,8 +397,6 @@ function SlitmaskDesignTool() {
 		cs.centerDecDeg = cs.currDecDeg;
 
 		let data = {
-			'targets': JSON.parse(localStorage.getItem('targets')),
-			'params': JSON.parse(localStorage.getItem('params'))
 		}
 		ajaxPost('generateSlits', data, callback);
 	};
@@ -466,8 +439,7 @@ function SlitmaskDesignTool() {
 
 	self.selectToggle = function (evt) {
 		// Updates an existing or adds a new target.
-		function callback(data) {
-			localStorage.setItem('targets', JSON.stringify(data.targets));
+		function selectToggleCallback(data) {
 			self.reloadTargets(idx, data.info);
 			self.canvasShow.selectedTargetIdx = i;
 			self.canvasShow.reDrawTable();
@@ -499,17 +471,13 @@ function SlitmaskDesignTool() {
 		};
 		const data = {
 			values: values,
-			targets: JSON.parse(localStorage.getItem('targets')),
-			params: JSON.parse(localStorage.getItem('params'))
 		}
-		ajaxPost('updateSelection', data, callback);
+		ajaxPost('updateSelection', data, selectToggleCallback);
 	};
 
 	self.updateTarget = function (evt) {
 		// Updates an existing or adds a new target.
 		function updateTargetCallback(data) {
-			data.targets && localStorage.setItem('targets', JSON.stringify(data.targets));
-			data.params && localStorage.setItem('params', JSON.stringify(data.params));
 			self.reloadTargets(idx, data.info);
 			self.canvasShow.selectedTargetIdx = i;
 			self.canvasShow.reDrawTable();
@@ -536,17 +504,13 @@ function SlitmaskDesignTool() {
 			'len1': length1, 'len2': length2, 'targetName': tname
 		};
 		const data = {
-			'targets': JSON.parse(localStorage.getItem('targets')),
-			'params': JSON.parse(localStorage.getItem('params')),
 			'values': values
 		}
 		ajaxPost('updateTarget', data, updateTargetCallback);
 	};
 
 	self.deleteTarget = function (evt) {
-		function callback(data) {
-			data.targets && localStorage.setItem('targets', JSON.stringify(data.targets));
-			data.params && localStorage.setItem('params', JSON.stringify(data.params));
+		function deleteCallback(data) {
 			self.reloadTargets(idx, data.info);
 			self.canvasShow.selectedTargetIdx = i;
 			self.canvasShow.reDrawTable();
@@ -557,11 +521,9 @@ function SlitmaskDesignTool() {
 		if (idx < 0) return;
 		let data = {
 			'idx': Number(idx),
-			'targets': JSON.parse(localStorage.getItem('targets')),
-			'params': JSON.parse(localStorage.getItem('params'))
 		};
 
-		ajaxPost("deleteTarget", data, callback);
+		ajaxPost("deleteTarget", data, deleteCallback);
 	};
 
 	self.showDiv = function (divname, cont) {
@@ -600,8 +562,6 @@ function SlitmaskDesignTool() {
 			self.canvasShow.setTargets(data.targets);
 			self.redraw();
 			data = {
-				targets: JSON.parse(localStorage.getItem('targets')),
-				params: JSON.parse(localStorage.getItem('params')),
 				mdFile: E('OutputFitsfd').value
 			}
 			const response = await fetch("saveMaskDesignFile", {
