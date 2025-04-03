@@ -276,7 +276,8 @@ def gen_slits_from_obs(obs, min_slit, slit_gap, adj_len=False, auto_sel=True):
 
     obs = dsimselector.from_list(obs, min_slit, slit_gap, auto_sel)
     if adj_len:
-        obs = gslit.len_slits(obs, slit_gap)
+        import gslit
+        obs=gslit.len_slits(obs)
     return obs
 
 
@@ -673,26 +674,29 @@ def proj_to_mask(xp, yp, ap):
     return xc, yc, ac
 
 
-def gen_obs(fileparams, targetList):
-    obs, site = init_dicts(targetList, fileparams)
-    obs = refr_coords(obs, site)
-    obs = fld2telax(obs, 'ra_fldR', 'dec_fldR', 'ra_telR', 'dec_telR')
-    obs = tel_coords(obs, 'raRadR', 'decRadR', 'ra_telR', 'dec_telR')
-    min_slit = float(fileparams['MinSlitLength'])
-    slit_gap = float(fileparams['MinSlitSeparation'])
-    slit = gen_slits_from_obs(obs, min_slit, slit_gap, False, False)
-    slit = sky_coords(slit)
-    targetListOut = []
-    for idx, target in enumerate(targetList):
-        target['xarcsS'] = slit[idx]['xarcsS']
-        target['yarcsS'] = slit[idx]['yarcsS']
-        target['xarcs'] = obs[idx]['xarcs']
-        target['yarcs'] = obs[idx]['yarcs']
-        targetListOut.append(target)
-    return targetListOut
+def genObs(df,fileparams):
 
-def genSlits(targetList, fileparams, auto_sel=True, returnSlitSite=False):
-    logger.debug('genSlits')
+    obs,site=init_dicts(df,fileparams)
+    obs=refr_coords(obs,site)
+    obs=fld2telax(obs,'ra_fldR','dec_fldR','ra_telR','dec_telR')
+    obs=tel_coords(obs,'raRadR','decRadR','ra_telR','dec_telR')
+    slit=gen_slits_from_obs(obs,False,False)
+    slit=sky_coords(slit)
+    df['xarcsS']=slit['xarcsS']
+    df['yarcsS']=slit['yarcsS']
+    df['xarcs']=obs['xarcs']
+    df['yarcs']=obs['yarcs']
+    df['objectId']=obs['objectId']
+    f=open('gen_obs.pkl','wb')
+    pickle.dump([obs,site,slit,df],f)
+    f.close()
+    return df
+
+def genSlits(df,fileparams,auto_sel=True):
+    print('genSlits\n\n\n\n\n\n\n\n\n')
+
+    global slit
+    global site
 
     if fileparams['NoOverlap'] == 'yes':
         adj_len = True
@@ -701,90 +705,132 @@ def genSlits(targetList, fileparams, auto_sel=True, returnSlitSite=False):
     if fileparams['ProjSlitLength'] == 'yes':
         proj_len = True
     else:
-        proj_len = False
-    obs, site = init_dicts(targetList, fileparams)
-    logger.debug('init_dicts')
-    obs = refr_coords(obs, site)
-    obs = fld2telax(obs, 'ra_fldR', 'dec_fldR', 'ra_telR', 'dec_telR')
-    obs = tel_coords(obs, 'raRadR', 'decRadR', 'ra_telR', 'dec_telR', proj_len)
-    min_slit = float(fileparams['MinSlitLength'])
-    slit_gap = float(fileparams['MinSlitSeparation'])
-    slit = gen_slits_from_obs(obs, min_slit, slit_gap, adj_len, auto_sel)
-    slit = sky_coords(slit)
-    slit = unrefr_coords(slit, site)
-    slit = fld2telax(slit, 'ra0_fldU', 'dec0_fldU', 'ra_telU', 'dec_telU')
-    slit = tel_coords(slit, 'raRadU', 'decRadU', 'ra_telU', 'dec_telU', proj_len)
-    slit = mask_coords(slit)
+        proj_len=False
+    obs,site=init_dicts(df,fileparams)
+    print('init_dicts')
+    obs=refr_coords(obs,site)
+    obs=fld2telax(obs,'ra_fldR','dec_fldR','ra_telR','dec_telR')
+    obs=tel_coords(obs,'raRadR','decRadR','ra_telR','dec_telR',proj_len)
+    slit=gen_slits_from_obs(obs,adj_len,auto_sel)
+    slit=sky_coords(slit)
+    slit=unrefr_coords(slit,site)
+    slit=fld2telax(slit,'ra0_fldU','dec0_fldU','ra_telU','dec_telU')
+    slit=tel_coords(slit,'raRadU','decRadU','ra_telU','dec_telU',proj_len)
+    slit=mask_coords(slit)
 
-    outTargetList = []
-    slitKeys = [ 'slitWidth', 'selected',
-                'xarcsS', 'yarcsS',
-                'xarcs', 'yarcs', 
-                'length1S', 'length2S',
-                'rlength1', 'rlength2', 
-                'slitX1', 'slitX2', 'slitX3', 'slitX4',
-                'slitY1', 'slitY2', 'slitY3', 'slitY4',
-                'arcslitX1', 'arcslitX2', 'arcslitX3', 'arcslitX4',
-                'newcenterRADeg', 'newcenterDECDeg',
-                'arcslitY1', 'arcslitY2', 'arcslitY3', 'arcslitY4']
-    obsKeys = ['xarcs', 'yarcs', 'objectId', 'length1',
-               'length2', 'ra_fldR', 'dec_fldR', 'lst']
-    outTargetList = combine_target_with_slit_and_obs(targetList, slit, obs, slitKeys, obsKeys)
+    df['slitWidth']=slit['slitWidth']
 
-    out = [outTargetList , slit, site] if returnSlitSite else outTargetList 
+    df['xarcsS']=slit['xarcsS']
+    df['yarcsS']=slit['yarcsS']
+    df['xarcs']=obs['xarcs']
+    df['yarcs']=obs['yarcs']
+    df['selected']=slit['sel']
+    df['length1']=obs['length1']
+    df['length2']=obs['length2']
+    df['length1S']=slit['length1S']
+    df['length2S']=slit['length2S']
+    df['rlength1']=slit['rlength1']
+    df['rlength2']=slit['rlength2']
 
-    return out 
+    df['slitX1'],df['slitX2'],df['slitX3'],df['slitX4']=slit['slitX1'],slit['slitX2'],slit['slitX3'],slit['slitX4']
+    df['slitY1'],df['slitY2'],df['slitY3'],df['slitY4']=slit['slitY1'],slit['slitY2'],slit['slitY3'],slit['slitY4']
+    df['arcslitX1'],df['arcslitX2'],df['arcslitX3'],df['arcslitX4']=slit['arcslitX1'],slit['arcslitX2'],slit['arcslitX3'],slit['arcslitX4']
+    df['arcslitY1'],df['arcslitY2'],df['arcslitY3'],df['arcslitY4']=slit['arcslitY1'],slit['arcslitY2'],slit['arcslitY3'],slit['arcslitY4']
+#    df['slitX1'],df['slitX2'],df['slitX3'],df['slitX4']=slit['X1'],slit['X1'],slit['X2'],slit['X2']
+#    df['slitY1'],df['slitY2'],df['slitY3'],df['slitY4']=slit['Y1'],slit['Y2'],slit['Y2'],slit['Y1']
+    df['objectId']=obs['objectId']
+    return df
 
-def combine_target_with_slit_and_obs(targetList, slit, obs, slitKeys, obsKeys):
-    outTargetList = []
-    for idx, target in enumerate(targetList):
-        tgt = target.copy()
-        tgt = {**tgt, **{ k: slit[idx][k] for k in slitKeys }}
-        tgt = {**tgt, **{ k: obs[idx][k] for k in obsKeys}}
-        outTargetList.append(tgt)
-    return outTargetList
+def genMaskOut(df,fileparams):
 
-def gen_mask_out(targetList, fileparams):
+    global slit
+    global site
 
-    targetList, slits, site = genSlits(targetList, fileparams, auto_sel=False, returnSlitSite=True)
-    df = pd.DataFrame(targetList)
+    if 'slitX1' not in df.columns:    #rethink this?!
+        if fileparams['NoOverlapfd'][0]=='yes':
+            adj_len=True
+        else:
+            adj_len=False
+        if fileparams['ProjSlitLengthfd'][0]=='yes':
+            proj_len=True
+        else:
+            proj_len=False
+        df=df.loc[df['selected']==1]
+        obs,site=init_dicts(df,fileparams)
+        obs=refr_coords(obs,site)
+        obs=fld2telax(obs,'ra_fldR','dec_fldR','ra_telR','dec_telR')
+        obs=tel_coords(obs,'raRadR','decRadR','ra_telR','dec_telR',proj_len)
+        slit=gen_slits_from_obs(obs,adj_len)
+        slit=sky_coords(slit)
+        slit=unrefr_coords(slit,site)
+        slit=fld2telax(slit,'ra0_fldU','dec0_fldU','ra_telU','dec_telU')
+        slit=tel_coords(slit,'raRadU','decRadU','ra_telU','dec_telU',proj_len)
+        slit=mask_coords(slit)
 
+        df['slitX1'],df['slitX2'],df['slitX3'],df['slitX4']=slit['slitX1'],slit['slitX2'],slit['slitX3'],slit['slitX4']
+        df['slitY1'],df['slitY2'],df['slitY3'],df['slitY4']=slit['slitY1'],slit['slitY2'],slit['slitY3'],slit['slitY4']
+        df['arcslitX1'],df['arcslitX2'],df['arcslitX3'],df['arcslitX4']=slit['arcslitX1'],slit['arcslitX2'],slit['arcslitX3'],slit['arcslitX4']
+        df['arcslitY1'],df['arcslitY2'],df['arcslitY3'],df['arcslitY4']=slit['arcslitY1'],slit['arcslitY2'],slit['arcslitY3'],slit['arcslitY4']
 
-    tel = df[['newcenterRADeg', 'newcenterDECDeg', 'lst' ]] 
-    tel.loc[:, 'dateobs'] = fileparams['ObsDate']
-    #tel = {k: ([v] if type(v) != list else v) for (k, v) in tel.items()}
+        df['slitWidth']=slit['slitWidth'] ##????? This too?
 
-    params = {
-        'objfile': '',  # Pass separately?
-        'output': fileparams['OutputFits']+'.out',
-        'mdf': fileparams['OutputFits'],
-        'plotfile': '',
-        'ra0': (15*utils.sexg2Float(fileparams['InputRA'])),
-        'dec0': (utils.sexg2Float(fileparams['InputDEC'])),
-        'pa0': float(fileparams['MaskPA']),
-        'equinox': 2000.0,
-        'ha0': float(fileparams['HourAngle']),
-        'min_slit': float(fileparams['MinSlitLength']),
-        'sep_slit': float(fileparams['MinSlitSeparation']),
-        'slit_width': float(fileparams['SlitWidth']),
-        'box_sz': float(fileparams['AlignBoxSize']),
-        'blue': float(fileparams['BlueWaveLength']),
-        'red': float(fileparams['RedWaveLength']),
-        'proj_len': False,
-        'no_overlap': False,
-        #    'std_format':True,     #Remove this option
-        'lambda_cen': float(fileparams['CenterWaveLength']),
-        'temp': float(fileparams['Temperature']),
-        'pressure': float(fileparams['Pressure']),
-        'maskid': fileparams['MaskId'],
-        'guiname': fileparams['MaskName'],
-        'dateobs': fileparams['ObsDate'],
-        'author': fileparams['Author'],
-        'observer': fileparams['Observer'],
-        'project': fileparams['ProjectName'],
-        'instrument': 'DEIMOS',
-        'telescope': 'Keck II'
-    }
+        df['xarcsS']=slit['xarcsS']
+        df['yarcsS']=slit['yarcsS']
+        df['xarcs']=obs['xarcs']
+        df['yarcs']=obs['yarcs']
+#        df['xarcs']=slit['xarcs']
+#        df['yarcs']=slit['yarcs']
+        df['ra_fldR']=obs['ra_fldR']
+        df['dec_fldR']=obs['dec_fldR']
+        df['selected']=slit['sel']
+#        df['length2']=slit['length2S']
+        df['length1']=obs['length1']
+        df['length2']=obs['length2']
+        df['length1S']=slit['length1S']
+        df['length2S']=slit['length2S']
+        df['rlength1']=slit['rlength1'] #not needed?
+        df['rlength2']=slit['rlength2'] #not needed?
+        df['objectId']=obs['objectId']
+
+    tel={}
+    tel['newcenterRADeg']=slit['newcenterRADeg']
+    tel['newcenterDECDeg']=slit['newcenterDECDeg']
+    tel['dateobs']=fileparams['ObsDatefd']
+    tel['lst']=slit['lst']
+    tel['ra_telR']=slit['ra_telR']
+    tel['dec_telR']=slit['dec_telR']
+
+    params={
+        'objfile':'',      #Pass separately?
+        'output':fileparams['OutputFitsfd'][0]+'.out',
+        'mdf':fileparams['OutputFitsfd'][0],
+        'plotfile':'',
+        'ra0':(15*utils.sexg2Float(fileparams['InputRAfd'][0])),
+        'dec0':(utils.sexg2Float(fileparams['InputDECfd'][0])),
+        'pa0':float(fileparams['MaskPAfd'][0]),
+        'equinox':2000.0,
+        'ha0':float(fileparams['HourAnglefd'][0]),
+        'min_slit':float(fileparams['MinSlitLengthfd'][0]),
+        'sep_slit':float(fileparams['MinSlitSeparationfd'][0]),
+        'slit_width':float(fileparams['SlitWidthfd'][0]),
+        'box_sz':float(fileparams['AlignBoxSizefd'][0]),
+        'blue':float(fileparams['BlueWaveLengthfd'][0]),
+        'red':float(fileparams['RedWaveLengthfd'][0]),
+        'proj_len':False,
+        'no_overlap':False,
+#    'std_format':True,     #Remove this option
+        'lambda_cen':float(fileparams['CenterWaveLengthfd'][0]),
+        'temp':float(fileparams['Temperaturefd'][0]),
+        'pressure':float(fileparams['Pressurefd'][0]),
+        'maskid':fileparams['MaskIdfd'][0],
+        'guiname':fileparams['MaskNamefd'][0],
+        'dateobs':fileparams['ObsDatefd'][0],
+        'author':fileparams['Authorfd'][0],
+        'observer':fileparams['Observerfd'][0],
+        'project':fileparams['ProjectNamefd'][0],
+        'instrument':'DEIMOS',
+        'telescope':'Keck II'
+ }
 
     params['descreate'] = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
 

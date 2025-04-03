@@ -32,6 +32,22 @@ fh = FileHandler('smdt.log')
 fh.setFormatter(formatter)
 logger.addHandler(fh)
 
+import logging
+from functools import wraps
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+def log_function_call(func):
+    """Decorator to log function calls"""
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        logging.info(f"Function '{func.__name__}' called with args: {args} kwargs: {kwargs}")
+        result = func(*args, **kwargs)
+        logging.info(f"Function '{func.__name__}' returned: {result}")
+        return result
+    return wrapper
+
 
 def launchBrowser(host, portnr, path):
     webbrowser.open(f"http://{host}:{portnr}/{path}", new=1)
@@ -42,7 +58,42 @@ app.config.from_pyfile('config.ini')
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(
     hours=app.config['PERMANENT_SESSION_LIFETIME'])
 
-@app.route('/setColumnValue', methods=["GET", "POST"])
+app.secret_key='dsf2315ewd'
+app.config['SESSION_PERMANENT'] = True
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=0.001)
+app.config['MAX_CONTENT_LENGTH'] = 100*1024*1024
+
+# The maximum number of items the session stores 
+# before it starts deleting some, default 500
+app.config['SESSION_FILE_THRESHOLD'] = 10000  
+Session(app)
+
+
+@app.before_request
+def log_request():
+    logging.info(f"Request made to: {request.path} with method {request.method}")
+
+
+#@app.route('/readparams')
+def readparams():
+    dict={}
+    with open('params.cfg') as f:
+        for line in f:
+            try:
+                if len(line.split(','))==4:
+                    sep=line.strip().split(',')
+                    (k,v) = sep[0].split(' = ')
+                    dict[k]=(stripquote(v),stripquote(sep[1]),stripquote(sep[2]),stripquote(sep[3]))
+                else:
+                    continue
+            except Exception as e:
+                pass
+                print('Failed to load parameters',e)
+    return dict
+
+
+@app.route('/setColumnValue',methods=["GET","POST"])
 def setColumnValue():
     values = request.json['value']
     column = request.json['column']
@@ -132,7 +183,6 @@ def saveMaskDesignFile():  # should only save current rather than re-running eve
         return send_from_directory(directory=tmpdirname,
                                    path=fname,
                                    as_attachment=True)
-
     except Exception as err:
         logger.error(f'Exception {err}')
         response = make_response(

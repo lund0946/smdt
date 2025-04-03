@@ -37,6 +37,8 @@ def selector(df, xmin, xmax, min_slit, slit_gap):
                 ndx = sel.index[i]
                 xupp = sel.X1[ndx]
                 xskip = sel.X2[ndx] - sel.X1[ndx]
+#                print('Xupp,xskip,X2,X1: ',xupp,xskip,sel.X2[ndx],sel.X1[ndx])
+
             else:
                 xupp = xmax
 
@@ -123,6 +125,7 @@ def sel_rank(opt, xlow, xupp, minsep, slit_gap):
         ndx = opt.index[isel]
         xlast = opt.X2[ndx]
         xnext = xlast + 0.5 * minsep
+#        print('xlast,xnext,opt.X1[ndx],opt.X2[ndx]: ',xlast,xnext,opt.X1[ndx],opt.X2[ndx])
         i = isel                        # Reset search start point
         i = i+1
         # set selection if

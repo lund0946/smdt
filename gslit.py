@@ -86,17 +86,15 @@ def gseval(x1, x2, cen, yas):
 
 
 # Adjust slit lengths to fit
-def len_slits(obs, slit_gap):
+def len_slits(dict, slit_gap=0.35):
     logger.debug('len_slits')
-    df = pd.DataFrame(obs)
-    # remove pcode=-1 from list  ## was just tg=df[(df['pcode']!=-1) prev
-    tg = df[(df['pcode'] != -1) & (df['selected'] == 1) & (df['inMask'] == 1)]
-    # Correct value to sort on?
-    tg = tg.sort_values(by=['xarcs'], ascending=True)
-    gsx1, gsx2 = gs_ingest()  # only x used
-
-    for i, row in enumerate(tg.iterrows()):
-        if i == len(tg)-1:
+    df=pd.DataFrame.from_dict(dict)
+    tg = df[(df['pcode']!=-1) & (df['sel']==1) & (df['inMask']==1)] # remove pcode=-1 from list  ## was just tg=df[(df['pcode']!=-1) prev
+    tg = tg.sort_values(by=['xarcs'], ascending=True)  ### Correct value to sort on?
+    gsx1, gsx2=gs_ingest() ## only x used
+        
+    for i,row in enumerate(tg.iterrows()):
+        if i==len(tg)-1:
             continue
         ndx1 = tg.index[i]
         ndx2 = tg.index[i+1]

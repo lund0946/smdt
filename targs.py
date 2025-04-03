@@ -47,6 +47,7 @@ def readRaw(fh, params):
     slitWidth = params["SlitWidth"]
     slitpa = params["SlitPA"]
 
+
     for nr, line in enumerate(fh):
         if not line:
             continue
