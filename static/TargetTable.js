@@ -18,7 +18,7 @@ function TargetTable(targets) {
 		['Magn', 60, 'mag', 0],
 		['Band', 50, 'pBand', 0],	
 		['Prior', 60, 'pcode', 0],		
-		['Sel', 35, 'selected', 0],
+		['selected', 35, 'selected', 0],
 		['Slit PA', 60, 'slitLPA', 0],
 		['Len1', 50, 'rlength1', 0],
 		['Len2', 50, 'rlength2', 0],

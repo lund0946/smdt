@@ -23,10 +23,10 @@ from utils import schema, validate_params
 logger = logging.getLogger('smdt')
 formatter = logging.Formatter(
     '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 logger.addHandler(default_handler)
 st = StreamHandler()
-st.setLevel(logging.DEBUG)
+st.setLevel(logging.INFO)
 st.setFormatter(formatter)
 fh = FileHandler('smdt.log')
 fh.setFormatter(formatter)
@@ -67,7 +67,7 @@ app.config['MAX_CONTENT_LENGTH'] = 100*1024*1024
 # The maximum number of items the session stores 
 # before it starts deleting some, default 500
 app.config['SESSION_FILE_THRESHOLD'] = 10000  
-Session(app)
+# Session(app)
 
 
 @app.before_request
@@ -140,7 +140,7 @@ def resetSelection():
 @app.route('/generateSlits', methods=["GET", "POST"])
 def generateSlits():
     session['targetList'] = targs.mark_inside(session['targetList'])
-    session['targetList'], slit, site= calcmask.genSlits(session['targetList'], session['params'], auto_sel=False, returnSlitSite=True)  #auto_sel=False, since everything is already selected by this point?
+    session['targetList'], slit, site= calcmask.gen_slits(session['targetList'], session['params'], auto_sel=False, returnSlitSite=True)  #auto_sel=False, since everything is already selected by this point?
     outp = targs.to_json_with_info(session['params'], session['targetList'])
     return outp
 
@@ -150,7 +150,7 @@ def generateSlits():
 @app.route('/recalculateMask', methods=["GET", "POST"])
 def recalculateMask():
     session['targetList'] = targs.mark_inside(session['targetList'])
-    session['targetList'] = calcmask.genSlits(
+    session['targetList'] = calcmask.gen_slits(
         session['targetList'], session['params'], auto_sel=True)
     outp = targs.to_json_with_info(session['params'], session['targetList'])
     return { **outp, "info": targs.getROIInfo(session['params'])}
@@ -191,12 +191,11 @@ def saveMaskDesignFile():  # should only save current rather than re-running eve
         return response
 
 # Update Params Button, Load Targets Button
-
-
-
 @app.route('/sendTargets2Server', methods=["GET", "POST"])
 def sendTargets2Server():
     filename = request.json.get('filename')
+    import pdb
+    pdb.set_trace()
     if not filename:
         return
     session['params'] = request.json['formData']
@@ -207,9 +206,9 @@ def sendTargets2Server():
                   for target in session['targetList']]
 
     # generate slits
-    session['targetList'] = calcmask.gen_obs(session['params'], session['targetList'])
+    session['targetList'] = calcmask.gen_obs(session['targetList'], session['params'])
     session['targetList'] = targs.mark_inside(session['targetList'])
-    session['targetList'] = calcmask.genSlits(session['targetList'], session['params'], auto_sel=True)
+    session['targetList'] = calcmask.gen_slits(session['targetList'], session['params'], auto_sel=True)
 
     outp = targs.to_json_with_info(session['params'], session['targetList'])
     return outp
@@ -265,6 +264,6 @@ def LoadTargets():
 
 
 if __name__ == '__main__':
-    t = Timer(1, launchBrowser, ['localhost', 9302, '/'])
-    t.start()
+    # t = Timer(1, launchBrowser, ['localhost', 9302, '/'])
+    # t.start()
     app.run(host='localhost', port=9302, debug=True, use_reloader=False)

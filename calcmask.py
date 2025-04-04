@@ -674,30 +674,27 @@ def proj_to_mask(xp, yp, ap):
     return xc, yc, ac
 
 
-def genObs(df,fileparams):
+def gen_obs(targetList,fileparams):
+    obs, site = init_dicts(targetList, fileparams)
+    obs = refr_coords(obs, site)
+    obs = fld2telax(obs, 'ra_fldR', 'dec_fldR', 'ra_telR', 'dec_telR')
+    obs = tel_coords(obs, 'raRadR', 'decRadR', 'ra_telR', 'dec_telR')
+    min_slit = float(fileparams['MinSlitLength'])
+    slit_gap = float(fileparams['MinSlitSeparation'])
+    slit = gen_slits_from_obs(obs, min_slit, slit_gap, False, False)
+    slit = sky_coords(slit)
+    targetListOut = []
+    for idx, target in enumerate(targetList):
+        target['xarcsS'] = slit[idx]['xarcsS']
+        target['yarcsS'] = slit[idx]['yarcsS']
+        target['xarcs'] = obs[idx]['xarcs']
+        target['yarcs'] = obs[idx]['yarcs']
+        targetListOut.append(target)
+    return targetListOut
 
-    obs,site=init_dicts(df,fileparams)
-    obs=refr_coords(obs,site)
-    obs=fld2telax(obs,'ra_fldR','dec_fldR','ra_telR','dec_telR')
-    obs=tel_coords(obs,'raRadR','decRadR','ra_telR','dec_telR')
-    slit=gen_slits_from_obs(obs,False,False)
-    slit=sky_coords(slit)
-    df['xarcsS']=slit['xarcsS']
-    df['yarcsS']=slit['yarcsS']
-    df['xarcs']=obs['xarcs']
-    df['yarcs']=obs['yarcs']
-    df['objectId']=obs['objectId']
-    f=open('gen_obs.pkl','wb')
-    pickle.dump([obs,site,slit,df],f)
-    f.close()
-    return df
-
-def genSlits(df,fileparams,auto_sel=True):
-    print('genSlits\n\n\n\n\n\n\n\n\n')
-
-    global slit
-    global site
-
+def gen_slits(targetList, fileparams, auto_sel=True, returnSlitSite=False):
+    logger.debug('genSlits')
+ 
     if fileparams['NoOverlap'] == 'yes':
         adj_len = True
     else:
@@ -705,41 +702,48 @@ def genSlits(df,fileparams,auto_sel=True):
     if fileparams['ProjSlitLength'] == 'yes':
         proj_len = True
     else:
-        proj_len=False
-    obs,site=init_dicts(df,fileparams)
-    print('init_dicts')
-    obs=refr_coords(obs,site)
-    obs=fld2telax(obs,'ra_fldR','dec_fldR','ra_telR','dec_telR')
-    obs=tel_coords(obs,'raRadR','decRadR','ra_telR','dec_telR',proj_len)
-    slit=gen_slits_from_obs(obs,adj_len,auto_sel)
-    slit=sky_coords(slit)
-    slit=unrefr_coords(slit,site)
-    slit=fld2telax(slit,'ra0_fldU','dec0_fldU','ra_telU','dec_telU')
-    slit=tel_coords(slit,'raRadU','decRadU','ra_telU','dec_telU',proj_len)
-    slit=mask_coords(slit)
+        proj_len = False
+    obs, site = init_dicts(targetList, fileparams)
+    logger.debug('init_dicts')
+    obs = refr_coords(obs, site)
+    obs = fld2telax(obs, 'ra_fldR', 'dec_fldR', 'ra_telR', 'dec_telR')
+    obs = tel_coords(obs, 'raRadR', 'decRadR', 'ra_telR', 'dec_telR', proj_len)
+    min_slit = float(fileparams['MinSlitLength'])
+    slit_gap = float(fileparams['MinSlitSeparation'])
+    slit = gen_slits_from_obs(obs, min_slit, slit_gap, adj_len, auto_sel)
+    slit = sky_coords(slit)
+    slit = unrefr_coords(slit, site)
+    slit = fld2telax(slit, 'ra0_fldU', 'dec0_fldU', 'ra_telU', 'dec_telU')
+    slit = tel_coords(slit, 'raRadU', 'decRadU', 'ra_telU', 'dec_telU', proj_len)
+    slit = mask_coords(slit)
 
-    df['slitWidth']=slit['slitWidth']
+    outTargetList = []
+    slitKeys = [ 'slitWidth', 'selected',
+                'xarcsS', 'yarcsS',
+                'xarcs', 'yarcs', 
+                'length1S', 'length2S',
+                'rlength1', 'rlength2', 
+                'slitX1', 'slitX2', 'slitX3', 'slitX4',
+                'slitY1', 'slitY2', 'slitY3', 'slitY4',
+                'arcslitX1', 'arcslitX2', 'arcslitX3', 'arcslitX4',
+                'newcenterRADeg', 'newcenterDECDeg',
+                'arcslitY1', 'arcslitY2', 'arcslitY3', 'arcslitY4']
+    obsKeys = ['xarcs', 'yarcs', 'objectId', 'length1',
+               'length2', 'ra_fldR', 'dec_fldR', 'lst']
+    outTargetList = combine_target_with_slit_and_obs(targetList, slit, obs, slitKeys, obsKeys)
 
-    df['xarcsS']=slit['xarcsS']
-    df['yarcsS']=slit['yarcsS']
-    df['xarcs']=obs['xarcs']
-    df['yarcs']=obs['yarcs']
-    df['selected']=slit['sel']
-    df['length1']=obs['length1']
-    df['length2']=obs['length2']
-    df['length1S']=slit['length1S']
-    df['length2S']=slit['length2S']
-    df['rlength1']=slit['rlength1']
-    df['rlength2']=slit['rlength2']
+    out = [outTargetList , slit, site] if returnSlitSite else outTargetList 
 
-    df['slitX1'],df['slitX2'],df['slitX3'],df['slitX4']=slit['slitX1'],slit['slitX2'],slit['slitX3'],slit['slitX4']
-    df['slitY1'],df['slitY2'],df['slitY3'],df['slitY4']=slit['slitY1'],slit['slitY2'],slit['slitY3'],slit['slitY4']
-    df['arcslitX1'],df['arcslitX2'],df['arcslitX3'],df['arcslitX4']=slit['arcslitX1'],slit['arcslitX2'],slit['arcslitX3'],slit['arcslitX4']
-    df['arcslitY1'],df['arcslitY2'],df['arcslitY3'],df['arcslitY4']=slit['arcslitY1'],slit['arcslitY2'],slit['arcslitY3'],slit['arcslitY4']
-#    df['slitX1'],df['slitX2'],df['slitX3'],df['slitX4']=slit['X1'],slit['X1'],slit['X2'],slit['X2']
-#    df['slitY1'],df['slitY2'],df['slitY3'],df['slitY4']=slit['Y1'],slit['Y2'],slit['Y2'],slit['Y1']
-    df['objectId']=obs['objectId']
-    return df
+    return out 
+
+def combine_target_with_slit_and_obs(targetList, slit, obs, slitKeys, obsKeys):
+    outTargetList = []
+    for idx, target in enumerate(targetList):
+        tgt = target.copy()
+        tgt = {**tgt, **{ k: slit[idx][k] for k in slitKeys }}
+        tgt = {**tgt, **{ k: obs[idx][k] for k in obsKeys}}
+        outTargetList.append(tgt)
+    return outTargetList
 
 def genMaskOut(df,fileparams):
 
@@ -782,7 +786,7 @@ def genMaskOut(df,fileparams):
 #        df['yarcs']=slit['yarcs']
         df['ra_fldR']=obs['ra_fldR']
         df['dec_fldR']=obs['dec_fldR']
-        df['selected']=slit['sel']
+        df['selected']=slit['selected']
 #        df['length2']=slit['length2S']
         df['length1']=obs['length1']
         df['length2']=obs['length2']

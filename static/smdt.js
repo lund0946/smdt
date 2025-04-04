@@ -71,7 +71,7 @@ function SlitmaskDesignTool() {
 		// The browser loads the targets and sends them to the server.
 		// The server responds with targetList.
 		// Slitmask is then generated.
-                self.loadAll()
+        self.loadAll()
 		const filename = E('targetList');
 		if (!filename.value) {
 			self.setStatus('Please select target list file to load');
@@ -86,7 +86,8 @@ function SlitmaskDesignTool() {
 
 		let data = {
 			'formData': params,
-			'filename': filename.files[0].name
+			'filename': filename.files[0].name,
+			'file': filename.files[0]
 		}
 		fr.addEventListener(
 			"load",
@@ -144,6 +145,7 @@ function SlitmaskDesignTool() {
 	self.updateLoadedTargets = function (data) {
 		// Called when targets are loaded from server
 		if (!data) return;
+		if (!data.targets) return;
 
 		self.dssInfo = data.info;
 
@@ -376,9 +378,11 @@ function SlitmaskDesignTool() {
 		ajaxPost('recalculateMask', params, callback);
 	};
 
-	self.recalculate_callback = function () {
+	self.recalculate_callback = function (data) {
 		self.canvasShow.slitsReady = false;
-		self.canvasShow.slitsReady = false;
+		if (!data) return;
+		if (!data.targets) console.warn('no targets...');
+
 		self.canvasShow.setTargets(data.targets);
 		self.redraw();
 	};
