@@ -194,8 +194,6 @@ def saveMaskDesignFile():  # should only save current rather than re-running eve
 @app.route('/sendTargets2Server', methods=["GET", "POST"])
 def sendTargets2Server():
     filename = request.json.get('filename')
-    import pdb
-    pdb.set_trace()
     if not filename:
         return
     session['params'] = request.json['formData']
