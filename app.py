@@ -225,7 +225,10 @@ def sendTargets2Server():
 
 @app.route('/updateParams4Server', methods=["GET", "POST"])
 def updateParams4Server():
-    ok, session['params'] = validate_params(session['params'])
+    session['params'] = request.json['formData']
+    print(session['params'])
+    #ok, session['params'] = validate_params(session['params'])
+    ok=True
     session.modified=True
     if not ok:
         return [str(x) for x in session['params']]

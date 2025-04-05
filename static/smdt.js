@@ -111,27 +111,23 @@ function SlitmaskDesignTool() {
         };
 
 	self.sendParamUpdate = function () {
+
+
 		self.setStatus("Updating ...");
-		const form2 = E('form2');
-		self.setStatus("Loading ...");
-		let formJson = {};
-		Array.from(form2.elements).forEach((input) => {
-			if (input.getAttribute('ftype')) {
-				if (input.getAttribute('ftype') == 'number') {
-					formJson[input.name] = Number(input.value);
-				}
-				else {
-					formJson[input.name] = input.value.trim();
-				}
-			}
-		});
 
+                const filename = E('targetList');
 
-		let data = {
-			params: formJson,
-		}
-		ajaxPost('updateParams4Server', data, self.param_update_callback);
-	};
+                const form2 = E('form2');
+                const formData = new FormData(form2);
+                let params = {}
+                formData.forEach((value, key) => params[key] = value);
+
+                let data = {
+                        'formData': params
+                }
+                                ajaxPost('updateParams4Server', data, self.param_update_callback);
+
+        };
 
 	self.loadMaskLayout = function () {
 		function callback(data) {
