@@ -29,7 +29,7 @@ function SlitmaskDesignTool() {
 		for (let [key, props] of Object.entries(sortedProps)) {
 			const type = props.type.includes('number') ? 'number' : 'text';
 			const value = params ? params[key] : props.default;
-			txt = `<tr><td> ${props.label} :<td><input ftype=${type} id="${key}fd" name="${key}" value="${value}"><td>${props.description}`;
+			txt = `<tr><td> ${props.label} :<td><input type=${type} id="${key}fd" name="${key}" value="${value}"><td>${props.description}`;
 			buf.push(txt);
 		}
 		buf.push('</table>');
@@ -87,7 +87,7 @@ function SlitmaskDesignTool() {
 		let data = {
 			'formData': params,
 			'filename': filename.files[0].name,
-			'file': filename.files[0]
+			'file': filename.files[0] ?? [],
 		}
 		fr.addEventListener(
 			"load",

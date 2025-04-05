@@ -1,6 +1,7 @@
-from datetime import timedelta
 from flask import Flask, render_template, request, jsonify, send_from_directory, make_response, session
 from flask.logging import default_handler
+from flask_session import Session
+from flask_cors import CORS
 import webbrowser
 import numpy as np
 import maskLayouts as ml
@@ -16,9 +17,12 @@ from logging import FileHandler, StreamHandler
 from threading import Timer
 import tarfile
 import tempfile
-
-
+import logging
+from functools import wraps
 from utils import schema, validate_params
+import pdb
+
+
 
 logger = logging.getLogger('smdt')
 formatter = logging.Formatter(
@@ -32,8 +36,6 @@ fh = FileHandler('smdt.log')
 fh.setFormatter(formatter)
 logger.addHandler(fh)
 
-import logging
-from functools import wraps
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -54,20 +56,9 @@ def launchBrowser(host, portnr, path):
 
 
 app = Flask(__name__)
-app.config.from_pyfile('config.ini')
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(
-    hours=app.config['PERMANENT_SESSION_LIFETIME'])
-
-app.secret_key='dsf2315ewd'
-app.config['SESSION_PERMANENT'] = True
-app.config['SESSION_TYPE'] = 'filesystem'
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=0.001)
-app.config['MAX_CONTENT_LENGTH'] = 100*1024*1024
-
-# The maximum number of items the session stores 
-# before it starts deleting some, default 500
-app.config['SESSION_FILE_THRESHOLD'] = 10000  
-# Session(app)
+app.config.from_pyfile('config.py')
+Session(app)
+CORS(app, supports_credentials=True)
 
 
 @app.before_request
@@ -97,7 +88,11 @@ def readparams():
 def setColumnValue():
     values = request.json['value']
     column = request.json['column']
+    logger.info(f"Setting column {column} to value {values}")
+    logger.info(f"session keys: {session.keys()}")
+    logger.info(f"session targetList: {session.get('targetList')}")
     session['targetList'] = targs.update_column(session['targetList'], column, values)
+    session.modified=True
     return {'status': 'OK', 'targets': session['targetList']}
 
 
@@ -105,6 +100,7 @@ def setColumnValue():
 def updateTarget():
     values = request.json['values']
     session['targetList'], idx = targs.update_target(session['targetList'], values)
+    session.modified=True
     outp = targs.to_json_with_info(session['params'], session['targetList'])
     return {**outp, 'idx': idx, "info": targs.getROIInfo(session['params'])}
 
@@ -113,6 +109,7 @@ def updateTarget():
 def updateSelection():
     values = request.json['values']
     session['targetList'], idx = targs.update_target(session['targetList'], values)
+    session.modified=True
     outp = targs.to_json_with_info(session['params'], session['targetList'])
     return {**outp, 'idx': idx, "info": targs.getROIInfo(session['params'])}
 
@@ -122,6 +119,7 @@ def deleteTarget():
     idx = request.json['idx']
     if idx < len(session['targetList']):
         session['targetList'].pop(idx)
+        session.modified=True
     else:
         logger.debug('Invalid idx. Not deleting')
     outp = targs.to_json_with_info(session['params'], session['targetList'])
@@ -133,6 +131,7 @@ def deleteTarget():
 def resetSelection():
     session['targetList'] = [{**target, 'selected': target['localselected']}
                   for target in session['targetList']]
+    session.modified=True
     outp = targs.to_json_with_info(session['params'], session['targetList'])
     return {**outp, "info": targs.getROIInfo(session['params'])}
 
@@ -141,6 +140,7 @@ def resetSelection():
 def generateSlits():
     session['targetList'] = targs.mark_inside(session['targetList'])
     session['targetList'], slit, site= calcmask.gen_slits(session['targetList'], session['params'], auto_sel=False, returnSlitSite=True)  #auto_sel=False, since everything is already selected by this point?
+    session.modified=True
     outp = targs.to_json_with_info(session['params'], session['targetList'])
     return outp
 
@@ -152,6 +152,7 @@ def recalculateMask():
     session['targetList'] = targs.mark_inside(session['targetList'])
     session['targetList'] = calcmask.gen_slits(
         session['targetList'], session['params'], auto_sel=True)
+    session.modified=True
     outp = targs.to_json_with_info(session['params'], session['targetList'])
     return { **outp, "info": targs.getROIInfo(session['params'])}
     
@@ -161,6 +162,7 @@ def recalculateMask():
 def saveMaskDesignFile():  # should only save current rather than re-running everything!
     try:
         session['targetList'] = targs.mark_inside(session['targetList'])
+        session.modified=True
         outp = {'status': 'OK', **targs.to_json_with_info(session['params'], session['targetList'])}
         # with tempfile.TemporaryDirectory() as tmpdirname:
         tmpdirname = tempfile.mkdtemp()
@@ -197,6 +199,14 @@ def sendTargets2Server():
     if not filename:
         return
     session['params'] = request.json['formData']
+    # need to set number params to floats
+    for key, val in session['params'].items():
+        try:
+            if 'number' in schema['properties'][key]['type']:
+                session['params'][key] = float(val)
+        except Exception as err:
+            logger.warning(f'Failed to convert {key} to float: {err}')
+            pass
     fh = [line for line in request.json['file'].split('\n') if line]
     session['targetList'] = targs.readRaw(fh, session['params'])
     # Only backup selected targets on file load.
@@ -207,6 +217,8 @@ def sendTargets2Server():
     session['targetList'] = calcmask.gen_obs(session['targetList'], session['params'])
     session['targetList'] = targs.mark_inside(session['targetList'])
     session['targetList'] = calcmask.gen_slits(session['targetList'], session['params'], auto_sel=True)
+    session['test'] = 'ok, i\'m set'
+    session.modified=True
 
     outp = targs.to_json_with_info(session['params'], session['targetList'])
     return outp
@@ -214,6 +226,7 @@ def sendTargets2Server():
 @app.route('/updateParams4Server', methods=["GET", "POST"])
 def updateParams4Server():
     ok, session['params'] = validate_params(session['params'])
+    session.modified=True
     if not ok:
         return [str(x) for x in session['params']]
 
@@ -226,6 +239,7 @@ def updateParams4Server():
 @app.route('/getSchema')
 def getConfigParams():
     logger.debug(f'Param Schema: {schema}')
+    session['got schema'] = True
     return jsonify(schema)
 
 

@@ -71,7 +71,17 @@
             "maxLength": 6
         },
         "MinSlitLength": {
-            "type": "number",
+            "type": ["number","string"],
+            "oneOf": [
+                {
+                    "type": "number",
+                    "minimum": 0
+                },
+                {
+                    "type": "string",
+                    "pattern": "^\\d+\\s*\\+\\s*\\d+\\s*\\*\\s*\\d+$"
+                }
+            ],
             "default": 10,
             "description": "Minimum slit length (arcsec)",
             "label": "Min. slit length",
@@ -79,7 +89,17 @@
             "units": "arcsec"
         },
         "MinSlitSeparation": {
-            "type": "number",
+            "type": ["number", "string"],
+            "oneOf": [
+                {
+                    "type": "number",
+                    "minimum": 0
+                },
+                {
+                    "type": "string",
+                    "pattern": "^\\d+\\s*\\+\\s*\\d+\\s*\\*\\s*\\d+$"
+                }
+            ],
             "default": 0.35,
             "description": "Min slit separatation (arcsec)",
             "label": "Min. slit separatation",
@@ -87,7 +107,17 @@
             "units": "arcsec"
         },
         "SlitWidth": {
-            "type": "number",
+            "type": ["number", "string"],
+            "oneOf": [
+                {
+                    "type": "number",
+                    "minimum": 0
+                },
+                {
+                    "type": "string",
+                    "pattern": "^\\d+\\s*\\+\\s*\\d+\\s*\\*\\s*\\d+$"
+                }
+            ],
             "default": 1,
             "description": "Slit width (arcsec)",
             "label": "Slit width",
@@ -95,7 +125,17 @@
             "units": "arcsec"
         },
         "AlignBoxSize": {
-            "type": "number",
+            "type": ["number", "string"],
+            "oneOf": [
+                {
+                    "type": "number",
+                    "minimum": 0
+                },
+                {
+                    "type": "string",
+                    "pattern": "^\\d+\\s*\\+\\s*\\d+\\s*\\*\\s*\\d+$"
+                }
+            ],
             "default": 4,
             "description": "Alignment box size (arcsec)",
             "label": "Align box size",
@@ -103,7 +143,17 @@
             "units": "arcsec"
         },
         "BlueWaveLength": {
-            "type": "number",
+            "type": ["number", "string"],
+            "oneOf": [
+                {
+                    "type": "number",
+                    "minimum": 0
+                },
+                {
+                    "type": "string",
+                    "pattern": "^\\d+\\s*\\+\\s*\\d+\\s*\\*\\s*\\d+$"
+                }
+            ],
             "default": 4000,
             "description": "Shortest wavelength (&#x212B;)",
             "label": "Blue wavelength",
@@ -112,7 +162,18 @@
             "units": "&#x212B;"
         },
         "RedWaveLength": {
-            "type": "number",
+            "type": ["number", "string"],
+            "oneOf": [
+                {
+                    "type": "number",
+                    "minimum": 3200,
+                    "maximum": 9999
+                },
+                {
+                    "type": "string",
+                    "pattern": "^\\d+\\s*\\+\\s*\\d+\\s*\\*\\s*\\d+$"
+                }
+            ],
             "default": 9000,
             "description": "Longest wavelength (&#x212B;)",
             "label": "Red wavelength",
@@ -121,7 +182,18 @@
             "units": "&#x212B;"
         },
         "CenterWaveLength": {
-            "type": "number",
+            "type": ["number", "string"],
+            "oneOf": [
+                {
+                    "type": "number",
+                    "minimum": 3200,
+                    "maximum": 9999
+                },
+                {
+                    "type": "string",
+                    "pattern": "^\\d+\\s*\\+\\s*\\d+\\s*\\*\\s*\\d+$"
+                }
+            ],
             "default": 7000,
             "description": "Center wavelength (&#x212B;)",
             "label": "Center wavelength",
@@ -150,28 +222,65 @@
             "label": "Avoid overlap"
         },
         "Temperature": {
-            "type": "number",
             "default": 0,
+            "type": ["number", "string"],
+            "oneOf": [
+                {
+                    "type": "number"
+                },
+                {
+                    "type": "string",
+                    "pattern": "^\\d+\\s*\\+\\s*\\d+\\s*\\*\\s*\\d+$"
+                }
+            ],
             "description": "Temperature (degC)",
             "label": "Temperature",
             "units": "degC"
         },
         "Pressure": {
-            "type": "number",
+            "type": ["number", "string"],
+            "oneOf": [
+                {
+                    "type": "number",
+                    "minimum": 0
+                },
+                {
+                    "type": "string",
+                    "pattern": "^\\d+\\s*\\+\\s*\\d+\\s*\\*\\s*\\d+$"
+                }
+            ],
             "default": 615,
             "description": "Atmospheric Pressure (hPa)",
             "label": "Pressure",
             "units": "hPa"
         },
         "MaskPA": {
-            "type": "number",
+            "type": ["number", "string"],
+            "oneOf": [
+                {
+                    "type": "number"
+                },
+                {
+                    "type": "string",
+                    "pattern": "^\\d+\\s*\\+\\s*\\d+\\s*\\*\\s*\\d+$"
+                }
+            ],
             "default": 0,
             "description": "Position angle of field (deg)",
             "label": "Mask PA",
             "units": "deg"
         },
         "SlitPA": {
-            "type": "number",
+            "type": ["number", "string"],
+            "oneOf": [
+                {
+                    "type": "number"
+                },
+                {
+                    "type": "string",
+                    "pattern": "^\\d+\\s*\\+\\s*\\d+\\s*\\*\\s*\\d+$"
+                }
+            ],
             "default": 0,
             "description": "Default slit angle (deg)",
             "label": "Slit PA",
@@ -194,7 +303,16 @@
             "units": "deg"
         },
         "MaskMargin": {
-            "type": "number",
+            "type": ["number", "string"],
+            "oneOf": [
+                {
+                    "type": "number"
+                },
+                {
+                    "type": "string",
+                    "pattern": "^\\d+\\s*\\+\\s*\\d+\\s*\\*\\s*\\d+$"
+                }
+            ],
             "default": 4,
             "description": "Mask margin (arcsec)",
             "label": "Mask margin",
@@ -202,7 +320,18 @@
             "units": "arcsec"
         },
         "HourAngle": {
-            "type": "number",
+            "type": ["number", "string"],
+            "oneOf": [
+                {
+                    "type": "number",
+                    "minimum": -12,
+                    "maximum": 12
+                },
+                {
+                    "type": "string",
+                    "pattern": "^\\d+\\s*\\+\\s*\\d+\\s*\\*\\s*\\d+$"
+                }
+            ],
             "default": 0,
             "description": "Hour angle (hour)",
             "label": "Hour angle",
