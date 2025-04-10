@@ -854,3 +854,64 @@ def genMaskOut(df,fileparams):
     mdf = MaskDesignOutputFitsFile(slitsdf, sitedf, paramdf, teldf)
 
     return mdf, df.to_dict(orient='records')
+
+def gen_mask_out(targetList, fileparams):
+
+    targetList, slits, site = gen_slits(targetList, fileparams, auto_sel=False, returnSlitSite=True)
+    df = pd.DataFrame(targetList)
+
+
+    tel = df[['newcenterRADeg', 'newcenterDECDeg', 'lst' ]] 
+    tel.loc[:, 'dateobs'] = fileparams['ObsDate']
+    #tel = {k: ([v] if type(v) != list else v) for (k, v) in tel.items()}
+
+    params = {
+        'objfile': '',  # Pass separately?
+        'output': fileparams['OutputFits']+'.out',
+        'mdf': fileparams['OutputFits'],
+        'plotfile': '',
+        'ra0': (15*utils.sexg2Float(fileparams['InputRA'])),
+        'dec0': (utils.sexg2Float(fileparams['InputDEC'])),
+        'pa0': float(fileparams['MaskPA']),
+        'equinox': 2000.0,
+        'ha0': float(fileparams['HourAngle']),
+        'min_slit': float(fileparams['MinSlitLength']),
+        'sep_slit': float(fileparams['MinSlitSeparation']),
+        'slit_width': float(fileparams['SlitWidth']),
+        'box_sz': float(fileparams['AlignBoxSize']),
+        'blue': float(fileparams['BlueWaveLength']),
+        'red': float(fileparams['RedWaveLength']),
+        'proj_len': False,
+        'no_overlap': False,
+        #    'std_format':True,     #Remove this option
+        'lambda_cen': float(fileparams['CenterWaveLength']),
+        'temp': float(fileparams['Temperature']),
+        'pressure': float(fileparams['Pressure']),
+        'maskid': fileparams['MaskId'],
+        'guiname': fileparams['MaskName'],
+        'dateobs': fileparams['ObsDate'],
+        'author': fileparams['Author'],
+        'observer': fileparams['Observer'],
+        'project': fileparams['ProjectName'],
+        'instrument': 'DEIMOS',
+        'telescope': 'Keck II'
+    }
+
+    params['descreate'] = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+
+    site = {k: ([v] if type(v) != list else v) for (k, v) in site.items()}
+    params = {k: ([v] if type(v) != list else v)
+              for (k, v) in params.items()}  # <-----fix this for correct outputs
+
+    slitsdf = pd.DataFrame(slits)
+    slitsdf = slitsdf[(slitsdf['selected'] == 1) & (slitsdf['inMask'] == 1)]
+    slitsdf.reset_index(drop=True, inplace=True)
+    assert slitsdf.shape[0] > 0, 'No slits selected for mask'
+
+    paramdf = pd.DataFrame(params)
+    sitedf = pd.DataFrame(site)
+    teldf = pd.DataFrame(tel)
+
+    mdf = MaskDesignOutputFitsFile(slitsdf, sitedf, paramdf, teldf)
+
+    return mdf, df.to_dict(orient='records')

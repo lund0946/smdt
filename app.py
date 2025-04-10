@@ -214,13 +214,14 @@ def sendTargets2Server():
                   for target in session['targetList']]
 
     # generate slits
-    session['targetList'] = calcmask.gen_obs(session['targetList'], session['params'])
+#    session['targetList'] = calcmask.gen_obs(session['targetList'], session['params'])
     session['targetList'] = targs.mark_inside(session['targetList'])
-    session['targetList'] = calcmask.gen_slits(session['targetList'], session['params'], auto_sel=True)
+    session['targetList'] = calcmask.gen_slits(session['targetList'], session['params'], auto_sel=False)
     session['test'] = 'ok, i\'m set'
     session.modified=True
 
     outp = targs.to_json_with_info(session['params'], session['targetList'])
+    outp = {**outp, 'status': 'OK'}
     return outp
 
 @app.route('/updateParams4Server', methods=["GET", "POST"])

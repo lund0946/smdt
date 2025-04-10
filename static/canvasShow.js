@@ -692,7 +692,8 @@ function CanvasShow(containerName, zoomContainer) {
     };
 
     self.redrawTxImage = function () {
-        window.requestAnimationFrame(self.reallyDrawTxImage);
+//        window.requestAnimationFrame(self.reallyDrawTxImage);
+        self.reallyDrawTxImage();
     };
 
     self.drawPrior = function (ctx, priors, color) {

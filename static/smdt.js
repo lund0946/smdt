@@ -62,16 +62,25 @@ function SlitmaskDesignTool() {
 		self.canvasShow.slitsReady = false;
 		if (!data) return;
 		if (!data.targets) return;
-		self.canvasShow.slitsReady = false;
+		self.canvasShow.slitsReady = true;
 		self.updateLoadedTargets(data);
                 self.redraw()
 	};
+
+        self.load_slitmask_callback = function (data) {
+                self.canvasShow.slitsReady = false;
+                if (!data) return;
+                if (!data.targets) return;
+                self.updateLoadedTargets(data);
+                self.redraw()
+        };
 
 	self.sendTargets2Server = function () {
 		// The browser loads the targets and sends them to the server.
 		// The server responds with targetList.
 		// Slitmask is then generated.
-        self.loadAll()
+                self.loadAll()
+
 		const filename = E('targetList');
 		if (!filename.value) {
 			self.setStatus('Please select target list file to load');
@@ -82,6 +91,8 @@ function SlitmaskDesignTool() {
 		const formData = new FormData(form2);
 		let params = {}
 		formData.forEach((value, key) => params[key] = value);
+
+
 		const fr = new FileReader()
 
 		let data = {
@@ -94,13 +105,16 @@ function SlitmaskDesignTool() {
 			() => {
 				data['file'] = fr.result;
 				self.setStatus("Loading ...");
-				ajaxPost('sendTargets2Server', data, self.generate_slitmask_callback);
+				ajaxPost('sendTargets2Server', data, self.load_slitmask_callback);
 			},
 			false,
 		);
 
 		fr.readAsText(filename.files[0]);
+
 	};
+
+
 
 
         self.param_update_callback = function (data) {
