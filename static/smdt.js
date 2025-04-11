@@ -593,7 +593,7 @@ function SlitmaskDesignTool() {
 				return
 			}
 			const blob = await response.blob();
-			let fname = data.params.OutputFits;
+			let fname = data.mdFile;
 			let fstr = `Fits file<br><b>${fname}</b> successfully saved`;
 			self.showDiv("savePopup", `${fstr}`);
 			let el = document.createElement("a");
