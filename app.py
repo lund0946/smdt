@@ -234,6 +234,8 @@ def updateParams4Server():
     if not ok:
         return [str(x) for x in session['params']]
 
+    if 'targetList' not in session:
+        session['targetList']={}
     outp = targs.to_json_with_info(session['params'], session['targetList'])
     outp = {**outp, 'status': 'OK'}
     return outp

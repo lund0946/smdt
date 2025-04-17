@@ -121,7 +121,7 @@ function SlitmaskDesignTool() {
                         if (!data.status?.includes('OK')) {
                                 alert(data)
                         }
-                        self.generate_slitmask_callback(data);
+                        self.load_slitmask_callback(data);
         };
 
 	self.sendParamUpdate = function () {
