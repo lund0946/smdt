@@ -202,9 +202,10 @@ def sendTargets2Server():
     # need to set number params to floats
     for key, val in session['params'].items():
         try:
-            if 'number' in schema['properties'][key]['type']:
+            if 'number' in schema['properties'].get(key,{}).get('type', []):
                 session['params'][key] = float(val)
         except Exception as err:
+            pdb.set_trace()
             logger.warning(f'Failed to convert {key} to float: {err}')
             pass
     fh = [line for line in request.json['file'].split('\n') if line]
@@ -235,7 +236,9 @@ def updateParams4Server():
         return [str(x) for x in session['params']]
 
     if 'targetList' not in session:
-        session['targetList']={}
+        session['targetList']=[]
+    session['targetList'] = targs.mark_inside(session['targetList'])
+    session['targetList'] = calcmask.gen_slits(session['targetList'], session['params'], auto_sel=False)
     outp = targs.to_json_with_info(session['params'], session['targetList'])
     outp = {**outp, 'status': 'OK'}
     return outp
