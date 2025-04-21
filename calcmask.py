@@ -861,7 +861,7 @@ def gen_mask_out(targetList, fileparams):
     df = pd.DataFrame(targetList)
 
 
-    tel = df[['newcenterRADeg', 'newcenterDECDeg', 'lst' ]] 
+    tel = df[['newcenterRADeg', 'newcenterDECDeg', 'lst' ]].copy()
     tel.loc[:, 'dateobs'] = fileparams['ObsDate']
     #tel = {k: ([v] if type(v) != list else v) for (k, v) in tel.items()}
 

@@ -134,10 +134,10 @@ class MaskDesignOutputFitsFile:
         cnts=0
         for i,row in slits.iterrows():
             if slits.selected[i]==1:
-                slits.objectIndex[i]=cnto
+                slits.loc[i, 'objectIndex']=cnto
                 cnto=cnto+1
                 if slits.pcode[i]!=-1:
-                    slits.slitIdx[i]=cnts
+                    slits.loc[i, 'slitIdx']=cnts
                     cnts=cnts+1
 
         self.slits = slits 
@@ -167,7 +167,7 @@ class MaskDesignOutputFitsFile:
             if selected.pcode[idx] == -2:
                 MajAxPA[idx] = self.params.pa0[0]
             if len(selected.magband[idx])>1:
-                selected.magband[idx]=selected.magband[idx][0]
+                selected.loc[idx, 'magband']=selected.magband[idx][0]
 
         cols.append(pf.Column(name="ObjectId", format="I6",
                     null="-9999", unit="None", array=selected.index))
