@@ -10,14 +10,12 @@ logger = logging.getLogger('smdt')
 matplotlib.use('agg')
 import os
 
-def makeplot(plotname):
+#def makeplot(plotname):
+def makeplot(slitdata, typedata, plotname):
     sx1,sx2,sx3,sx4=[],[],[],[]
     sy1,sy2,sy3,sy4=[],[],[],[]
     col=[]
 
-    f=fits.open(plotname)
-    slitdata=f[7].data
-    typedata=f[4].data
     for i in range(len(slitdata)):
         logger.debug(f'slitdata: {slitdata[i]}')
         sx1.append(slitdata[i][3])

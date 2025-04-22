@@ -49,8 +49,8 @@ function SlitmaskDesignTool() {
 			self.canvasShow.setShowPriorities(E('minPriority').value, E('maxPriority').value);
 			self.loadMaskLayout();
 			recalculate_callback()
-			}
-			ajaxCall('getSchema', {}, schema_callback);
+		}
+		ajaxCall('getSchema', {}, schema_callback);
 	};
 
 	self.setStatus = function (msg) {
@@ -64,22 +64,22 @@ function SlitmaskDesignTool() {
 		if (!data.targets) return;
 		self.canvasShow.slitsReady = true;
 		self.updateLoadedTargets(data);
-                self.redraw()
+		self.redraw()
 	};
 
-        self.load_slitmask_callback = function (data) {
-                self.canvasShow.slitsReady = false;
-                if (!data) return;
-                if (!data.targets) return;
-                self.updateLoadedTargets(data);
-                self.redraw()
-        };
+	self.load_slitmask_callback = function (data) {
+		self.canvasShow.slitsReady = false;
+		if (!data) return;
+		if (!data.targets) return;
+		self.updateLoadedTargets(data);
+		self.redraw()
+	};
 
 	self.sendTargets2Server = function () {
 		// The browser loads the targets and sends them to the server.
 		// The server responds with targetList.
 		// Slitmask is then generated.
-                self.loadAll()
+		self.loadAll()
 
 		const filename = E('targetList');
 		if (!filename.value) {
@@ -117,31 +117,31 @@ function SlitmaskDesignTool() {
 
 
 
-        self.param_update_callback = function (data) {
-                        if (!data.status?.includes('OK')) {
-                                alert(data)
-                        }
-                        self.load_slitmask_callback(data);
-        };
+	self.param_update_callback = function (data) {
+		if (!data.status?.includes('OK')) {
+			alert(data)
+		}
+		self.load_slitmask_callback(data);
+	};
 
 	self.sendParamUpdate = function () {
 
 
 		self.setStatus("Updating ...");
 
-                const filename = E('targetList');
+		const filename = E('targetList');
 
-                const form2 = E('form2');
-                const formData = new FormData(form2);
-                let params = {}
-                formData.forEach((value, key) => params[key] = value);
+		const form2 = E('form2');
+		const formData = new FormData(form2);
+		let params = {}
+		formData.forEach((value, key) => params[key] = value);
 
-                let data = {
-                        'formData': params
-                }
-                                ajaxPost('updateParams4Server', data, self.param_update_callback);
+		let data = {
+			'formData': params
+		}
+		ajaxPost('updateParams4Server', data, self.param_update_callback);
 
-        };
+	};
 
 	self.loadMaskLayout = function () {
 		function callback(data) {
@@ -573,39 +573,41 @@ function SlitmaskDesignTool() {
 		s.visibility = "hidden";
 	};
 
-	self.saveMDF = function (evt) {
-		async function mdf_callback(data) {
+	self.saveMDF = async function (evt) {
+		function mdf_callback(data) {
+			console.log('mdf_callback', data);
 			self.canvasShow.slitsReady = 1;
 			self.canvasShow.setTargets(data.targets);
 			self.redraw();
 			data = {
 				mdFile: E('OutputFitsfd').value
 			}
-			const response = await fetch("saveMaskDesignFile", {
-				method: "POST",
-				body: JSON.stringify(data),
-				headers: {
-					'Content-type': 'application/json',
-				}
-			})
-			if(response.status != 200) {
-				alert(`Error saving file: ${await response.json()['msg']}`)
-				return
-			}
-			const blob = await response.blob();
-			let fname = data.mdFile;
-			let fstr = `Fits file<br><b>${fname}</b> successfully saved`;
+			const fileName = E('OutputFitsfd').value;
+			let fstr = `Fits file<br><b>${fileName}</b> successfully saved`;
 			self.showDiv("savePopup", `${fstr}`);
-			let el = document.createElement("a");
-			el.setAttribute("download", [data.mdFile + '.tar.gz'])
-			el.setAttribute("target", "_blank")
-			let url = URL.createObjectURL(blob);
-			el.href = url; // set the href attribute attribute
-			el.click();
-			el.remove()
 		}
 
-		self.recalculateMaskHelper(mdf_callback);
+		const params = {}
+
+		const response = await fetch('saveMaskDesignFile', {
+			method: 'POST',
+			body: params,
+		});
+		if (!response.ok) {
+			alert('Network error: ' + response.statusText);
+			return;
+		}
+		const blob = await response.blob();
+		const fileName = E('OutputFitsfd').value;
+		console.log('saveMDF', response);
+		let el = document.createElement("a");
+		el.setAttribute("download", [fileName+ '.tar.gz'])
+		el.setAttribute("target", "_blank")
+		let url = URL.createObjectURL(blob);
+		el.href = url; // set the href attribute attribute
+		el.click();
+		el.remove()
+		self.recalculateMaskHelper(mdf_callback)
 	};
 
 	self.statusDiv = E('statusDiv');
