@@ -459,8 +459,8 @@ function SlitmaskDesignTool() {
 		function selectToggleCallback(data) {
 			self.reloadTargets(idx, data.info);
 			self.canvasShow.selectedTargetIdx = i;
+			self.updateLoadedTargets(data);
 			self.canvasShow.reDrawTable();
-			self.redraw();
 		}
 		// Sends new target info to server
 		let idx = self.canvasShow.selectedTargetIdx;
@@ -497,8 +497,8 @@ function SlitmaskDesignTool() {
 		function updateTargetCallback(data) {
 			self.reloadTargets(idx, data.info);
 			self.canvasShow.selectedTargetIdx = i;
+			self.updateLoadedTargets(data);
 			self.canvasShow.reDrawTable();
-			self.redraw();
 		}
 		// Sends new target info to server
 		let idx = self.canvasShow.selectedTargetIdx;

@@ -100,7 +100,10 @@ function TargetTable(targets) {
 		// Setup the function to call when a row in the target table is clicked on.
 		for (let idx=0; idx < self.targets.length; ++idx) {
 			const tgt = targets[idx];
-			E('target' + tgt['orgIndex']).onclick = fn;
+			const item = E('target' + idx);
+			if (item) {	
+				item.onclick = fn;
+			}
 		}
 	};
 
