@@ -19,6 +19,7 @@ import logging
 from functools import wraps
 from utils import schema, validate_params, stripquote
 from io import BytesIO
+import utils as util
 import pdb
 
 
@@ -249,6 +250,10 @@ def sendTargets2Server():
             pass
     fh = [line for line in request.json['file'].split('\n') if line]
     session['targetList'] = targs.readRaw(fh, session['params'])
+    # check if ra dec is 0, 0, if so, set to first target
+    if session['params'].get('InputRA') == ' 00:00:00.00' and session['params'].get('InputDEC') == ' 00:00:00.00' and not session.get('targetList') is None:
+        session['params']['InputRA'] = util.toSexagecimal(session['targetList'][0]['raHour'])
+        session['params']['InputDEC'] = util.toSexagecimal(session['targetList'][0]['decDeg'])
     # Only backup selected targets on file load.
     session['targetList'] = [{**target, 'localselected': target['selected']}
                              for target in session['targetList']]

@@ -93,6 +93,6 @@ class InOutChecker:
                 if x0 < x < x1:
                     return True
         except Exception as err:
-            logger.error(f"Check point exception {err}")
+            logger.warning(f"Check point exception: {err}")
             pass
         return False
