@@ -263,7 +263,6 @@ def sendTargets2Server():
     session['targetList'] = targs.mark_inside(session['targetList'])
     session['targetList'] = calcmask.gen_slits(
         session['targetList'], session['params'], auto_sel=False)
-    session['test'] = 'ok, i\'m set'
     session.modified = True
 
     outp = targs.to_json_with_info(session['params'], session['targetList'])
