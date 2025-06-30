@@ -364,8 +364,13 @@ function SlitmaskDesignTool() {
 
 
 	self.resetSelection = function (evt) {
-		function resetSelectionCallback() {
-			self.reloadTargets(0);
+		function resetSelectionCallback(data) {
+                        self.canvasShow.slitsReady = false;
+                        if (!data) return;
+                        if (!data.targets) return;
+             			self.reloadTargets(data);
+                                self.canvasShow.slitsReady = false;
+                                self.redraw()
 		}
                 let data = 0;
 		ajaxPost("resetSelection", data, resetSelectionCallback);
