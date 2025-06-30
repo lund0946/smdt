@@ -367,7 +367,7 @@ function SlitmaskDesignTool() {
 		function resetSelectionCallback() {
 			self.reloadTargets(0);
 		}
-
+                let data = 0;
 		ajaxPost("resetSelection", data, resetSelectionCallback);
 	};
 
