@@ -192,11 +192,8 @@ function SlitmaskDesignTool() {
 		self.canvasShow.selectTargetByIndex(self.canvasShow.selectedTargetIdx);
 	};
 
-	self.reloadTargets = function (newIdx, info = []) {
+	self.reloadTargets = function (newIdx, data) {
 
-		let data = {
-			'info': info
-		}
 		self.updateLoadedTargets(data);
 		self.canvasShow.selectTargetByIndex(newIdx);
 	};
@@ -205,7 +202,7 @@ function SlitmaskDesignTool() {
 	self.loadAll = function () {
 		self.canvasShow.clearTargetSelection();
 		self.canvasShow.slitsReady = 0;
-		self.reloadTargets(0);
+		self.reloadTargets(0, {});
 	};
 
 	self.redraw = function () {
@@ -365,12 +362,14 @@ function SlitmaskDesignTool() {
 
 	self.resetSelection = function (evt) {
 		function resetSelectionCallback(data) {
-                        self.canvasShow.slitsReady = false;
-                        if (!data) return;
-                        if (!data.targets) return;
-             			self.reloadTargets(data);
-                                self.canvasShow.slitsReady = false;
-                                self.redraw()
+			console.log('data', data);
+			self.canvasShow.slitsReady = false;
+			if (!data) return;
+			if (!data.targets) return;
+			console.log('going to reload targets');
+			self.reloadTargets(0, data);
+			self.canvasShow.slitsReady = false;
+			self.redraw()
 		}
                 let data = 0;
 		ajaxPost("resetSelection", data, resetSelectionCallback);
@@ -432,7 +431,7 @@ function SlitmaskDesignTool() {
 	self.updateColumn = function (evt) {
 		// Updates an existing target column with a set value.
 		function callback(data) {
-			self.reloadTargets(idx);
+			self.reloadTargets(idx, data);
 			self.canvasShow.selectedTargetIdx = idx;
 		}
 		// Sends new target info to server
@@ -462,7 +461,7 @@ function SlitmaskDesignTool() {
 	self.selectToggle = function (evt) {
 		// Updates an existing or adds a new target.
 		function selectToggleCallback(data) {
-			self.reloadTargets(idx, data.info);
+			self.reloadTargets(idx, data);
 			self.canvasShow.selectedTargetIdx = i;
 			self.updateLoadedTargets(data);
 			self.canvasShow.reDrawTable();
@@ -500,7 +499,7 @@ function SlitmaskDesignTool() {
 	self.updateTarget = function (evt) {
 		// Updates an existing or adds a new target.
 		function updateTargetCallback(data) {
-			self.reloadTargets(idx, data.info);
+			self.reloadTargets(idx, data);
 			self.canvasShow.selectedTargetIdx = i;
 			self.updateLoadedTargets(data);
 			self.canvasShow.reDrawTable();
@@ -533,7 +532,7 @@ function SlitmaskDesignTool() {
 
 	self.deleteTarget = function (evt) {
 		function deleteCallback(data) {
-			self.reloadTargets(idx, data.info);
+			self.reloadTargets(idx, data);
 			self.canvasShow.selectedTargetIdx = i;
 			self.canvasShow.reDrawTable();
 			self.updateLoadedTargets(data);
