@@ -46,7 +46,6 @@ def slrfro(zobs,hm,tdk,pmb,rh,wl,phi,tlr,eps):
 
     optic=wlok<=100.
 
-#    print('ranges:',zobs1,zobs2,hmok,tdkok,pmbok,rhok,wlok,alpha,tol,optic)
 
     #  set up model atmosphere parameters defined at the observer.
     wlsq = wlok*wlok
@@ -110,7 +109,6 @@ def slrfro(zobs,hm,tdk,pmb,rh,wl,phi,tlr,eps):
     fs = refi(dns,rdndrs)
 
 
-#    print('conditions',temp,dn0,rdndr0,tt,dnt,rdndrt,dnts,rdndrp,dns,rdndrs)
 
 #*
 #*  integrate the refraction integral in two parts;  first in the
@@ -233,7 +231,6 @@ def slrfro(zobs,hm,tdk,pmb,rh,wl,phi,tlr,eps):
     if (zobs1<0): 
         ref = -ref
 
-#    print('ref.....',ref)
     return ref
 
 
@@ -413,9 +410,6 @@ def slatmd(TDK, PMB, RH, WL1, A1, B1, WL2):
     else:
 
 #*     Optical: keep arguments within safe bounds
-#        print(TDK)
-#        print(np.max([TDK,100.]))
-#        print(np.min([np.max([TDK,100.]),500.]))
         TDKOK = np.min([np.max([TDK,100.]),500.])
         PMBOK = np.min([np.max([PMB,0.]),10000.])
         RHOK = np.min([np.max([RH,0.0]),1.0])
@@ -464,13 +458,7 @@ def slatmd(TDK, PMB, RH, WL1, A1, B1, WL2):
 
 
 
-#print('\n\n\n')
 
 #refa,refb=slrfco(hm,tdk,pmb,rh,wl,phi,tlr,eps)
-#print('refa,b and diff:',refa,refb,refa-1.4103476598378744e-4,refb+1.5865716958429364e-7)
-#print('F77:',np.degrees(zu-slrefz(zu,1.4103476598378744e-4,-1.5865716958429364e-7))*3600.)
 #zd=slrefz(zu,refa,refb)
-#print('zd',zd,'0.78525734872427511')
-#print('results:',zu-zd,np.degrees(zu-zd)*3600.)
-#print('\n\n\n')
 

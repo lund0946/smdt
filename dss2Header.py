@@ -1,6 +1,6 @@
-import traceback
-import sys
 import math
+import logging
+logger = logging.getLogger('smdt')
 
 import numpy as np
 import astropy.wcs as wcs
@@ -24,8 +24,7 @@ class DssWCSHeader:
         self.defineKwds(width, height)
 
     def xy2rd(self, xin, yin):
-        print("xy2rd, not implemented")
-        pass
+        logger.warning("xy2rd not implemented")
 
     def rd2xy(self, ra, dec):
         """
@@ -171,7 +170,6 @@ class DssHeader:
         self.ppo6 = getFloat("PPO6", 0)
 
         self.platescl = getFloat("PLTSCALE", 0)
-        # self._printVars()
 
     def _printVars(self):
         print("xoff", self.xpoff, "yoff", self.ypoff)
@@ -420,7 +418,6 @@ class DssHeader:
         """ Moves 20 arcsec north """
         """ converts back to x/y in image pixels """
         d2 = d1 + 100.0 / 3600.0
-        # print "ra ", deg2Sexd (r1/15.0), " dec " , deg2Sexd (d1)
         r2 = r1
 
         d3 = d1
@@ -433,7 +430,6 @@ class DssHeader:
         north = math.degrees(math.atan2((y2 - yc), (x2 - xc)))
         east = math.degrees(math.atan2((y3 - yc), (x3 - xc)))
 
-        # print xc, yc, x2, y2
         return north, east
 
     def skyPAAsDegree(self):
@@ -456,5 +452,4 @@ class DssHeader:
         north = math.degrees(math.atan2((d2 - d1), (r2 - r1)))
         east = math.degrees(math.atan2((d4 - d3), (r4 - r3)))
 
-        # print xc, yc, x2, y2
         return north, east

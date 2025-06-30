@@ -20,6 +20,8 @@ and returned in getSelected.
 """
 
 import numpy as np
+import logging
+logger = logging.getLogger('smdt')
 
 class TargetSelector:
     """
@@ -48,21 +50,17 @@ class TargetSelector:
         tgs = self.targets
         tgs["oldIndex"] = range(0, tgs.shape[0])
         tgs.sort_values(by=["pcode", "xarcs"], ascending=(False, True), inplace=True)
-        #self.targets = tgs.reset_index(drop=True)
         self.targets = tgs
 
     def restoreIndex(self):
         self.targets.sort_values(by="oldIndex", ignore_index=True, inplace=True)
-        #self.targets = self.targets.reset_index(drop=True)
 
     def _canFit(self, xgaps, xpos, slitLength, minSep):
         """
         Tries to fit the new segment in a gap
         Returns (canFit, index in xgaps)
         """
-        # print ('xgaps', xgaps)
         for idx, (gapStart, gapEnd) in enumerate(xgaps):
-            # print ("xpos", xpos, "gap", gapStart, gapEnd)
             if xpos < gapStart + minSep:
                 """
                 xpos is left of gap, 
@@ -109,7 +107,6 @@ class TargetSelector:
             left = gapStart
             right = left + slitLength
             xgaps[gIdx] = (right + minSep, gapEnd)
-            #print (f"left {left:.2f}, {right:.2f}")
         elif right > gapEnd:
             """ xpos is closer to the right side, 
                 so adjust right
@@ -117,7 +114,6 @@ class TargetSelector:
             right = gapEnd
             left = right - slitLength
             xgaps[gIdx] = (gapStart, left- minSep)
-            #print (f"righ {left:.2f}, {right:.2f}")
         else:
             """ slit can fit in the gap, split gap into two
             """
@@ -131,7 +127,6 @@ class TargetSelector:
             if rightStart > gapEnd:
                 rightStart = gapEnd
             xgaps.insert(gIdx + 1, (rightStart, gapEnd))            
-            #print (f"both {gapStart:.2f}, {leftEnd:.2f}, {rightStart:.2f}, {gapEnd:.2f}")
         return xgaps, left, right
 
     def insertPairs(self, targets, minx, maxx):
@@ -160,8 +155,7 @@ class TargetSelector:
                 xsegms[-1] = (lastSeg[0], x1)
             lastx = x1
             self.targets.at[aIdx, "selected"] = 1
-        print('alignment box segments\n')
-        print(xsegms)
+        logger.debug('alignment box segments: {xsegms}')
         return xsegms
 
     def segments2Gaps(self, xsegms, minx, maxx, minSep):
@@ -238,7 +232,6 @@ class TargetSelector:
                 mid = tgs.at[idx, "xarcs"]
                 self.targets.at[idx, "length1"] = mid - start
                 self.targets.at[idx, "length2"] = end - mid
-                #print (f"update {idx=}, {mid=:.1f}, {start:.1f}, {end:.1f}")
             return start, end, idx, isGap
 
         def split3(pairs, idx1, halfSep):
@@ -298,7 +291,6 @@ class TargetSelector:
                 if tg.pcode == -2:
                     isSegm = -2
                 allPairs.append((x0, x1, tIdx, isSegm))
-                #print(f"gen gap {x0:.2f}, {x1:.2f}, {tIdx=}, {tg.oldIndex=} {tg.pcode}, {tg.orgIndex=}, {tg.selected=}")
 
             return sorted(allPairs, key=lambda x: x[0])
 
@@ -325,7 +317,6 @@ class TargetSelector:
                 if (end - start) < minSep:
                     continue
 
-                # print ("pair ", idx, pair)
 
                 # Is left pair a segmenet?
                 leftIsSegm = leftPair[3] == 0
@@ -335,16 +326,13 @@ class TargetSelector:
                 if leftIsSegm:
                     if rightIsSegm:
                         # split gap
-                        #print (idx, "split3", start, end)
                         split3(allPairs, idx-1, halfSep)
                     else:
                         # left takes all
-                        #print (idx, "split left", start, end)
                         split2Left(allPairs, idx-1)
                 else:
                     if rightIsSegm:
                         # right takes all
-                        #print (idx, "split right", start, end)
                         split2Right(allPairs, idx-1)
             # end of splitGaps
 
@@ -352,7 +340,6 @@ class TargetSelector:
         #self.allPairs1 = allPairs.copy()
         splitGaps(allPairs)
         #self.allPairs2 = allPairs.copy()
-        # print (self.targets[self.targets.pcode >0][['objectId','length1', 'length2']])
         return [x for x in allPairs if x[3] == 1]
 
     def performSelection(self, extendSlits=False):
@@ -375,13 +362,11 @@ class TargetSelector:
         inTargets = self.targets[self.targets.inMask == 1]
         inTargets = inTargets[inTargets.pcode > 0]
 
-        print('performSelection')
-        print(self.targets)
+        logger.debug(f'performSelection: {self.targets}')
         self.xgaps = self._selectTargets(xgaps, inTargets, self.minSlitLength, self.minSep)
         self.xgaps1 = self.xgaps.copy()
         self.allPairs1 = []
-        print('after _selectTargets')
-        print(self.targets)
+        logger.debug(f'after _selectTargets: {self.targets}')
         if extendSlits:
             inTargets = self.targets[self.targets.selected == 1]
             xsegms = self.insertPairs (inTargets, self.minX, self.maxX)

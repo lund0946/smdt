@@ -1,16 +1,4 @@
 function AjaxClass() {
-    /*-*
-     * forexmaple() {
-     *       function callback (jsVar) { 
-     *          jsVar contains the returned value 
-     *      } 
-     *      var ajax = new AjaxClass(); 
-     *      var url = "abc/xyz"; 
-     *      var parms = {a: 1, b: 2}; 
-     *      ajax.sendRequest (url, parms, callback); 
-     * }
-     * 
-     */
     var self = this;
 
     function array2Query(arr) {
@@ -47,7 +35,7 @@ function AjaxClass() {
                 }
             }
         }
-        self.maxTime = 60000;
+        self.maxTime = 120000;
         self.xmlHttp = xt;
     };
 
@@ -55,37 +43,19 @@ function AjaxClass() {
         self.maxTime = mtime;
     };
 
-    self.sendRequest = function (script, params, callback) {
+    self.sendRequest = function (call, script, params, callback ) {
         var xt = self.xmlHttp;
         if (!xt)
             return;
 
         var d = new Date();
         params["rnd"] = d.getTime();
-        var query = script + "?" + array2Query(params);
+        content = JSON.stringify(params)
         xt.onreadystatechange = function () {
             if (xt.readyState == 4)
                 callback(toValue(xt));
         };
-        xt.open("GET", query, true); // true for asyncrhonuous
-        xt.timeout = self.maxTime;
-        xt.setRequestHeader("Content-Type", "text/xml");
-        xt.send("");
-    };
-
-    self.postRequest = function (script, params, callback) {
-        var xt = self.xmlHttp;
-        if (!xt)
-            return;
-
-        var d = new Date();
-        params["rnd"] = d.getTime();
-        var content = array2Query(params);
-        xt.onreadystatechange = function () {
-            if (xt.readyState == 4)
-                callback(toValue(xt));
-        };
-        xt.open("POST", script, true); // true for asyncrhonuous
+        xt.open(call, script, true); // true for asyncrhonuous
         xt.timeout = self.maxTime;
         xt.setRequestHeader("Content-type", "application/json");
         xt.send(content);
@@ -117,16 +87,15 @@ function AjaxClass() {
     self.initialize();
 } // AjaxClass
 
-function noop() {}
 
 function ajaxCall(url, parms, callback) {
     var ajax = new AjaxClass();
-    ajax.sendRequest(url, parms, callback);
+    ajax.sendRequest('GET', url, parms, callback);
 }
 
 function ajaxPost(url, parms, callback) {
     var ajax = new AjaxClass();
-    ajax.postRequest(url, parms, callback);
+    ajax.sendRequest('POST', url, parms, callback);
 }
 
 // vim: ts=4 sw=4 et

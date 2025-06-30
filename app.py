@@ -1,268 +1,299 @@
-from flask import Flask, render_template, request, make_response, session, redirect, url_for, jsonify
+from flask import Flask, render_template, request, jsonify, send_file, make_response, session
+from flask.logging import default_handler
 from flask_session import Session
-from werkzeug.datastructures import CombinedMultiDict, ImmutableMultiDict
+from flask_cors import CORS
 import webbrowser
-from threading import  Timer
-from datetime import timedelta
-import maskLayouts as ml
-import configFile as cf
-import json
-import re
 import numpy as np
-import dss2Header
+import maskLayouts as ml
+import os
+import json
+import numpy as np
 import targs
-import pdb
 import calcmask
-import utils
+import json
 import plot
-from targetSelector import TargetSelector
-import dsimselector
+import logging
+from logging import FileHandler, StreamHandler
+import tarfile
+import logging
+from functools import wraps
+from utils import schema, validate_params, stripquote
+from io import BytesIO
+import utils as util
+import pdb
+
+logger = logging.getLogger('smdt')
+formatter = logging.Formatter(
+    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger.setLevel(logging.INFO)
+logger.addHandler(default_handler)
+st = StreamHandler()
+st.setLevel(logging.INFO)
+st.setFormatter(formatter)
+fh = FileHandler('smdt.log')
+fh.setFormatter(formatter)
+logger.addHandler(fh)
+
+
+# Configure logging
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
+
+
+def log_function_call(func):
+    """Decorator to log function calls"""
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        logging.info(
+            f"Function '{func.__name__}' called with args: {args} kwargs: {kwargs}")
+        result = func(*args, **kwargs)
+        logging.info(f"Function '{func.__name__}' returned: {result}")
+        return result
+    return wrapper
 
 
 def launchBrowser(host, portnr, path):
     webbrowser.open(f"http://{host}:{portnr}/{path}", new=1)
 
-def stripquote(string):
-    if string.count('"')==2:
-        string=re.findall(r'"([^"]*)"',string)
-    return string
-
-def form_or_json():
-    if request.method == 'POST':
-        if request.files:
-            return CombinedMultiDict((request.files, request.form))
-        elif request.form:
-            return request.form
-        elif request.get_json():
-            return ImmutableMultiDict(request.get_json())
-
-def fixType(params):
-
-    for p in params:
-        if  p=='MaskIdfd':
-            params[p]=[int(params[p][0])]
-        elif p=='MinSlitLengthfd' or p=='MinSlitSeparationfd' or p=='SlitWidthfd' or p=='AlignBoxSizefd' or p=='BlueWaveLengthfd' or p=='RedWaveLengthfd' or p=='CenterWaveLengthfd' or p=='Temperaturefd' or p=='Pressurefd' or p=='MaskPAfd' or p=='SlitPAfd' or p=='MaskMarginfd' or p=='HourAnglefd':
-            params[p]=[float(params[p][0])]
-        else:
-            continue
-    
-    return params
-
-
-def dbprint(st):
-    print("\033[95m {}\033[00m" .format(st))
-    pass
-
-
 
 app = Flask(__name__)
-app.secret_key='dsf2315ewd'
-app.config['SESSION_PERMANENT'] = True
-app.config['SESSION_TYPE'] = 'filesystem'
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=0.001)
-
-# The maximum number of items the session stores 
-# before it starts deleting some, default 500
-app.config['SESSION_FILE_THRESHOLD'] = 10000  
+app.config.from_pyfile('config.py')
 Session(app)
+CORS(app, supports_credentials=True)
 
 
-#@app.route('/readparams')
+@app.before_request
+def log_request():
+    logging.info(
+        f"Request made to: {request.path} with method {request.method}")
+
+
+# @app.route('/readparams')
 def readparams():
-    dict={}
+    dict = {}
     with open('params.cfg') as f:
         for line in f:
             try:
-                if len(line.split(','))==4:
-                    sep=line.strip().split(',')
-                    (k,v) = sep[0].split(' = ')
-                    dict[k]=(stripquote(v),stripquote(sep[1]),stripquote(sep[2]),stripquote(sep[3]))
+                if len(line.split(',')) == 4:
+                    sep = line.strip().split(',')
+                    (k, v) = sep[0].split(' = ')
+                    dict[k] = (stripquote(v), stripquote(sep[1]),
+                               stripquote(sep[2]), stripquote(sep[3]))
                 else:
                     continue
             except Exception as e:
                 pass
-                print('Failed to load parameters',e)
+                print('Failed to load parameters', e)
     return dict
 
 
-@app.route('/setColumnValue',methods=["GET","POST"])
+@app.route('/setColumnValue', methods=["GET", "POST"])
 def setColumnValue():
-    global df
-    global prms
-    targets=df
-    params=prms
-#    pdb.set_trace()
-    values=json.loads(request.data.decode().split('=')[2].split('&')[0])
-    column=request.data.decode().split('=')[1].split('&')[0]
-    df=targs.updateColumn(targets,column,values)
-    outp=targs.toJsonWithInfo(params,df)
-    return outp
+    values = request.json['value']
+    column = request.json['column']
+    logger.info(f"Setting column {column} to value {values}")
+    logger.info(f"session keys: {session.keys()}")
+    logger.info(f"session targetList: {session.get('targetList')}")
+    session['targetList'] = targs.update_column(
+        session['targetList'], column, values)
+    session.modified = True
+    return {'status': 'OK', 'targets': session['targetList']}
 
 
-
-@app.route('/updateTarget',methods=["GET","POST"])
+@app.route('/updateTarget', methods=["GET", "POST"])
 def updateTarget():
-    global df
-    global prms
-    targets=df
-    values=json.loads(request.data.decode().split('=')[1].split('}&')[0]+'}')
-    df,idx=targs.updateTarget(targets,values)
-    outp=targs.toJsonWithInfo(prms,df)
-    tgs = json.loads(outp)
-
-    outp=merged_dict = {**tgs, **{'idx':idx}}
-    return outp
-#    return json.dumps({'idx':idx})
+    values = request.json['values']
+    session['targetList'], idx = targs.update_target(
+        session['targetList'], values)
+    session.modified = True
+    outp = targs.to_json_with_info(session['params'], session['targetList'])
+    return {**outp, 'idx': idx, "info": targs.getROIInfo(session['params'])}
 
 
-@app.route('/updateSelection',methods=["GET","POST"])
+@app.route('/updateSelection', methods=["GET", "POST"])
 def updateSelection():
-    global df
-    global prms
-    targets=df
-    values=json.loads(request.data.decode().split('=')[1].split('}&')[0]+'}')
-    df,idx=targs.updateTarget(targets,values)
-    outp=targs.toJsonWithInfo(prms,df)
-    tgs = json.loads(outp)
+    values = request.json['values']
+    session['targetList'], idx = targs.update_target(
+        session['targetList'], values)
+    session.modified = True
+    outp = targs.to_json_with_info(session['params'], session['targetList'])
+    return {**outp, 'idx': idx, "info": targs.getROIInfo(session['params'])}
 
-    outp=merged_dict = {**tgs, **{'idx':idx}}
-    return outp
 
-@app.route('/deleteTarget',methods=["GET","POST"])
+@app.route('/deleteTarget', methods=["GET", "POST"])
 def deleteTarget():
-    global df
-    global prms
-    targets=df
-    idx=int(request.args.get('idx',None))
-    df=targs.deleteTarget(targets,idx)
-    outp=targs.toJsonWithInfo(prms,df)
+    idx = request.json['idx']
+    if idx < len(session['targetList']):
+        session['targetList'].pop(idx)
+        session.modified = True
+    else:
+        logger.debug('Invalid idx. Not deleting')
+    outp = targs.to_json_with_info(session['params'], session['targetList'])
+    outp = {**outp, 'idx': idx, "info": targs.getROIInfo(session['params'])}
     return outp
 
-@app.route('/resetSelection',methods=["GET","POST"])
+
+@app.route('/resetSelection', methods=["GET", "POST"])
 def resetSelection():
-    global df
-    global prms
-    df.selected=df.loadselected
-    outp=targs.toJsonWithInfo(prms,df)
-    return outp
+    session['targetList'] = [{**target, 'selected': target['localselected']}
+                             for target in session['targetList']]
+    session.modified = True
+    outp = targs.to_json_with_info(session['params'], session['targetList'])
+    return {**outp, "info": targs.getROIInfo(session['params'])}
 
 
-@app.route('/getTargetsAndInfo')
-def getTargetsAndInfo():
-    global prms
-    params=prms
-    global df
-    try:
-        print('newdf/getTargetsAndInfo')
-        newdf=calcmask.genObs(df,params)
-        newdf=targs.markInside(newdf)
-        mask = ml.MaskLayouts["deimos"]
-        minX, maxX = np.min(mask, axis=0)[0], np.max(mask, axis=0)[0]
-        #selector = TargetSelector(newdf, minX, maxX, float(params['MinSlitLengthfd'][0]), float(params['MinSlitSeparationfd'][0]))
-        #newdf = selector.performSelection(extendSlits=False)
-        outp=targs.toJsonWithInfo(params,newdf)
-    except Exception as e:
-        print('Exception',e)
-        outp=''
-    return outp
-    
-
-@app.route('/generateSlits',methods=["GET","POST"])
+@app.route('/generateSlits', methods=["GET", "POST"])
 def generateSlits():
-    global df
-    global prms
-    params=prms
-    df=targs.markInside(df)
-    newdf=calcmask.genSlits(df,params,auto_sel=False)
-    mask = ml.MaskLayouts["deimos"]
-    minX, maxX = np.min(mask, axis=0)[0], np.max(mask, axis=0)[0]
-    df=newdf
-    outp=targs.toJsonWithInfo(params,newdf)
+    session['targetList'] = targs.mark_inside(session['targetList'])
+    # auto_sel=False, since everything is already selected by this point?
+    session['targetList'] = calcmask.gen_slits(
+        session['targetList'], session['params'], auto_sel=False)
+    session.modified = True
+    outp = targs.to_json_with_info(session['params'], session['targetList'])
     return outp
 
 
-##Performs auto-selection of slits##
-@app.route('/recalculateMask',methods=["GET","POST"])
+## Performs auto-selection of slits##
+
+@app.route('/recalculateMask', methods=["GET", "POST"])
 def recalculateMask():
-    global df
-    global prms
-    params=prms
-    df=targs.markInside(df)
-    newdf=calcmask.genSlits(df,params,auto_sel=True)
-    mask = ml.MaskLayouts["deimos"]
-    minX, maxX = np.min(mask, axis=0)[0], np.max(mask, axis=0)[0]
- #   selector = TargetSelector(newdf, minX, maxX, float(params['MinSlitLengthfd'][0]), float(params['MinSlitSeparationfd'][0]))
-#    newdf = selector.performSelection(extendSlits=False)
-    df=newdf
-    outp=targs.toJsonWithInfo(params,newdf)
+    session['targetList'] = targs.mark_inside(session['targetList'])
+    session['targetList'] = calcmask.gen_slits(
+        session['targetList'], session['params'], auto_sel=True)
+    session.modified = True
+    outp = targs.to_json_with_info(session['params'], session['targetList'])
     return outp
 
-@app.route('/saveMaskDesignFile',methods=["GET","POST"])
+
+@app.route('/saveMaskDesignFile', methods=["GET", "POST"])
 def saveMaskDesignFile():  # should only save current rather than re-running everything!
-    global df
-    global prms
-    params=prms
-    df=targs.markInside(df)
-    mask = ml.MaskLayouts["deimos"]
-    minX, maxX = np.min(mask, axis=0)[0], np.max(mask, axis=0)[0]
- #   selector = TargetSelector(df, minX, maxX, float(params['MinSlitLengthfd'][0]), float(params['MinSlitSeparationfd'][0]))
-#    df = selector.performSelection(extendSlits=False)
+    logger.info('Saving mask design file')
+    try:
+        session['targetList'] = targs.mark_inside(session['targetList'])
+        outp = {'status': 'OK', **
+                targs.to_json_with_info(session['params'], session['targetList'])}
+        mdfName = os.path.join(
+            session['params']['OutputFits']).replace('.fits', '')
+        names = [f'{mdfName}.fits', f'{mdfName}.out',
+                 f'{mdfName}.png', f'{mdfName}.json']
+        mdf, session['targetList'] = calcmask.gen_mask_out(
+            session['targetList'], session['params'])
+        session.modified = True
+        tarStream = BytesIO()
+        with tarfile.open(fileobj=tarStream, mode='w') as tar:
+            # Add files to the tar archive
+            fits_data = BytesIO()
+            mdf.writeTo(fits_data)
+            fits_data.seek(0)
+            tarinfo = tarfile.TarInfo(name=names[0])
+            tarinfo.size = len(fits_data.getvalue())
+            tar.addfile(tarinfo, fits_data)
 
-    newdf=calcmask.genMaskOut(df,params)
-    plot.makeplot(params['OutputFitsfd'][0])
-    df=newdf
+            out_data=BytesIO()
+            mdf.writeOut(out_data)
+            out_data.seek(0)
+            tarinfo = tarfile.TarInfo(name=names[1])
+            tarinfo.size = len(out_data.getvalue())
+            tar.addfile(tarinfo, out_data)
 
-    outp=targs.toJsonWithInfo(params,newdf)
-    return outp
+            plot_data = BytesIO()
+            # slitdata=f[7].data
+            # typedata=f[4].data
+            slit = mdf.genBluSlits()
+            type = mdf.genDesiSlits()
+            plt = plot.makeplot(slit.data, type.data, names[0])
+            plt.savefig(plot_data, format='png')
+            plot_data.seek(0)
+            tarinfo = tarfile.TarInfo(name=names[2])
+            tarinfo.size = len(plot_data.getvalue())
+            tar.addfile(tarinfo, plot_data)
+            json_data = BytesIO(json.dumps(
+                outp, ensure_ascii=False, indent=4).encode('utf-8'))
+            tarinfo = tarfile.TarInfo(name=names[3])
+            tarinfo.size = len(json_data.getvalue())
+            tar.addfile(tarinfo, json_data)
+
+        tarStream.seek(0)
+
+        # Send the tar file as a response
+        return send_file(
+            tarStream,
+            as_attachment=True,
+            download_name=f"{mdfName}.tar.gz",
+            mimetype="application/gzip"
+        )
+    except Exception as err:
+        logger.error(f'Exception {err}')
+        response = make_response(
+            jsonify({'status': 'ERR', 'msg': str(err)}), 500)
+        response.headers["X-Exception"] = str(err)
+        return response
+
+# Update Params Button, Load Targets Button
 
 
-##Update Params Button, Load Targets Button
-@app.route('/sendTargets2Server',methods=["GET","POST"])
+@app.route('/sendTargets2Server', methods=["GET", "POST"])
 def sendTargets2Server():
-    print('sendTargets2Server()')
-    global prms
-    prms=request.form.to_dict(flat=False)
-    params=prms
-    print(prms)
-    centerRADeg,centerDEC,positionAngle=15*utils.sexg2Float(params['InputRAfd'][0]),utils.sexg2Float(params['InputDECfd'][0]),float(params['MaskPAfd'][0])
-    fh=[]
-    session['params']=params
-    prms=params
-    print(request.files['targetList'])
-    uploaded_file = request.files['targetList']
-    if uploaded_file.filename != '':
-        input=uploaded_file.stream
-        for line in input:
-            fh.append(line.strip().decode('UTF-8'))
+    filename = request.json.get('filename')
+    if not filename:
+        return
+    session['params'] = request.json['formData']
+    # need to set number params to floats
+    for key, val in session['params'].items():
+        try:
+            if 'number' in schema['properties'].get(key, {}).get('type', []):
+                session['params'][key] = float(val)
+        except Exception as err:
+            logger.warning(f'Failed to convert {key} to float: {err}')
+            pass
+    fh = [line for line in request.json['file'].split('\n') if line]
+    session['targetList'] = targs.readRaw(fh, session['params'])
+    # check if ra dec is 0, 0, if so, set to first target
+    if session['params'].get('InputRA') == ' 00:00:00.00' and session['params'].get('InputDEC') == ' 00:00:00.00' and not session.get('targetList') is None:
+        session['params']['InputRA'] = util.toSexagecimal(session['targetList'][0]['raHour'])
+        session['params']['InputDEC'] = util.toSexagecimal(session['targetList'][0]['decDeg'])
+    # Only backup selected targets on file load.
+    session['targetList'] = [{**target, 'localselected': target['selected']}
+                             for target in session['targetList']]
 
-        session['file']=fh
-        global df
-        df=targs.readRaw(session['file'],prms)
-        df['loadselected']=df.selected                   #Only backup selected targets on file load.
-    outp=targs.toJsonWithInfo(params,df)
+    # generate slits
+#    session['targetList'] = calcmask.gen_obs(session['targetList'], session['params'])
+    session['targetList'] = targs.mark_inside(session['targetList'])
+    session['targetList'] = calcmask.gen_slits(
+        session['targetList'], session['params'], auto_sel=False)
+    session.modified = True
+
+    outp = targs.to_json_with_info(session['params'], session['targetList'])
+    outp = {**outp, 'status': 'OK'}
     return outp
-#    return ''    
 
-##Update Params Button
-@app.route('/updateParams4Server',methods=["GET","POST"])
+
+@app.route('/updateParams4Server', methods=["GET", "POST"])
 def updateParams4Server():
-    global prms
-    prms=request.form.to_dict(flat=False)
-    centerRADeg,centerDEC,positionAngle=15*utils.sexg2Float(prms['InputRAfd'][0]),utils.sexg2Float(prms['InputDECfd'][0]),float(prms['MaskPAfd'][0])
-    session['params']=prms
-    return ''
+    session['params'] = request.json['formData']
+    print(session['params'])
+    # ok, session['params'] = validate_params(session['params'])
+    ok = True
+    if not ok:
+        return [str(x) for x in session['params']]
+
+    if 'targetList' not in session:
+        session['targetList'] = []
+    session['targetList'] = targs.mark_inside(session['targetList'])
+    session['targetList'] = calcmask.gen_slits(
+        session['targetList'], session['params'], auto_sel=False)
+    session.modified = True
+    outp = targs.to_json_with_info(session['params'], session['targetList'])
+    outp = {**outp, 'status': 'OK'}
+    return outp
 
 
-#Loads original params
-@app.route('/getConfigParams')
+# Loads original params
+@app.route('/getSchema')
 def getConfigParams():
-    global prms
-    paramData=readparams()
-    prms=paramData
-    print('params:',paramData)
-    session['params']=paramData
-    prms=paramData
-    return json.dumps({"params": paramData})
+    logger.debug(f'Param Schema: {schema}')
+    session['got schema'] = True
+    return jsonify(schema)
 
 
 @app.route('/getMaskLayout')
@@ -275,19 +306,16 @@ def getMaskLayout():
     """
     try:
         instrument = "deimos"
-        mask = ml.MaskLayouts[instrument]  # a list of (x,y,flag), polygon vertices
-        guiderFOV = ml.GuiderFOVs[instrument]  # list of (x, y, w, h, ang), boxes
+        # a list of (x,y,flag), polygon vertices
+        mask = ml.MaskLayouts[instrument]
+        # list of (x, y, w, h, ang), boxes
+        guiderFOV = ml.GuiderFOVs[instrument]
         badColumns = ml.BadColumns[instrument]  # list of lines, as polygons
-        return {"mask": mask, "guiderFOV": guiderFOV, "badColumns": badColumns} ####might need to be jsonified
-    except Exception as e:
-        print(e)
+        # might need to be jsonified
+        return {"mask": mask, "guiderFOV": guiderFOV, "badColumns": badColumns}
+    except Exception as err:
+        logger.error(err)
         return ((0, 0, 0),)
-
-#deletes target
-@app.route('/deleteTarget')
-#def deleteTarget():
-#    return json.dumps({"params": paramData})
-
 
 
 @app.route('/')
@@ -295,14 +323,12 @@ def home():
     return render_template('dt.html')
 
 
-@app.route("/targets", methods=["GET","POST"])
+@app.route("/targets", methods=["GET", "POST"])
 def LoadTargets():
     return
 
 
-
 if __name__ == '__main__':
-    t=Timer(1,launchBrowser,['localhost',9302,'/'])
-    t.start()
-    app.run(host='localhost',port=9302,debug=True,use_reloader=False)
-
+    # t = Timer(1, launchBrowser, ['localhost', 9302, '/'])
+    # t.start()
+    app.run(host='localhost', port=9302, debug=True, use_reloader=False)

@@ -1,24 +1,23 @@
-import pandas as pd
-import numpy as np
-
 import utils
-import datetime
 import json
-import traceback
-import sys
-import io
 import math
-import os
 import dss2Header
 from inOutChecker import InOutChecker
 from maskLayouts import MaskLayouts
+import logging
+import pdb
+logger = logging.getLogger('smdt')
 
-def readRaw(fh,params):
+
+def readRaw(fh, params):
     def toFloat(x):
         try:
             return float(x)
         except:
             return 0
+
+    def str2Int(x):
+        return int(float(x))
 
     out = []
     cols = (
@@ -34,6 +33,8 @@ def readRaw(fh,params):
         "slitLPA",
         "length1",
         "length2",
+        "rlength1",
+        "rlength2",
         "slitWidth",
         "orgIndex",
         "inMask",
@@ -41,10 +42,11 @@ def readRaw(fh,params):
         "decRad",
     )
     cnt = 0
-    slitLength = float(params["MinSlitLengthfd"][0])  #### correct paramn name?
+    slitLength = float(params["MinSlitLength"])  # correct paramn name?
     halfLen = slitLength / 2.
-    slitWidth = params["SlitWidthfd"][0]              ####
-    slitpa = params["SlitPAfd"][0]                    ####
+    slitWidth = params["SlitWidth"]
+    slitpa = params["SlitPA"]
+
 
     for nr, line in enumerate(fh):
         if not line:
@@ -62,26 +64,27 @@ def readRaw(fh,params):
             continue
 
         if 'PA=' in line:
-            #line has dsim output first line
+            # line has dsim output first line
             continue
         # print (nr, "len", parts)
 
-        template = ["", "", "2000", "99", "I", "0", "-1", "0", slitpa, halfLen, halfLen, slitWidth, "0", "0"]
+        template = ["", "", "2000", "99", "I", "1", "1", "0",
+                    slitpa, halfLen, halfLen, slitWidth, "0", "0"]
         minLength = min(len(parts), len(template))
         template[:minLength] = parts[:minLength]
 
-        sampleNr, selected, slitLPA, length1, length2, slitWidth = 1, 1, 0, 4, 4, 1.5
+        sampleNr, selected, slitLPA, length1, length2, slitWidth = 1, 0, 0, 5, 5, 1.0
         mag, pBand, pcode = 99, "I", 99
 
         try:
             try:
-                raHour=float(template[0])
+                raHour = float(template[0])
             except:
                 raHour = utils.sexg2Float(template[0])
             if raHour < 0 or raHour > 24:
                 raise Exception("Bad RA value " + raHour)
             try:
-                decDeg=float(template[1])
+                decDeg = float(template[1])
             except:
                 decDeg = utils.sexg2Float(template[1])
             if decDeg < -90 or decDeg > 90:
@@ -91,23 +94,25 @@ def readRaw(fh,params):
             if eqx > 3000:
                 eqx = float(template[2][:4])
                 tmp = template[2][4:]
-                template[3 : minLength + 1] = parts[2:minLength]
+                template[3: minLength + 1] = parts[2:minLength]
                 template[3] = tmp
 
             mag = toFloat(template[3])
             pBand = template[4].upper()
-            pcode = int(template[5])
-            sampleNr = int(template[6])
-            selected = int(template[7])
+            pcode = str2Int(template[5])
+            sampleNr = str2Int(template[6])
+            selected = str2Int(template[7])
             slitLPA = toFloat(template[8])
             length1 = toFloat(template[9])
             length2 = toFloat(template[10])
+            rlength1 = toFloat(template[9])
+            rlength2 = toFloat(template[10])
             slitWidth = toFloat(template[11])
-            inMask = int(template[12])
-        except Exception as e:
-            # traceback.print_exc()
-            # break
-            pass
+            inMask = str2Int(template[12])
+        except Exception as err:
+            print('ReadRaw Error ',err)
+            logger.error(err)
+            continue 
         raRad = math.radians(raHour * 15)
         decRad = math.radians(decDeg)
         target = (
@@ -123,35 +128,59 @@ def readRaw(fh,params):
             slitLPA,
             length1,
             length2,
+            rlength1,
+            rlength2,
             slitWidth,
             cnt,
             inMask,
             raRad,
             decRad,
         )
-        out.append(target)
+        out.append(dict(zip(cols, target)))
         cnt += 1
-    df = pd.DataFrame(out, columns=cols)
-    # df["inMask"] = np.zeros_like(df.name)
 
-    fieldcenterRADeg = df.raHour.mean() * 15
-    fieldcenterDEC = df.decDeg.mean()
-
-    return df
+    return out 
 
 
-def toJsonWithInfo(params,tgs,xgaps=[]):
+def to_json_with_info(params, targetList, xgaps=[]):
     """
     Returns the targets and ROI info in JSON format
     """
-    data = [list(tgs[i]) for i in tgs]
+    data = {"params": params, "info": getROIInfo(params), "targets": targetList, "xgaps": xgaps}
+    return data 
+
+def newto_json_with_info(params, tgs, xgaps=[]):
+    """
+    Returns the targets and ROI info in JSON format with reduced data size.
+    Includes only essential columns and limits precision for selected fields.
+    """
+    # Define essential columns and those requiring reduced precision
+    essential_columns = {
+        "xarcs", "yarcs", "arcslitX1", "arcslitX2", "arcslitX3", "arcslitX4",
+        "arcslitY1", "arcslitY2", "arcslitY3", "arcslitY4", "slitLPA", "slitWidth",
+        "rlength1", "rlength2", "length1", "length2", "selected", "pcode", "mag", "pBand",
+        "raHour", "decDeg", "raSexa", "decSexa", "objectId", "orgIndex", "inMask"
+    }
+   
+    precision_columns = {
+        "xarcs", "yarcs", "arcslitX1", "arcslitX2", "arcslitX3", "arcslitX4",
+        "arcslitY1", "arcslitY2", "arcslitY3", "arcslitY4", "rlength1", "rlength2", "mag"
+    }
+
+    # Filter and format data
     data1 = {}
-    for i, colName in enumerate(tgs.columns):
-        data1[colName] = data[i]
-    data2 = {"info": getROIInfo(params), "targets": data1, "xgaps": xgaps}
+    for col in essential_columns:
+        if col in tgs.columns:
+            if col in precision_columns:
+                # Limit precision to 2 decimal places
+                data1[col] = [round(float(val), 2) if isinstance(val, (float, int)) else val for val in tgs[col]]
+            else:
+                data1[col] = list(tgs[col])  # Keep as is
+
+    # Construct final JSON data
+    data2 = {"params": params, "info": getROIInfo(params), "targets": data1, "xgaps": xgaps}
+   
     return json.dumps(data2)
-
-
 
 def getROIInfo(params):
     """
@@ -159,7 +188,8 @@ def getROIInfo(params):
     Used to show the footprint of the DSS image
     """
 
-    centerRADeg,centerDEC,positionAngle=15*utils.sexg2Float(params['InputRAfd'][0]),utils.sexg2Float(params['InputDECfd'][0]),params['MaskPAfd'][0]
+    centerRADeg, centerDEC, positionAngle = 15*utils.sexg2Float(
+        params['InputRA']), utils.sexg2Float(params['InputDEC']), params['MaskPA']
 
     hdr = dss2Header.DssWCSHeader(centerRADeg, centerDEC, 60, 60)
     north, east = hdr.skyPA()
@@ -180,54 +210,29 @@ def getROIInfo(params):
     out["positionAngle"] = positionAngle
     return out
 
-def setColum(targets, colName, value):
-    """
-    Updates the dataframe by column name
-    """
-    targets[colName] = value
-    return targets
 
-def findTarget(targets, targetName):
-    """
-    Finds entry with the given targName.
-    Returns idx, or -1 if not found
-    """
-    for i, stg in targets.iterrows():
-        if stg.objectId == targetName:
-            return stg.orgIndex
-    return -1
-
-
-def updateColumn(targets,col,value):
+def update_column(targetList, col, value):
     """
     Used by GUI to change values to an entire column of a target.
     """
 
-#    options=['SlitPAfd','MaskPAfd','length1','length2','slitWidth']
-#    if col=='slitLPA':value=float(jvalues["slitLPA"])
-#    if col=='length1':value=float(jvalues["length1"])
-#    if col=='length2':value=float(jvalues["length2"])
-#    if col=='slitWidth':value=float(jvalues["slitWidth"])
 
-    if col=='length1' or col=='length2':
-        targets['length1']=float(value)
-        targets['length2']=float(value)
+    if col == 'length1' or col == 'length2':
+        targetList = [ {**target, 'length1': float(value), 'length2': float(value)} for target in targetList]
     else:
-        targets[col]=float(value)
-    print(targets[col])
-    return targets
+        targetList = [ {**target, col: float(value)} for target in targetList]
+    logger.debug(f'update_column {col}')
+    return targetList
 
 
-
-def updateTarget(targets, jvalues):
+def update_target(targetList, jvalues):
     """
     Used by GUI to change values in a target.
     """
 
-    print('Running updateTarget\n\n\n\n\n\n\n\n\n')
+    logger.debug('Running update_target')
 
-    values=jvalues
-    tgs = targets
+    values = jvalues
 
     pcode = int(values["prior"])
     selected = int(values["selected"])
@@ -245,28 +250,25 @@ def updateTarget(targets, jvalues):
     raRad = math.radians(raHour * 15)
     decRad = math.radians(decDeg)
 
-    idx = findTarget(tgs,targetName)
+    idx = next((index for (index, d) in enumerate(targetList) if d["objectId"] == targetName), None)
 
-    if idx >= 0:
+    if not idx is None:
         # Existing entry
-        tgs.at[idx, "pcode"] = pcode
-        tgs.at[idx, "selected"] = selected
-        tgs.at[idx, "slitLPA"] = slitLPA
-        tgs.at[idx, "slitWidth"] = slitWidth
-        tgs.at[idx, "length1"] = len1
-        tgs.at[idx, "length2"] = len2
-        tgs.at[idx, "mag"] = mag
-        tgs.at[idx, "raHour"] = raHour
-        tgs.at[idx, "decDeg"] = decDeg
-        tgs.at[idx, "raRad"] = raRad
-        tgs.at[idx, "decRad"] = decRad
-
-     #Missing targets=tgs????????
-
+        targetList[idx]["pcode"] = pcode
+        targetList[idx]["selected"] = selected
+        targetList[idx]["slitLPA"] = slitLPA
+        targetList[idx]["slitWidth"] = slitWidth
+        targetList[idx]["length1"] = len1
+        targetList[idx]["length2"] = len2
+        targetList[idx]["mag"] = mag
+        targetList[idx]["raHour"] = raHour
+        targetList[idx]["decDeg"] = decDeg
+        targetList[idx]["raRad"] = raRad
+        targetList[idx]["decRad"] = decRad
     else:
         # Add a new entry
-        idx = len(targets.index)
-        print('idx= ',idx)
+        idx = len(targetList)
+        logger.debug(f'idx= {idx}')
 
         newItem = {
             "objectId": targetName,
@@ -287,36 +289,20 @@ def updateTarget(targets, jvalues):
             "raRad": raRad,
             "decRad": decRad,
         }
+        
 
-        targets = tgs.append(newItem, ignore_index=True)
+        targetList.append(newItem)
 
-    return targets,idx
+    return targetList, idx
 
-def deleteTarget(targets, idx):
-    """
-    Remove a row idx from the data frame
-    """
-    tgs = targets
-    print('Index to delete',idx)
-    if idx < 0:
-        return
-    targets = tgs.drop(tgs.index[idx])
-#    SMDTLogger.info("Delete target idx")
-    return targets
-
-def markInside(targets):
+def mark_inside(targetList):
     """
     Sets the inMask flag to 1 (inside) or 0 (outside)
     """
-    layout=MaskLayouts['deimos']
+    layout = MaskLayouts['deimos']
     inOutChecker = InOutChecker(layout)
-    tgs = targets
-    inMask = []
-    for i, stg in tgs.iterrows():
-        isIn = 1 if inOutChecker.checkPoint(stg.xarcs, stg.yarcs) else 0
-        inMask.append(isIn)
-    targets["inMask"] = inMask
-    return targets
-
-
-
+    outTargets = [] 
+    for target in targetList:
+        isIn = int(inOutChecker.checkPoint(target.get('xarcs'), target.get('yarcs')))
+        outTargets.append( {**target, 'inMask': isIn})
+    return outTargets 

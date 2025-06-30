@@ -470,11 +470,11 @@ function CanvasShow(containerName, zoomContainer) {
                 cv.width = cv.height = 400;
             }
             cont.replaceChild(cv, cont.childNodes[0]);
-            var ctx = cv.getContext("2d");
-            ctx.scale(1, 1);
-            toggleSmoothing(ctx, false);
-            self.destCtx = ctx;
-            self.filter = new Filter(ctx, cv.width, cv.height);
+            self.ctx = cv.getContext("2d");
+            self.ctx.scale(1, 1);
+            toggleSmoothing(self.ctx, false);
+            self.destCtx = self.ctx;
+            self.filter = new Filter(self.ctx, cv.width, cv.height);
             self._Ctx = self.filter.tmpCtx;
             // Creates a hidden image element to store the source image.
             self.bgImg = new Image();
@@ -503,6 +503,8 @@ function CanvasShow(containerName, zoomContainer) {
         }
         self.maskMinMax = [minx, miny, maxx, maxy];
     };
+
+    self.initialize();
 
     self.fitMask = function (atx, aty) {
         // Fit display centered at world coord atx,aty
@@ -550,7 +552,7 @@ function CanvasShow(containerName, zoomContainer) {
             E("MaskPAfd").value = paDeg.toFixed(3);
 
             showMsg(
-                "statusDiv",
+                "centerDiv",
                 " RA= <b>" + raSexa + "</b> hrs; DEC= <b>" + decSexa + "</b> deg; Pos Ang= <b>" + paDeg.toFixed(2) + "</b> deg "
             );
         }
@@ -559,7 +561,7 @@ function CanvasShow(containerName, zoomContainer) {
 
     self.calcPAng = function () {
         var dec = radians(self.currDecDeg);
-        var ha = radians(Number(E("HourAnglefd").value)*-15.);
+        var ha = radians(Number(E("HourAnglefd").value) * -15.);
         var phi = radians(19.8);
         const cp = Math.cos(phi);
         const sqsz = cp * Math.sin(ha);
@@ -569,7 +571,7 @@ function CanvasShow(containerName, zoomContainer) {
             cqsz = 1;
         }
 
-        const pa = radians(degrees(Math.atan2(sqsz, cqsz))-90);
+        const pa = radians(degrees(Math.atan2(sqsz, cqsz)) - 90);
         return pa;
     };
 
@@ -690,7 +692,26 @@ function CanvasShow(containerName, zoomContainer) {
     };
 
     self.redrawTxImage = function () {
-        window.requestAnimationFrame(self.reallyDrawTxImage);
+//        window.requestAnimationFrame(self.reallyDrawTxImage);
+        self.reallyDrawTxImage();
+    };
+
+    self.drawPrior = function (ctx, priors, color) {
+        let tmax = self.tMatrix;
+
+        let x0 = 200;
+        let y0 = 50;
+        let psum = 0;
+        with (ctx) {
+            strokeStyle = color;
+            ctx.font="18px Calibri";
+            let psum = 0;
+            for (let i = 0; i < priors.length; i++) {
+                psum += priors[i];
+
+            }
+            strokeText("Priority sum: "+psum, x0 , y0 );
+        }
     };
 
     self.drawGaps = function (ctx, gaps, y0, color, lw) {
@@ -759,46 +780,6 @@ function CanvasShow(containerName, zoomContainer) {
                 var sxy = tmax.w2s(x, y);
                 var sx = sxy[0];
                 var sy = sxy[1];
-/*
-                if (tyipeof slitX1[i] != "undefined") {
-                    var xy1 = self.targetMatrix.w2s(slitX1[i], slitY1[i]);
-                    var x1 = xy1[0];
-                    var y1 = xy1[1];
-                    var sxy1 = tmax.w2s(x1, y1);
-                    var sx1 = sxy1[0];
-                    var sy1 = sxy1[1];
-    
-                    var xy2 = self.targetMatrix.w2s(slitX2[i], slitY2[i]);
-                    var x2 = xy2[0];
-                    var y2 = xy2[1];
-                    var sxy2 = tmax.w2s(x2, y2);
-                    var sx2 = sxy2[0];
-                    var sy2 = sxy2[1];
-
-                    var xy3 = self.targetMatrix.w2s(slitX3[i], slitY3[i]);
-                    var x3 = xy3[0];
-                    var y3 = xy3[1];
-                    var sxy3 = tmax.w2s(x3, y3);
-                    var sx3 = sxy3[0];
-                    var sy3 = sxy3[1];
-    
-                    var xy4 = self.targetMatrix.w2s(slitX4[i], slitY4[i]);
-                    var x4 = xy4[0];
-                    var y4 = xy4[1];
-                    var sxy4 = tmax.w2s(x4, y4);
-                    var sx4 = sxy4[0];
-                    var sy4 = sxy4[1];
-
-                    x1Out.push(sx1);
-                    y1Out.push(sy1);
-                    x2Out.push(sx2);
-                    y2Out.push(sy2);
-                    x3Out.push(sx3);
-                    y3Out.push(sy3);
-                    x4Out.push(sx4);
-                    y4Out.push(sy4);
-                }
-*/
 
                 var pri = pcode[i];
                 var inMask = checker.checkPoint(sx, sy);
@@ -833,6 +814,7 @@ function CanvasShow(containerName, zoomContainer) {
                     if (selected[i]) {
                         if (inMask) {
                             selectedInIdx.push(i);
+                            selectedInIdxPrior.push(pri);
                         } else selectedOutIdx.push(i);
                     }
                 }
@@ -884,6 +866,8 @@ function CanvasShow(containerName, zoomContainer) {
             drawPlusBig(ctx, x, y, bSize, bSize);
         }
 
+
+
         function drawClickedOn(idx) {
             var x = xOut[idx];
             var y = yOut[idx];
@@ -908,25 +892,13 @@ function CanvasShow(containerName, zoomContainer) {
             let slitWidth = slitWidths[idx];
             let halfWidth = slitWidth * scale * 0.5;
 
-            // Mask Angle relative to screen
-            let maskBaseAngleRad = self.maskBaseAngleRad;
 
-            // Vector perpendicular to mask
-            let maskCosa = Math.cos(maskBaseAngleRad);
-            let maskSina = Math.sin(maskBaseAngleRad);
-            let maskXY = rotateSaCa(maskSina, maskCosa, 0, 1);
-            let maskX = maskXY[0] * halfWidth;
-            let maskY = maskXY[1] * halfWidth;
+
 
             // The slit angle is relative to screen
             let slitAngle = radians(Number(slitPAs[idx]));
-            let slitAngleOnScreen = 1*radians(self.slitBaseAngleDeg) + slitAngle;
+            let slitAngleOnScreen = 1 * radians(self.slitBaseAngleDeg) + slitAngle;
 
-
-            let cosa = Math.cos(slitAngleOnScreen);
-            let sina = Math.sin(slitAngleOnScreen);
-
-            let x11, y11, x12, y12;
 
             let xgeom = -Math.cos(slitAngleOnScreen);
             let ygeom = Math.sin(slitAngleOnScreen);
@@ -938,17 +910,17 @@ function CanvasShow(containerName, zoomContainer) {
             }
 
             if (xgeom > 0) {
-            x11 = x - l1 * xgeom;
-            y11 = y - l1 * ygeom;
-            x12 = x + l2 * xgeom;
-            y12 = y + l2 * ygeom;
+                x11 = x - l1 * xgeom;
+                y11 = y - l1 * ygeom;
+                x12 = x + l2 * xgeom;
+                y12 = y + l2 * ygeom;
 
             }
             else {
-            x11 = x + l2 * xgeom;
-            y11 = y + l2 * ygeom;
-            x12 = x - l1 * xgeom;
-            y12 = y - l1 * ygeom;
+                x11 = x + l2 * xgeom;
+                y11 = y + l2 * ygeom;
+                x12 = x - l1 * xgeom;
+                y12 = y - l1 * ygeom;
             }
 
 
@@ -986,8 +958,8 @@ function CanvasShow(containerName, zoomContainer) {
                 sx1, sy1, sx2, sy2,
                 sx3, sy3, sx4, sy4);
 
-            drawPlus(ctx, x, y, 2*halfWidth, 2*halfWidth);
-        } // end drawSlit
+            drawPlus(ctx, x, y, 2 * halfWidth, 2 * halfWidth);
+        }
 
         function drawListIdx(tlist, color, fnc) {
             var idx;
@@ -999,34 +971,51 @@ function CanvasShow(containerName, zoomContainer) {
             ctx.stroke();
         }
 
+        function drawPriorIdx(tlist, color, fnc) {
+            var idx;
+            var prival;
+            let psum = 0;
+            ctx.strokeStyle = color;
+            for (let i = 0; i < tlist.length; i++) {
+                psum += tlist[i];
+            }
+            fnc(psum)
+
+            
+            ctx.stroke();
+        }
+
         var targets = self.targets;
         if (!targets) return;
 
+
+        // Write lists from targets dynamically
         var tmax = self.tMatrix;
-        var xpos = targets.xarcs;
-        var ypos = targets.yarcs;
+        const mylists = {
+            'xpos': 'xarcs', 'ypos': 'yarcs',
+            'slitX1': 'arcslitX1', 'slitX2': 'arcslitX2', 'slitX3': 'arcslitX3', 'slitX4': 'arcslitX4',
+            'slitY1': 'arcslitY1', 'slitY2': 'arcslitY2', 'slitY3': 'arcslitY3', 'slitY4': 'arcslitY4',
+            'slitPAs': 'slitLPA', 'slitWidths': 'slitWidth',
+            'length1s': 'rlength1', 'length2s': 'rlength2',
+            'selected': 'selected', 'pcode': 'pcode', 'magn': 'mag'
+        }
+        var myVars = {}
+        Object.keys(mylists).forEach((key) => { myVars[key] = [] })
 
-        var slitX1 = targets.arcslitX1;
-        var slitX2 = targets.arcslitX2;
-        var slitX3 = targets.arcslitX3;
-        var slitX4 = targets.arcslitX4;
+        for (let tgt of targets) {
+            for (let [key, tkey] of Object.entries(mylists)) {
+                myVars[key].push(tgt[tkey])
+            }
+        }
 
-        var slitY1 = targets.arcslitY1;
-        var slitY2 = targets.arcslitY2;
-        var slitY3 = targets.arcslitY3;
-        var slitY4 = targets.arcslitY4;
-
-
-        var slitPAs = targets.slitLPA;
-        var slitWidths = targets.slitWidth;
-        var length1s = targets.rlength1;
-        var length2s = targets.rlength2;
-
-        var selected = targets.selected;
-        var pcode = targets.pcode;
-        var len = xpos.length;
+        for (let [key, value] of Object.entries(myVars)) {
+            const string = 'var ' + key + ' = ' + JSON.stringify(value)
+            eval(string)
+        }
+        var len = targets.length;
 
         var selectedInIdx = [];
+        var selectedInIdxPrior = [];
         var selectedOutIdx = [];
         var showInIdx = [];
         var showOutIdx = [];
@@ -1039,12 +1028,6 @@ function CanvasShow(containerName, zoomContainer) {
         var xOut = [];
         var yOut = [];
 
-      
-      
-
-        var magn = targets.mag;
-
-        var height2 = self._Canvas.height;
         var i;
 
         var tmScale = tmax.getScale();
@@ -1100,6 +1083,8 @@ function CanvasShow(containerName, zoomContainer) {
             //self.drawGaps(ctx, self.xgaps, 350, "#dddd44", 1);
         } else {
             drawListIdx(selectedInIdx, "#99ff99", drawSelTarget);
+            //drawPriorIdx(selectedInIdxPrior, "#99ff99", drawPrior);
+            self.drawPrior(ctx,selectedInIdxPrior,"#49ff99")
             drawListIdx(selectedOutIdx, "#ff0000", drawSelTarget);
         }
 
@@ -1114,7 +1099,7 @@ function CanvasShow(containerName, zoomContainer) {
 
     self.selectTargetByIndex = function (newIdx) {
         let targets = self.targets;
-        let nTargets = targets ? targets.objectId.length : 0;
+        let nTargets = targets ? targets.length : 0;
         newIdx = Math.min(newIdx, nTargets - 1);
 
         self.clearTargetSelection();
@@ -1153,30 +1138,30 @@ function CanvasShow(containerName, zoomContainer) {
         var targetIdx = idx;
         var targets = targetTable.targets;
 
-        E("targetName").value = targets.objectId[targetIdx];
-        E("targetRA").value = targets.raSexa[targetIdx];
-        E("targetDEC").value = targets.decSexa[targetIdx];
+        E("targetName").value = targets[targetIdx].objectId;
+        E("targetRA").value = targets[targetIdx].raSexa;
+        E("targetDEC").value = targets[targetIdx].decSexa;
 
-        E("targetPrior").value = targets.pcode[targetIdx];
-        E("targetSelect").value = targets.selected[targetIdx];
-        E("targetSlitPA").value = targets.slitLPA[targetIdx];
-        E("targetSlitWidth").value = targets.slitWidth[targetIdx];
-        E("targetLength1").value = targets.rlength1[targetIdx].toFixed(2);
-        E("targetLength2").value = targets.rlength2[targetIdx].toFixed(2);
-        E("targetMagn").value = targets.mag[targetIdx];
-        E("targetBand").value = targets.pBand[targetIdx];
+        E("targetPrior").value = targets[targetIdx].pcode;
+        E("targetSelect").value = targets[targetIdx].selected;
+        E("targetSlitPA").value = targets[targetIdx].slitLPA;
+        E("targetSlitWidth").value = targets[targetIdx].slitWidth;
+        E("targetLength1").value = targets[targetIdx].rlength1.toFixed(2);
+        E("targetLength2").value = targets[targetIdx].rlength2.toFixed(2);
+        E("targetMagn").value = targets[targetIdx].mag;
+        E("targetBand").value = targets[targetIdx].pBand;
     };
 
     self.updateTarget = function (idx) {
         // Updates target in targets
         if (idx < 0) return;
 
-        targets.pcode[idx] = Number(E("targetPrior").value);
-        targets.selected[idx] = Number(E("targetSelect").value);
-        targets.slitLPA[idx] = Number(E("targetSlitPA").value);
-        targets.slitWidth[idx] = Number(E("targetSlitWidth").value);
-        targets.length1[idx] = Number(E("targetLength1").value);
-        targets.length2[idx] = Number(E("targetLength2").value);
+        targets[idx].pcode = Number(E("targetPrior").value);
+        targets[idx].selected = Number(E("targetSelect").value);
+        targets[idx].slitLPA = Number(E("targetSlitPA").value);
+        targets[idx].slitWidth = Number(E("targetSlitWidth").value);
+        targets[idx].length1 = Number(E("targetLength1").value);
+        targets[idx].length2 = Number(E("targetLength2").value);
 
         self.reDrawTable();
         self.targetTable.scrollTo(idx);
@@ -1186,134 +1171,114 @@ function CanvasShow(containerName, zoomContainer) {
 
 
     self.addAlign = function () {
-            function callback(data) {
-                    let i = idx;
-                    if (data && data.length > 0)
-                            i = data[0]
-              //      self.updateTarget(idx);
+        function alignCallback(data) {
+            self.SlitmaskDesignTool.reloadTargets(idx);
+            self.selectedTargetIdx = idx;
+            self.reDrawTable();
+            self.SlitmaskDesignTool.redraw();
+            self.targetTable.scrollTo(idx);
+            self.targetTable.highLight(idx);
+            self.reallyDrawTxImage();
+        }
+        // Updates an existing or adds a new target.
+        // Sends new target info to server
+        let idx = self.selectedTargetIdx;
+        let prior = Number(-2);
+        let selected = Number(E('targetSelect').value);
+        let slitLPA = Number(E('targetSlitPA').value);
+        let slitWidth = Number(E('targetSlitWidth').value);
+        let length1 = Number(E('targetLength1').value);
+        let length2 = Number(E('targetLength2').value);
+        let tname = E("targetName").value;
+        let targetRA = E("targetRA").value;
+        let targetDEC = E("targetDEC").value;
+        let targetMagn = E("targetMagn").value;
+        let targetBand = E('targetBand').value;
 
-//                    self.selectedTargetIdx = i;
- //                   self.reDrawTable();
- //                   self.redraw();
-                    self.SlitmaskDesignTool.reloadTargets(idx, i);
-                    self.selectedTargetIdx = i;
-                    self.reDrawTable();
-                    self.SlitmaskDesignTool.redraw();
-                    self.targetTable.scrollTo(idx);
-                    self.targetTable.highLight(idx);
-                    self.reallyDrawTxImage();
-            }
-            // Updates an existing or adds a new target.
-            // Sends new target info to server
-            let idx = self.selectedTargetIdx;
-            let prior = Number(-2);
-            let selected = Number(E('targetSelect').value);
-            let slitLPA = Number(E('targetSlitPA').value);
-            let slitWidth = Number(E('targetSlitWidth').value);
-            let length1 = Number(E('targetLength1').value);
-            let length2 = Number(E('targetLength2').value);
-            let tname = E("targetName").value;
-            let targetRA = E("targetRA").value;
-            let targetDEC = E("targetDEC").value;
-            let targetMagn = E("targetMagn").value;
-            let targetBand = E('targetBand').value;
-
-            let params = {
-                    'idx': idx, 'raSexa': targetRA, 'decSexa': targetDEC, 'eqx': 2000,
-                    'mag': targetMagn, 'pBand': targetBand,
-                    'prior': prior, 'selected': selected, 'slitLPA': slitLPA, 'slitWidth': slitWidth,
-                    'len1': length1, 'len2': length2, 'targetName': tname
-            };
-            let ajax = new AjaxClass();
-            ajax.postRequest('updateTarget', { 'values': JSON.stringify(params) }, callback);
+        let values = {
+            'idx': idx, 'raSexa': targetRA, 'decSexa': targetDEC, 'eqx': 2000,
+            'mag': targetMagn, 'pBand': targetBand,
+            'prior': prior, 'selected': selected, 'slitLPA': slitLPA, 'slitWidth': slitWidth,
+            'len1': length1, 'len2': length2, 'targetName': tname
+        };
+        const data = {
+            'values': values
+        }
+        ajaxPost('updateTarget', data, alignCallback);
     };
 
     self.selTarget = function () {
-            function callback(data) {
-                    let i = idx;
-                    if (data && data.length > 0)
-                            i = data[0]
-              //      self.updateTarget(idx);
+        function selTargetCallback(data) {
+            self.smdt.reloadTargets(idx);
+            self.selectedTargetIdx = idx;
+            self.reDrawTable();
+            self.SlitmaskDesignTool.redraw();
+            self.targetTable.scrollTo(idx);
+            self.targetTable.highLight(idx);
+            self.reallyDrawTxImage();
+        }
+        // Updates an existing or adds a new target.
+        // Sends new target info to server
+        let idx = self.selectedTargetIdx;
+        let prior = Number(E('targetPrior').value);
+        let selected = Number(1);
+        let slitLPA = Number(E('targetSlitPA').value);
+        let slitWidth = Number(E('targetSlitWidth').value);
+        let length1 = Number(E('targetLength1').value);
+        let length2 = Number(E('targetLength2').value);
+        let tname = E("targetName").value;
+        let targetRA = E("targetRA").value;
+        let targetDEC = E("targetDEC").value;
+        let targetMagn = E("targetMagn").value;
+        let targetBand = E('targetBand').value;
 
-//                    self.selectedTargetIdx = i;
- //                   self.reDrawTable();
- //                   self.redraw();
-                    
-                    self.smdt.reloadTargets(idx);
-                    self.selectedTargetIdx = i;
-                    self.reDrawTable();
-                    self.SlitmaskDesignTool.redraw();
-                    self.targetTable.scrollTo(idx);
-                    self.targetTable.highLight(idx);
-                    self.reallyDrawTxImage();
-
-            }
-            // Updates an existing or adds a new target.
-            // Sends new target info to server
-            let idx = self.selectedTargetIdx;
-            let prior = Number(E('targetPrior').value);
-            let selected = Number(1);
-            let slitLPA = Number(E('targetSlitPA').value);
-            let slitWidth = Number(E('targetSlitWidth').value);
-            let length1 = Number(E('targetLength1').value);
-            let length2 = Number(E('targetLength2').value);
-            let tname = E("targetName").value;
-            let targetRA = E("targetRA").value;
-            let targetDEC = E("targetDEC").value;
-            let targetMagn = E("targetMagn").value;
-            let targetBand = E('targetBand').value;
-
-            let params = {
-                    'idx': idx, 'raSexa': targetRA, 'decSexa': targetDEC, 'eqx': 2000,
-                    'mag': targetMagn, 'pBand': targetBand,
-                    'prior': prior, 'selected': selected, 'slitLPA': slitLPA, 'slitWidth': slitWidth,
-                    'len1': length1, 'len2': length2, 'targetName': tname
-            };
-            let ajax = new AjaxClass();
-            ajax.postRequest('updateTarget', { 'values': JSON.stringify(params) }, callback);
+        let values = {
+            'idx': idx, 'raSexa': targetRA, 'decSexa': targetDEC, 'eqx': 2000,
+            'mag': targetMagn, 'pBand': targetBand,
+            'prior': prior, 'selected': selected, 'slitLPA': slitLPA, 'slitWidth': slitWidth,
+            'len1': length1, 'len2': length2, 'targetName': tname
+        };
+        const data = {
+            'values': values
+        }
+        ajaxPost('updateTarget', data, selTargetCallback);
     };
 
     self.deselTarget = function () {
-            function callback(data) {
-                    let i = idx;
-                    if (data && data.length > 0)
-                            i = data[0]
-              //      self.updateTarget(idx);
+        function deselTargetCallback(data) {
+            self.SlitmaskDesignTool.reloadTargets(idx);
+            self.selectedTargetIdx = idx;
+            self.reDrawTable();
+            self.SlitmaskDesignTool.redraw();
+            self.targetTable.scrollTo(idx);
+            self.targetTable.highLight(idx);
+            self.reallyDrawTxImage();
+        }
+        // Updates an existing or adds a new target.
+        // Sends new target info to server
+        let idx = self.selectedTargetIdx;
+        let prior = Number(E('targetPrior').value);
+        let selected = Number(0);
+        let slitLPA = Number(E('targetSlitPA').value);
+        let slitWidth = Number(E('targetSlitWidth').value);
+        let length1 = Number(E('targetLength1').value);
+        let length2 = Number(E('targetLength2').value);
+        let tname = E("targetName").value;
+        let targetRA = E("targetRA").value;
+        let targetDEC = E("targetDEC").value;
+        let targetMagn = E("targetMagn").value;
+        let targetBand = E('targetBand').value;
 
-//                    self.selectedTargetIdx = i;
- //                   self.reDrawTable();
- //                   self.redraw();
-                    self.SlitmaskDesignTool.reloadTargets(idx, i);
-                    self.selectedTargetIdx = i;
-                    self.reDrawTable();
-                    self.SlitmaskDesignTool.redraw();
-                    self.targetTable.scrollTo(idx);
-                    self.targetTable.highLight(idx);
-                    self.reallyDrawTxImage();
-            }
-            // Updates an existing or adds a new target.
-            // Sends new target info to server
-            let idx = self.selectedTargetIdx;
-            let prior = Number(E('targetPrior').value);
-            let selected = Number(0);
-            let slitLPA = Number(E('targetSlitPA').value);
-            let slitWidth = Number(E('targetSlitWidth').value);
-            let length1 = Number(E('targetLength1').value);
-            let length2 = Number(E('targetLength2').value);
-            let tname = E("targetName").value;
-            let targetRA = E("targetRA").value;
-            let targetDEC = E("targetDEC").value;
-            let targetMagn = E("targetMagn").value;
-            let targetBand = E('targetBand').value;
-
-            let params = {
-                    'idx': idx, 'raSexa': targetRA, 'decSexa': targetDEC, 'eqx': 2000,
-                    'mag': targetMagn, 'pBand': targetBand,
-                    'prior': prior, 'selected': selected, 'slitLPA': slitLPA, 'slitWidth': slitWidth,
-                    'len1': length1, 'len2': length2, 'targetName': tname
-            };
-            let ajax = new AjaxClass();
-            ajax.postRequest('updateTarget', { 'values': JSON.stringify(params) }, callback);
+        let values = {
+            'idx': idx, 'raSexa': targetRA, 'decSexa': targetDEC, 'eqx': 2000,
+            'mag': targetMagn, 'pBand': targetBand,
+            'prior': prior, 'selected': selected, 'slitLPA': slitLPA, 'slitWidth': slitWidth,
+            'len1': length1, 'len2': length2, 'targetName': tname
+        };
+        const data = {
+            'values': values
+        }
+        ajaxPost('updateTarget', data, deselTargetCallback);
     };
 
 
@@ -1500,6 +1465,9 @@ function CanvasShow(containerName, zoomContainer) {
     };
 
     self.mouseMove = function (evt) {
+
+        self._Canvas.style.cursor = "crosshair";
+
         function whichButton(evt) {
             var bbb = evt.buttons || evt.which || evt.button;
             if (bbb === 1) return 1;
@@ -1551,8 +1519,8 @@ function CanvasShow(containerName, zoomContainer) {
         var mx = evt.pageX;
         var my = evt.pageY;
 
-        self.mousemx=mx;
-        self.mousemy=my;
+        self.mousemx = mx;
+        self.mousemy = my;
 
         var dx = mx - self.lastmx;
         var dy = my - self.lastmy;
@@ -1717,25 +1685,16 @@ function CanvasShow(containerName, zoomContainer) {
     };
 
     self.setTargets = function (targets) {
-        self.targets = targets;
-
-        var raHours = targets.raHour;
-        var decDegs = targets.decDeg;
-        var raSexa = [];
-        var decSexa = [];
-        for (i in raHours) {
-            var raH = raHours[i];
-            var dec = decDegs[i];
-            raSexa[i] = toSexa(raH);
-            decSexa[i] = toSexa(dec);
-        }
-        targets.raSexa = raSexa;
-        targets.decSexa = decSexa;
+        self.targets = targets.map((tgt) => {
+            tgt.raSexa = toSexa(tgt.raHour);
+            tgt.decSexa = toSexa(tgt.decDeg);
+            return tgt
+        })
 
         self.origSkyMatrix.reset(0);
         self.origSkyMatrix.rotate(radians(self.origPA), self.maskOffsetX, self.maskOffsetY);
 
-        self.targetTable = new TargetTable(targets);
+        self.targetTable = new TargetTable(self.targets);
         self.reDrawTable();
     };
 
@@ -1749,15 +1708,7 @@ function CanvasShow(containerName, zoomContainer) {
         self.reallyDrawTxImage();
     };
 
-    self.setMaskPA = function (maskPADeg) {
-        let npaRad = radians(maskPADeg - self.origPA - self.positionAngle);
 
-        self.targetMatrix.rotate(npaRad, self.maskOffsetX, self.maskOffsetY);
-        self.origSkyMatrix.rotate(npaRad, self.maskOffsetX, self.maskOffsetY);
-        self.reallyDrawTxImage();
-    };
-
-    self.initialize();
 
     E("showGuiderFOV").onchange = self.reallyDrawTxImage;
     E("showBadColumns").onchange = self.reallyDrawTxImage;
