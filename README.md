@@ -16,7 +16,5 @@ Launch using `python app.py`
 - Click the Generate Slits button to visualize slits.
 - Click save mask design file to save the file.
 
-
-
 ### Other items
 - Auto-select, generate slits, and the save mask buttons do not automatically update the parameters, instead they require the update parameters button to be pressed first to lock in the selection.
