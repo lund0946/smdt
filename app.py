@@ -22,7 +22,6 @@ from io import BytesIO
 import utils as util
 import pdb
 
-
 logger = logging.getLogger('smdt')
 formatter = logging.Formatter(
     '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -190,9 +189,8 @@ def saveMaskDesignFile():  # should only save current rather than re-running eve
             tarinfo.size = len(fits_data.getvalue())
             tar.addfile(tarinfo, fits_data)
 
-            out_data = BytesIO()
-            mdf.writeTo(out_data)
-            # mdf.writeOut(out_data)
+            out_data=BytesIO()
+            mdf.writeOut(out_data)
             out_data.seek(0)
             tarinfo = tarfile.TarInfo(name=names[1])
             tarinfo.size = len(out_data.getvalue())
