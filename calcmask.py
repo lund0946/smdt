@@ -82,15 +82,25 @@ def init_dicts(targetList, params):
             rlength2.append(float(params['AlignBoxSize'])*0.5)
             slitLPA.append(0)
 
-    obs_lat = 19.8
-    obs_alt = 4150.
-    mm_arcs = 0.7253
+
+    # Load local_config parameters #
+    with open('local_config.param') as f:
+        lines = (line.strip() for line in f if line.strip() and "=" in line)
+        local_params = {
+            k.strip(): (float(v) if v.replace('.', '', 1).isdigit() else v.strip())
+            for line in lines
+            for k, v in [line.split("=", 1)]
+        }
+
+    obs_lat = float(local_params['obs_lat'])
+    obs_alt = float(local_params['obs_alt'])
+    mm_arcs = float(local_params['mm_arcs_deimos'])
     waver = float(params['CenterWaveLength'])
     wavemn = float(params['BlueWaveLength'])
     wavemx = float(params['RedWaveLength'])
-    pres = float(params['Pressure'])
-    temp = float(params['Temperature'])
-    obs_rh = 0.4  # <--------- Add to webpage params!
+    pres = float(local_params['pressure'])
+    temp = float(local_params['temperature'])
+    obs_rh = float(local_params['obs_rh'])
 
     lat = np.radians(obs_lat)        # radians
     htm = obs_alt                   # meters
@@ -860,6 +870,31 @@ def gen_mask_out(targetList, fileparams):
     targetList, slits, site = gen_slits(targetList, fileparams, auto_sel=False, returnSlitSite=True)
     df = pd.DataFrame(targetList)
 
+    # Load local_config parameters #
+    with open('local_config.param') as f:
+        lines = (line.strip() for line in f if line.strip() and "=" in line)
+        local_params = {
+            k.strip(): (float(v) if v.replace('.', '', 1).isdigit() else v.strip())
+            for line in lines
+            for k, v in [line.split("=", 1)]
+        }
+
+    obs_lat = float(local_params['obs_lat'])
+    obs_alt = float(local_params['obs_alt'])
+    mm_arcs = float(local_params['mm_arcs_deimos'])
+    waver = float(params['CenterWaveLength'])
+    wavemn = float(params['BlueWaveLength'])
+    wavemx = float(params['RedWaveLength'])
+    pres = float(local_params['pressure'])
+    temp = float(local_params['temperature'])
+    obs_rh = float(local_params['obs_rh'])
+
+
+    if fileparams['instrument']=='DEIMOS':
+        telname='Keck II'
+    else:
+        telname='Keck I'
+
 
     tel = df[['newcenterRADeg', 'newcenterDECDeg', 'lst' ]].copy()
     tel.loc[:, 'dateobs'] = fileparams['ObsDate']
@@ -885,16 +920,16 @@ def gen_mask_out(targetList, fileparams):
         'no_overlap': False,
         #    'std_format':True,     #Remove this option
         'lambda_cen': float(fileparams['CenterWaveLength']),
-        'temp': float(fileparams['Temperature']),
-        'pressure': float(fileparams['Pressure']),
+        'temp': temp,
+        'pressure': pres,
         'maskid': fileparams['MaskId'],
         'guiname': fileparams['MaskName'],
         'dateobs': fileparams['ObsDate'],
         'author': fileparams['Author'],
         'observer': fileparams['Observer'],
         'project': fileparams['ProjectName'],
-        'instrument': 'DEIMOS',
-        'telescope': 'Keck II'
+        'instrument': fileparams['instrument'],
+        'telescope': telname
     }
 
     params['descreate'] = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')

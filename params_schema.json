@@ -343,7 +343,6 @@
     "required": [
         "ProjectName",
         "OutputFits",
-        "Telescope",
         "Instrument",
         "ObsDate",
         "Author",
@@ -359,13 +358,10 @@
         "CenterWaveLength",
         "ProjSlitLength",
         "NoOverlap",
-        "Temperature",
-        "Pressure",
         "MaskPA",
         "SlitPA",
         "InputRA",
         "InputDEC",
-        "MaskMargin",
         "HourAngle"
     ],
     "additionalProperties": true
